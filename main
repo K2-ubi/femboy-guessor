@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>FEMBOY GUESSOR — Комбо-серия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            background: radial-gradient(circle at 20% 30%, #0b0b14, #030308);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Poppins', sans-serif;
+            padding: 16px;
+            position: relative;
+            cursor: pointer; /* намек что кликабельно */
+        }
+
+        /* главный контейнер — идеально центрирует содержимое */
+        .game-container {
+            max-width: 700px;
+            width: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 28px;
+            position: relative;
+            z-index: 2;
+            pointer-events: auto;
+        }
+
+        /* ФОТО-БЛОК — масштабируется, дышит в центре */
+/* ФОТО-БЛОК — теперь прямоугольный */
+        .photo-stage {
+            width: 100%;
+            aspect-ratio: 3 / 4;       /* вместо квадрата */
+            max-width: 520px;
+            max-height: 80vh;
+            margin: 0 auto;
+            background: #0a0a12;
+            border-radius: 38px;
+            padding: 8px;
+            box-shadow:
+                0 25px 45px rgba(0,0,0,.6),
+                inset 0 1px 0 rgba(255,255,255,.05);
+        }
+
+        /* контейнер */
+        .photo-frame {
+            width: 100%;
+            height: 100%;
+            border-radius: 30px;
+            overflow: hidden;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* САМА КАРТИНКА */
+        #photo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;      /* не режет изображение */
+            object-position: center;
+            display: block;
+            transition: transform .2s ease;
+
+            /* качество */
+            image-rendering: auto;
+            backface-visibility: hidden;
+            transform: translateZ(0);
+        }
+                /* панель счётчика — лаконично */
+        .combo-area {
+            text-align: center;
+            background: rgba(10, 10, 20, 0.6);
+            backdrop-filter: blur(12px);
+            border-radius: 60px;
+            padding: 10px 24px;
+            border: 1px solid rgba(255, 200, 210, 0.25);
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .current-streak {
+            font-size: 3.3rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            text-shadow: 0 2px 10px rgba(255, 120, 160, 0.3);
+            line-height: 1;
+        }
+
+        .streak-label {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+            letter-spacing: 2px;
+            color: #b9b3e6;
+            margin-top: 5px;
+        }
+
+        /* две кнопки снизу — минимализм, крупно */
+        .buttons-duo {
+            display: flex;
+            gap: 28px;
+            justify-content: center;
+            width: 100%;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            flex-wrap: wrap;
+        }
+
+        .guess-action {
+            flex: 1;
+            min-width: 150px;
+            padding: 18px 12px;
+            border-radius: 60px;
+            font-size: 1.9rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: 0.15s linear;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            letter-spacing: 2px;
+            background: #14141fcc;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #f5efff;
+            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+        }
+
+        .guess-action:active {
+            transform: scale(0.97);
+        }
+
+        .boy-guess {
+            background: linear-gradient(115deg, #1e293bc9, #0f172ac9);
+            border-bottom: 3px solid #5b8cff;
+        }
+
+        .girl-guess {
+            background: linear-gradient(115deg, #b3416ec9, #802c51c9);
+            border-bottom: 3px solid #ff9fcc;
+        }
+
+        /* сообщение о статусе игры */
+        .game-status {
+            background: #0c0c16aa;
+            backdrop-filter: blur(12px);
+            border-radius: 40px;
+            padding: 10px 20px;
+            text-align: center;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #ffdee9;
+            border: 1px solid rgba(255, 180, 200, 0.3);
+            width: 100%;
+            max-width: 340px;
+            margin: 5px auto 0;
+        }
+
+        .restart-trigger {
+            background: none;
+            border: none;
+            color: #ffb7ca;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: 0.1s;
+        }
+
+        .restart-trigger:hover {
+            color: white;
+            text-shadow: 0 0 4px #ff99bb;
+        }
+
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #5a5270;
+            margin-top: 20px;
+        }
+
+        /* ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ ПРИ ПРОИГРЫШЕ */
+        .gameover-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.92);
+            backdrop-filter: blur(18px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            pointer-events: auto;
+            cursor: pointer;
+            animation: fadeIn 0.4s ease;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(18px); }
+        }
+
+        .gameover-card {
+            text-align: center;
+            background: rgba(20, 18, 35, 0.75);
+            border-radius: 64px;
+            padding: 2rem 2rem;
+            border: 1px solid rgba(255, 160, 190, 0.5);
+            box-shadow: 0 35px 60px rgba(0, 0, 0, 0.6);
+            max-width: 85vw;
+            backdrop-filter: blur(8px);
+            transform: scale(1);
+            transition: 0.2s;
+        }
+
+        .gameover-score {
+            font-size: 6rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFB7C5, #FF85A8, #D96CFF);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            line-height: 1;
+            text-shadow: 0 5px 20px rgba(255, 80, 120, 0.4);
+            letter-spacing: 4px;
+        }
+
+        .gameover-label {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #ffc0d5;
+            margin-top: 0.5rem;
+            letter-spacing: 2px;
+        }
+
+        .gameover-message {
+            font-size: 1.1rem;
+            color: #c9c3f0;
+            margin-top: 1.2rem;
+            max-width: 280px;
+            border-top: 1px solid rgba(255, 200, 220, 0.3);
+            padding-top: 1rem;
+        }
+
+        .tap-hint {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.5rem 1.2rem;
+            border-radius: 50px;
+            color: #ffdeea;
+            font-weight: 500;
+            backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 550px) {
+            .guess-action {
+                font-size: 1.4rem;
+                padding: 14px 8px;
+                min-width: 120px;
+            }
+            .current-streak {
+                font-size: 2.5rem;
+            }
+            .photo-stage {
+                border-radius: 28px;
+            }
+            .gameover-score {
+                font-size: 4rem;
+            }
+            .gameover-label {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* скрыть стандартную кнопку рестарта, когда оверлей активен — но она не мешает */
+        .restart-btn-out {
+            background: #22223b;
+            border: 1px solid #ff9ebb;
+            color: white;
+            border-radius: 40px;
+            padding: 8px 20px;
+            font-weight: bold;
+            margin-top: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+            transition: 0.1s;
+        }
+        .restart-btn-out:active {
+            transform: scale(0.96);
+        }
+
+        /* АДМИН-ПАНЕЛЬ */
+        .admin-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(8px);
+            z-index: 5000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            overflow-y: auto;
+        }
+
+        .admin-container {
+            background: #14141f;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 180, 200, 0.3);
+            padding: 30px;
+            max-width: 600px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
+        }
+
+        .admin-title {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .admin-form-group {
+            margin-bottom: 20px;
+        }
+
+        .admin-label {
+            display: block;
+            color: #ffc0d5;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .admin-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a28;
+            border: 1px solid rgba(255, 200, 210, 0.2);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-family: monospace;
+            transition: 0.2s;
+            box-sizing: border-box;
+        }
+
+        .admin-input:focus {
+            outline: none;
+            border-color: #ff9fcc;
+            box-shadow: 0 0 8px rgba(255, 159, 204, 0.3);
+        }
+
+        .admin-select {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a28;
+            border: 1px solid rgba(255, 200, 210, 0.2);
+            border-radius: 12px;
+            color: #ffffff;
+            font-size: 1rem;
+            font-family: 'Inter', system-ui;
+            transition: 0.2s;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .admin-select:focus {
+            outline: none;
+            border-color: #ff9fcc;
+            box-shadow: 0 0 8px rgba(255, 159, 204, 0.3);
+        }
+
+        .admin-select option {
+            background: #1a1a28;
+            color: #ffffff;
+        }
+
+        .admin-button {
+            width: 100%;
+            padding: 14px 20px;
+            background: linear-gradient(115deg, #b3416ec9, #802c51c9);
+            border: 1px solid #ff9fcc;
+            border-radius: 12px;
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: 0.15s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .admin-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(255, 159, 204, 0.4);
+        }
+
+        .admin-button:active {
+            transform: scale(0.98);
+        }
+
+        .admin-button-secondary {
+            background: rgba(100, 100, 150, 0.3);
+            border: 1px solid rgba(255, 200, 210, 0.2);
+            color: #c9c3f0;
+            margin-top: 10px;
+        }
+
+        .admin-list {
+            background: #0a0a12;
+            border-radius: 12px;
+            padding: 15px;
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 200, 210, 0.15);
+        }
+
+        .admin-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #14141f;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            color: #c9c3f0;
+            word-break: break-all;
+        }
+
+        .admin-item-category {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-right: 10px;
+            min-width: fit-content;
+        }
+
+        .admin-item-category.boy {
+            background: rgba(30, 41, 59, 0.6);
+            color: #7dd3fc;
+            border: 1px solid #0ea5e9;
+        }
+
+        .admin-item-category.girl {
+            background: rgba(179, 65, 110, 0.4);
+            color: #fbbbca;
+            border: 1px solid #ff9fcc;
+        }
+
+        .admin-item-delete {
+            background: #5a2c36;
+            color: #ff7b9c;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: 0.1s;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+
+        .admin-item-delete:hover {
+            background: #7a3c4a;
+        }
+
+        .admin-close-btn {
+            background: rgba(100, 100, 150, 0.2);
+            border: 1px solid rgba(255, 200, 210, 0.2);
+            color: #c9c3f0;
+            padding: 10px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.15s;
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .admin-close-btn:hover {
+            background: rgba(100, 100, 150, 0.4);
+        }
+
+        .admin-message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .admin-message.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid #22c55e;
+        }
+
+        .admin-message.info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid #3b82f6;
+        }
+    </style>
+</head>
+<body>
+<div class="game-container" id="gameContainer">
+    <!-- центр: фото масштабируется идеально -->
+    <div class="photo-stage">
+        <div class="photo-frame">
+            <img id="photo" alt="Угадай: парень или девушка?" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%232d2a4a'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23ffbfd5' text-anchor='middle' dy='.3em'%3ELOAD%3C/text%3E%3C/svg%3E">
+        </div>
+    </div>
+
+    <!-- счётчик комбо (серия правильных ответов) -->
+    <div class="combo-area" id="comboArea">
+        <div class="current-streak" id="streakValue">0</div>
+        <div class="streak-label">⚡ ПОДРЯД ⚡</div>
+    </div>
+
+    <!-- только две кнопки: ПАРЕНЬ / ДЕВУШКА -->
+    <div class="buttons-duo">
+        <button class="guess-action boy-guess" id="boyBtn">👨 ПАРЕНЬ</button>
+        <button class="guess-action girl-guess" id="girlBtn">👩 ДЕВУШКА</button>
+    </div>
+
+    <!-- статус игры и рестарт -->
+    <div class="game-status" id="statusMsg">
+        🎴 Нажми на кнопку, чтобы угадать
+    </div>
+    <footer>
+        🎯 серия прерывается при ошибке — набери максимум комбо!<br>
+        ✨ при проигрыше кликни в любое место ✨
+    </footer>
+</div>
+
+<!-- АДМИН-ПАНЕЛЬ -->
+<div id="adminPanel" class="admin-panel" style="display: none;">
+    <div class="admin-container">
+        <div class="admin-title">⚙️ АДМИН ПАНЕЛЬ ⚙️</div>
+        <div id="adminMessage"></div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">📷 URL фото</label>
+            <input
+                type="text"
+                id="photoUrl"
+                class="admin-input"
+                placeholder="Вставь полную ссылку на фото (https://...)"
+            >
+        </div>
+
+        <div class="admin-form-group">
+            <label class="admin-label">👥 Категория</label>
+            <select id="photoCategory" class="admin-select">
+                <option value="boy">👨 ПАРЕНЬ (boy)</option>
+                <option value="girl">👩 ДЕВУШКА (girl)</option>
+            </select>
+        </div>
+
+        <button id="addPhotoBtn" class="admin-button">➕ ДОБАВИТЬ ФОТО</button>
+
+        <div class="admin-form-group">
+            <label class="admin-label">📝 Все фото (${total}):</label>
+            <div class="admin-list" id="photosList"></div>
+        </div>
+
+        <button id="exportBtn" class="admin-button admin-button-secondary">💾 ЭКСПОРТИРОВАТЬ JSON</button>
+        <button id="importBtn" class="admin-button admin-button-secondary">📥 ИМПОРТИРОВАТЬ JSON</button>
+        <textarea
+            id="jsonInput"
+            class="admin-input"
+            placeholder="Вставь сюда JSON для импорта..."
+            style="display: none; margin-top: 10px; min-height: 100px; font-size: 0.85rem;"
+        ></textarea>
+        <button id="confirmImportBtn" class="admin-button admin-button-secondary" style="display: none; margin-top: 10px;">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>
+
+        <button id="closeAdminBtn" class="admin-close-btn">❌ ЗАКРЫТЬ</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+    // --------------------------------------------------------------
+    //  ДАННЫЕ ДЛЯ ИГРЫ (ДОБАВЛЯЙ СВОИ ФОТО ТУТ ↓↓↓)
+    // --------------------------------------------------------------
+    const fallbackImagesDataset = [
+        { url: "https://ir.ozone.ru/s3/rp-photo-15/wc800/8da51805-8422-4ad6-ad60-68ee2d5d5492.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-13/wc800/f692c195-86c6-4619-a4b8-5dcbf95f3ec2.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-15/wc800/9cf5a6c0-2f9c-4e61-9631-e6d49bf3a1fe.jpeg", answer: "girl" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-14/wc800/ded27792-334d-4c17-8e06-e1dd8d0bd2ec.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-11/wc800/089b45f2-0807-4f7e-8403-dd5a5724663b.jpeg", answer: "girl" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-12/wc1600/2bb23d28-85ef-4c00-b188-5e9c98ecdaa0.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-13/wc1600/73bab1d7-a728-496e-a5cf-4c849d43d992.jpeg", answer: "girl" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-13/wc1600/cf78d681-8789-4579-8b48-26519fff54b6.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-11/wc1600/cd121597-7d56-4f78-ae50-6c7d72e785f9.jpeg", answer: "boy" },
+        { url: "https://ir.ozone.ru/s3/rp-photo-13/wc1600/993a1b1c-7fdc-4578-8b9d-71e017e2c1f4.jpeg", answer: "girl" },
+    ];
+    const imagesDataset = fallbackImagesDataset.map(item => ({ ...item }));
+    // --------------------------------------------------------------
+
+    // ИГРОВОЕ СОСТОЯНИЕ
+    let currentStreak = 0;          // текущая серия правильных ответов ПОДРЯД
+    let gameActive = true;           // активна ли игра (false = проигрыш)
+    let currentItem = null;          // текущий объект {url, answer}
+    let canGuess = true;             // блокировка повторного клика на том же фото
+
+    // Очередь изображений
+    let imageQueue = [];
+    let currentIndex = 0;
+
+    // DOM элементы
+    const photoEl = document.getElementById('photo');
+    const streakValueSpan = document.getElementById('streakValue');
+    const boyBtn = document.getElementById('boyBtn');
+    const girlBtn = document.getElementById('girlBtn');
+    const statusDiv = document.getElementById('statusMsg');
+    const comboAreaDiv = document.getElementById('comboArea');
+
+    // Функции утилиты
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function buildFreshQueue() {
+        const copy = imagesDataset.map(item => ({ ...item }));
+        return shuffleArray(copy);
+    }
+
+    function updateStreakUI() {
+        streakValueSpan.innerText = currentStreak;
+        if (currentStreak >= 5) {
+            comboAreaDiv.style.boxShadow = "0 0 12px rgba(255,140,200,0.6)";
+        } else {
+            comboAreaDiv.style.boxShadow = "none";
+        }
+        if (!gameActive) {
+            streakValueSpan.style.opacity = "0.6";
+        } else {
+            streakValueSpan.style.opacity = "1";
+        }
+    }
+
+    // ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ ПРИ ПРОИГРЫШЕ
+    function showGameOverOverlay(finalStreak) {
+        // если оверлей уже есть — не дублируем
+        if (document.querySelector('.gameover-overlay')) return;
+        
+        const overlay = document.createElement('div');
+        overlay.className = 'gameover-overlay';
+        overlay.setAttribute('data-overlay', 'true');
+        
+        // Внутренний контент
+        overlay.innerHTML = `
+            <div class="gameover-card">
+                <div class="gameover-score">${finalStreak}</div>
+                <div class="gameover-label">🔥 СЕРИЯ ПРЕРВАНА 🔥</div>
+                <div class="gameover-message">
+                    Ты набрал(а) ${finalStreak} правильных ответов подряд!
+                </div>
+                <div class="tap-hint">
+                    👆 НАЖМИ В ЛЮБОЕ МЕСТО 👆
+                </div>
+            </div>
+        `;
+        
+        // клик по оверлею — запускаем рестарт
+        overlay.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetGameAndRemoveOverlay();
+        });
+        
+        document.body.appendChild(overlay);
+        // дополнительно заблокируем кнопки, но они уже disabled, но на всякий случай
+        boyBtn.disabled = true;
+        girlBtn.disabled = true;
+    }
+    
+    function resetGameAndRemoveOverlay() {
+        // убираем оверлей
+        const existingOverlay = document.querySelector('.gameover-overlay');
+        if (existingOverlay) existingOverlay.remove();
+        
+        // сброс игры
+        fullResetGame();
+    }
+    
+    // ПОЛНЫЙ СБРОС ИГРЫ (без оверлея)
+    function fullResetGame() {
+        // сброс параметров
+        currentStreak = 0;
+        gameActive = true;
+        canGuess = true;
+        photoEl.style.filter = "";
+        
+        // пересоздаем колоду заново
+        imageQueue = buildFreshQueue();
+        currentIndex = 0;
+        if (imageQueue.length === 0) {
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%236b4e71'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle'%3EДобавь фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+        }
+        currentItem = imageQueue[0];
+        photoEl.src = currentItem.url;
+        
+        updateStreakUI();
+        
+        // активируем кнопки
+        boyBtn.disabled = false;
+        girlBtn.disabled = false;
+        
+        // чистим статус
+        statusDiv.innerHTML = "✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨";
+        statusDiv.style.color = "#ffdee9";
+        
+        // убираем возможные эффекты
+        streakValueSpan.style.opacity = "1";
+        canGuess = true;
+        
+        // убираем затемнение фото
+        photoEl.style.filter = "";
+    }
+    
+    // Классический рестарт (вызываемый при проигрыше или по клику с оверлея)
+    function resetGame() {
+        fullResetGame();
+        // дополнительно удаляем оверлей если вдруг он есть
+        const ov = document.querySelector('.gameover-overlay');
+        if (ov) ov.remove();
+    }
+    
+    // Завершение игры с ошибкой (показываем полноэкранный счёт)
+    function endGameWithLose() {
+        if (!gameActive) return;
+        gameActive = false;
+        canGuess = false;
+        
+        // финальная серия
+        const finalStreak = currentStreak;
+        
+        // отключаем кнопки выбора
+        boyBtn.disabled = true;
+        girlBtn.disabled = true;
+        
+        // сохраняем "мёртвое" состояние UI: фото можно затемнить
+        photoEl.style.filter = "grayscale(0.3) brightness(0.7)";
+        statusDiv.innerHTML = `💔 ПОРАЖЕНИЕ! Твоя серия: ${finalStreak}. Нажми на экран, чтобы начать заново.`;
+        
+        // ПОКАЗЫВАЕМ ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ С РЕЗУЛЬТАТОМ
+        showGameOverOverlay(finalStreak);
+    }
+    
+    // Загрузка следующего фото после правильного ответа
+    function loadNextPhotoAfterCorrect() {
+        if (!gameActive) return;
+        
+        currentIndex++;
+        if (!imageQueue.length || currentIndex >= imageQueue.length) {
+            imageQueue = buildFreshQueue();
+            currentIndex = 0;
+        }
+        currentItem = imageQueue[currentIndex];
+        if (!currentItem) {
+            imageQueue = buildFreshQueue();
+            currentIndex = 0;
+            currentItem = imageQueue[0];
+        }
+        photoEl.src = currentItem.url;
+        photoEl.alt = "Парень или девушка?";
+        canGuess = true; // разрешаем угадывать заново
+        if (gameActive) {
+            statusDiv.innerHTML = "🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? Набери серию! 🤍";
+        }
+        // активируем кнопки (если игра активна)
+        boyBtn.disabled = !gameActive;
+        girlBtn.disabled = !gameActive;
+    }
+    
+    // Обработка выбора
+    function makeGuess(guess) {
+        if (!gameActive) {
+            statusDiv.innerHTML = "⛔ Игра завершена. Кликни по экрану для новой попытки.";
+            return;
+        }
+        if (!canGuess) {
+            statusDiv.innerHTML = "⏳ Ты уже ответил! Жди следующее фото...";
+            return;
+        }
+        if (!currentItem) {
+            fullResetGame();
+            return;
+        }
+        
+        const isCorrect = (guess === currentItem.answer);
+        
+        if (isCorrect) {
+            // Правильный ответ: увеличиваем серию
+            currentStreak++;
+            updateStreakUI();
+            
+            // Анимация счётчика
+            streakValueSpan.style.transform = "scale(1.1)";
+            setTimeout(() => { if(streakValueSpan) streakValueSpan.style.transform = ""; }, 150);
+            
+            statusDiv.innerHTML = `✅ ПРАВИЛЬНО! +1 к серии! Комбо: ${currentStreak} 🔥`;
+            canGuess = false;
+            loadNextPhotoAfterCorrect();
+        } else {
+            // Ошибка — конец игры
+            const correctAnswerText = (currentItem.answer === 'boy') ? 'ПАРЕНЬ' : 'ДЕВУШКА';
+            statusDiv.innerHTML = `❌ ОШИБКА! На фото был(а) — ${correctAnswerText}. Твоя серия прервана на ${currentStreak}.`;
+            endGameWithLose(); // внутри вызывает оверлей с конечным счётом
+        }
+    }
+    
+    // Инициализация новой игры (при старте)
+    function initGameModule() {
+        imageQueue = buildFreshQueue();
+        currentIndex = 0;
+        if (imageQueue.length === 0) {
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%2331325e'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffc5d9' text-anchor='middle'%3EЗагрузи фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+        }
+        currentItem = imageQueue[0];
+        photoEl.src = currentItem.url;
+        currentStreak = 0;
+        gameActive = true;
+        canGuess = true;
+        updateStreakUI();
+        boyBtn.disabled = false;
+        girlBtn.disabled = false;
+        statusDiv.innerHTML = "🎭 Кто на фото? Нажми кнопку, каждый правильный ответ продлевает серию!";
+        photoEl.style.filter = "";
+        // убираем возможные оверлеи
+        const ov = document.querySelector('.gameover-overlay');
+        if (ov) ov.remove();
+    }
+    
+    // добавляем глобальный слушатель клика на body, чтобы рестартовать по клику в любом месте
+    // но важно: если игра активна — клик не должен ничего сбрасывать. только при gameActive === false
+    // также не мешать кликам по кнопкам и оверлею (оверлей сам обработает)
+    document.body.addEventListener('click', (e) => {
+        // если есть активный оверлей — не обрабатываем повторно, оверлей сам рестартит
+        if (document.querySelector('.gameover-overlay')) return;
+        // если игра не активна (проигрыш) и оверлей по какой-то причине не появился? на всякий случай
+        if (!gameActive) {
+            // но если оверлей не появился (баг) - делаем рестарт вручную
+            fullResetGame();
+        }
+    });
+    
+    // отдельно навешиваем события на кнопки
+    boyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        makeGuess('boy');
+    });
+    girlBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        makeGuess('girl');
+    });
+    
+    // ошибка загрузки картинки
+    photoEl.onerror = function() {
+        if (currentItem) {
+            this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%233d2b46'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffb3c6' text-anchor='middle'%3EОшибка фото%3C/text%3E%3C/svg%3E";
+        }
+    };
+    
+    // ==================== FIREBASE + НАСТРОЙКИ ====================
+    // Меняй пароль тут при необходимости
+    const ADMIN_PASSWORD = 'Dushik23sw';
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
+        authDomain: "project-3861147147890788156.firebaseapp.com",
+        databaseURL: "https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "project-3861147147890788156",
+        storageBucket: "project-3861147147890788156.firebasestorage.app",
+        messagingSenderId: "321657389257",
+        appId: "1:321657389257:web:68e8310bc34343848b4d18"
+    };
+    const FIREBASE_PHOTOS_PATH = 'femboy_guessor/photos';
+    let firebaseDb = null;
+    let firebaseReady = false;
+
+    function initFirebase() {
+        try {
+            if (!window.firebase) {
+                console.error('Firebase SDK не загружен');
+                return false;
+            }
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            firebaseDb = firebase.database();
+            firebaseReady = true;
+            return true;
+        } catch (e) {
+            console.error('Ошибка инициализации Firebase:', e);
+            firebaseReady = false;
+            return false;
+        }
+    }
+
+    // ==================== АДМИН-ПАНЕЛЬ ====================
+    const adminPanel = document.getElementById('adminPanel');
+    const photoUrlInput = document.getElementById('photoUrl');
+    const photoCategorySelect = document.getElementById('photoCategory');
+    const addPhotoBtn = document.getElementById('addPhotoBtn');
+    const photosList = document.getElementById('photosList');
+    const adminMessage = document.getElementById('adminMessage');
+    const closeAdminBtn = document.getElementById('closeAdminBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const jsonInput = document.getElementById('jsonInput');
+    const confirmImportBtn = document.getElementById('confirmImportBtn');
+
+    function normalizePhotoItem(item) {
+        if (!item || typeof item.url !== 'string') return null;
+        const gender = (item.gender === 'boy' || item.gender === 'girl') ? item.gender : item.answer;
+        if (gender !== 'boy' && gender !== 'girl') return null;
+        return { url: item.url, answer: gender, gender };
+    }
+
+    function isValidPhotosArray(value) {
+        return Array.isArray(value) && value.every(item =>
+            normalizePhotoItem(item) !== null
+        );
+    }
+
+    function toRealtimePayload(items) {
+        return items.map(item => ({
+            url: item.url,
+            gender: item.gender || item.answer
+        }));
+    }
+
+    // Загрузка фото из Firebase Realtime Database
+    async function loadPhotosFromRealtimeDb() {
+        if (!firebaseReady || !firebaseDb) {
+            return false;
+        }
+        try {
+            const snapshot = await firebaseDb.ref(FIREBASE_PHOTOS_PATH).get();
+            if (!snapshot.exists()) return false;
+            const parsed = snapshot.val();
+            if (isValidPhotosArray(parsed)) {
+                const normalized = parsed.map(normalizePhotoItem).filter(Boolean);
+                imagesDataset.length = 0;
+                imagesDataset.push(...normalized);
+                return true;
+            }
+            console.warn('В Firebase лежит некорректный формат photos');
+            return false;
+        } catch (e) {
+            console.error('Ошибка загрузки из Firebase:', e);
+            return false;
+        }
+    }
+
+    // Сохранение фото в Firebase Realtime Database
+    async function savePhotosToRealtimeDb() {
+        if (!firebaseReady || !firebaseDb) {
+            throw new Error('Firebase не инициализирован');
+        }
+        await firebaseDb.ref(FIREBASE_PHOTOS_PATH).set(toRealtimePayload(imagesDataset));
+    }
+
+    // Показ сообщения в админ-панели
+    function showAdminMessage(text, type = 'info') {
+        adminMessage.innerHTML = `<div class="admin-message ${type}">${text}</div>`;
+        setTimeout(() => {
+            adminMessage.innerHTML = '';
+        }, 3000);
+    }
+
+    // Обновление списка фото в админ-панели
+    function updatePhotosList() {
+        photosList.innerHTML = '';
+        imagesDataset.forEach((item, index) => {
+            const photoItem = document.createElement('div');
+            photoItem.className = 'admin-item';
+
+        const category = item.gender === 'boy' || item.answer === 'boy' ? 'boy' : 'girl';
+        const categoryLabel = category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА';
+            const shortUrl = item.url.length > 50 ? item.url.substring(0, 50) + '...' : item.url;
+
+            photoItem.innerHTML = `
+                <div style="flex: 1; overflow: hidden;">
+                    <span class="admin-item-category ${category}">${categoryLabel}</span>
+                    <span style="word-break: break-all;">${shortUrl} | пол: ${category}</span>
+                </div>
+                <button class="admin-item-delete" onclick="deletePhoto(${index})">🗑️ Удалить</button>
+            `;
+            photosList.appendChild(photoItem);
+        });
+
+        // Обновляем количество
+        const totalLabel = document.querySelector('.admin-label');
+        if (totalLabel) {
+            totalLabel.textContent = `📝 Все фото (${imagesDataset.length}):`;
+        }
+    }
+
+    // Добавление фото
+    addPhotoBtn.addEventListener('click', async () => {
+        const url = photoUrlInput.value.trim();
+        const category = photoCategorySelect.value;
+
+        if (!url) {
+            showAdminMessage('❌ URL пуст! Вставь ссылку на фото', 'info');
+            return;
+        }
+
+        if (!url.startsWith('http')) {
+            showAdminMessage('❌ Ссылка должна начинаться с http:// или https://', 'info');
+            return;
+        }
+
+        const newPhoto = { url, answer: category, gender: category };
+        imagesDataset.push(newPhoto);
+        try {
+            await savePhotosToRealtimeDb();
+            updatePhotosList();
+        } catch (e) {
+            imagesDataset.pop();
+            showAdminMessage(`❌ Не удалось сохранить в Firebase: ${e.message}`, 'info');
+            return;
+        }
+
+        photoUrlInput.value = '';
+        showAdminMessage(`✅ Фото добавлено! (${category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА'})`, 'success');
+    });
+
+    // Удаление фото
+    window.deletePhoto = async function(index) {
+        const removed = imagesDataset[index];
+        imagesDataset.splice(index, 1);
+        try {
+            await savePhotosToRealtimeDb();
+            updatePhotosList();
+            showAdminMessage('🗑️ Фото удалено', 'info');
+        } catch (e) {
+            if (removed) {
+                imagesDataset.splice(index, 0, removed);
+            }
+            showAdminMessage(`❌ Не удалось удалить из Firebase: ${e.message}`, 'info');
+        }
+    };
+
+    // Экспорт в JSON
+    exportBtn.addEventListener('click', () => {
+        const json = JSON.stringify(imagesDataset, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'photos_backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showAdminMessage('💾 JSON экспортирован', 'success');
+    });
+
+    // Импорт JSON
+    importBtn.addEventListener('click', () => {
+        jsonInput.style.display = jsonInput.style.display === 'none' ? 'block' : 'none';
+        confirmImportBtn.style.display = confirmImportBtn.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Подтверждение импорта
+    confirmImportBtn.addEventListener('click', async () => {
+        const jsonText = jsonInput.value.trim();
+
+        if (!jsonText) {
+            showAdminMessage('❌ JSON пуст!', 'info');
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(jsonText);
+
+            if (!Array.isArray(parsed)) {
+                showAdminMessage('❌ JSON должен быть массивом!', 'info');
+                return;
+            }
+
+            if (!isValidPhotosArray(parsed)) {
+                showAdminMessage('❌ Некорректный формат! Нужны поля: url (string) и gender/answer ("boy" или "girl")', 'info');
+                return;
+            }
+
+            const previous = imagesDataset.map(item => ({ ...item }));
+            try {
+                const normalized = parsed.map(normalizePhotoItem).filter(Boolean);
+                imagesDataset.length = 0;
+                imagesDataset.push(...normalized);
+                await savePhotosToRealtimeDb();
+                updatePhotosList();
+            } catch (e) {
+                imagesDataset.length = 0;
+                imagesDataset.push(...previous);
+                showAdminMessage(`❌ Импорт не сохранен в Firebase: ${e.message}`, 'info');
+                return;
+            }
+
+            jsonInput.value = '';
+            jsonInput.style.display = 'none';
+            confirmImportBtn.style.display = 'none';
+
+            showAdminMessage(`✅ ${parsed.length} фото импортировано!`, 'success');
+        } catch (e) {
+            showAdminMessage(`❌ Ошибка JSON: ${e.message}`, 'info');
+        }
+    });
+
+    // Закрытие админ-панели
+    closeAdminBtn.addEventListener('click', () => {
+        adminPanel.style.display = 'none';
+        initGameModule(); // Перезагружаем игру с новыми фото
+    });
+
+    // Открытие админ-панели по параметру URL ?admin
+    function requestAdminAccess() {
+        const password = window.prompt('Введите пароль админки:');
+        if (password === null) return false;
+        if (password !== ADMIN_PASSWORD) {
+            window.alert('Неверный пароль');
+            return false;
+        }
+        return true;
+    }
+
+    async function openAdminPanel() {
+        if (!requestAdminAccess()) return;
+        adminPanel.style.display = 'flex';
+        const loaded = await loadPhotosFromRealtimeDb();
+        updatePhotosList();
+        showAdminMessage(
+            loaded ? '☁️ Фото загружены из Realtime Database' : 'ℹ️ База пустая или недоступна, используются 10 запасных фото из кода',
+            'info'
+        );
+    }
+
+    async function checkAdminMode() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('admin')) {
+            await openAdminPanel();
+        }
+    }
+
+    // Проверяем при загрузке
+    async function startApp() {
+        initFirebase();
+        await loadPhotosFromRealtimeDb();
+        initGameModule();
+        await checkAdminMode();
+    }
+    startApp();
+
+    // Подстраховка: также проверяем нажатие Ctrl+Shift+A
+    document.addEventListener('keydown', async (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+            e.preventDefault();
+            const isClosed = adminPanel.style.display === 'none' || adminPanel.style.display === '';
+            if (isClosed) {
+                await openAdminPanel();
+            } else {
+                adminPanel.style.display = 'none';
+                initGameModule();
+            }
+        }
+    });
+</script>
+</body>
+</html>
