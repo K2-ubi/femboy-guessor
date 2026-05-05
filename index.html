@@ -4,22 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FEMBOY GUESSOR — Комбо-серия</title>
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <!-- Vercel Analytics + Speed Insights -->
-    <script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
-    <script src="https://cdn.vercel-insights.com/v1/speed-insights.js" defer></script>
-    <script>
-      // Analytics
-      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-      window.va('before', { projectId: 'YOUR_PROJECT_ID' });  
-      // Speed Insights
-      window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
-      window.si('before', {
-        projectId: 'YOUR_PROJECT_ID',
-        sampleRate: 1,
-        route: window.location.pathname
-      });
-    </script>
     <style>
         * {
             margin: 0;
@@ -893,6 +877,22 @@
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
     </style>
+<!-- Vercel Analytics + Speed Insights -->
+<script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
+<script src="https://cdn.vercel-insights.com/v1/speed-insights.js" defer></script>
+<script>
+  // Analytics
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  window.va('before', { projectId: 'YOUR_PROJECT_ID' });
+  
+  // Speed Insights
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  window.si('before', {
+    projectId: 'YOUR_PROJECT_ID',
+    sampleRate: 1,
+    route: window.location.pathname
+  });
+</script>
 </head>
 <body>
 
@@ -909,7 +909,6 @@
     <div style="font-size:0.8rem;color:#ffc0d5;font-weight:700;">Аккаунт</div>
     <input type="text" id="authUsername" autocomplete="username" placeholder="Логин латиницей: ivan_k" maxlength="32">
     <input type="password" id="authPassword" autocomplete="current-password" placeholder="Пароль" maxlength="64">
-    <div class="g-recaptcha" data-sitekey="6LdPPdosAAAAAEsBy6Kz506_RxsPrnFNj6WU6Q9w" style="margin:8px 0;"></div>
     <button type="button" class="row btn-in" id="authSignIn">Войти</button>
     <button type="button" class="row btn-up" id="authSignUp">Создать аккаунт</button>
     <button type="button" class="row btn-up" id="authSignOut" style="display:none;">Выйти</button>
@@ -1384,30 +1383,6 @@
         return `${u}@femboy-guessor.local`;
     }
 
-    function getRecaptchaResponse() {
-        if (!window.grecaptcha) return null;
-        return grecaptcha.getResponse();
-    }
-
-    function resetRecaptcha() {
-        if (!window.grecaptcha) return;
-        grecaptcha.reset();
-    }
-
-    async function verifyRecaptchaOnServer(token) {
-        try {
-            const response = await fetch('/api/verify-recaptcha', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token })
-            });
-            return await response.json();
-        } catch (error) {
-            console.error('reCAPTCHA verification error:', error);
-            return { success: false, error: error.message };
-        }
-    }
-
     async function checkAdminFlag() {
         isAdminUser = false;
         if (!firebaseReady || !firebaseDb || !firebaseAuth || !firebaseAuth.currentUser) return false;
@@ -1788,14 +1763,6 @@
 
         authSignUp.addEventListener('click', async () => {
             try {
-                const recaptchaResponse = getRecaptchaResponse();
-                if (!recaptchaResponse) {
-                    throw new Error('Пожалуйста, подтвердите, что вы не робот');
-                }
-                const verification = await verifyRecaptchaOnServer(recaptchaResponse);
-                if (!verification.success) {
-                    throw new Error('Проверка reCAPTCHA не пройдена. Попробуйте еще раз.');
-                }
                 const email = usernameToEmail(authUsername.value);
                 const cred = await firebaseAuth.createUserWithEmailAndPassword(email, authPassword.value);
                 const name = String(authUsername.value || '').trim().slice(0, 32);
@@ -1811,10 +1778,8 @@
                 await syncRunsPlayedToCloud();
                 touchAuthStatusBar();
                 authPanel.classList.remove('open');
-                resetRecaptcha();
             } catch (err) {
                 window.alert(err.message || String(err));
-                resetRecaptcha();
             }
         });
 
