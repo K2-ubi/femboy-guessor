@@ -12,14 +12,6 @@
             user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-<!-- Vercel Analytics -->
-<script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
-<script>
-  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
-  window.va('before', { 
-    projectId: 'YOUR_PROJECT_ID'  // Замените на ваш ID проекта в Vercel
-  });
-</script>
         body {
             min-height: 100vh;
             background: radial-gradient(circle at 20% 30%, #0b0b14, #030308);
@@ -884,6 +876,12 @@
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
     </style>
+    
+    <!-- Vercel Web Analytics -->
+    <script>
+      window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+    </script>
+    <script defer src="/_vercel/insights/script.js"></script>
 </head>
 <body>
 
