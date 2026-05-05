@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FEMBOY GUESSOR — Комбо-серия</title>
-    <script src="https://www.google.com/recaptcha/api.js?render=6LfQPdosAAAAANwx0Zs0Bqunuvi5EsGQdHIksEwy"></script>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
     <style>
         * {
             margin: 0;
@@ -894,7 +894,7 @@
     <div style="font-size:0.8rem;color:#ffc0d5;font-weight:700;">Аккаунт</div>
     <input type="text" id="authUsername" autocomplete="username" placeholder="Логин латиницей: ivan_k" maxlength="32">
     <input type="password" id="authPassword" autocomplete="current-password" placeholder="Пароль" maxlength="64">
-    <!-- reCAPTCHA v3 работает невидимо, виджет не нужен -->
+    <div class="g-recaptcha" data-sitekey="6LdPPdosAAAAAEsBy6Kz506_RxsPrnFNj6WU6Q9w" style="margin:8px 0;"></div>
     <button type="button" class="row btn-in" id="authSignIn">Войти</button>
     <button type="button" class="row btn-up" id="authSignUp">Создать аккаунт</button>
     <button type="button" class="row btn-up" id="authSignOut" style="display:none;">Выйти</button>
@@ -1369,26 +1369,22 @@
         return `${u}@femboy-guessor.local`;
     }
 
-    async function getRecaptchaToken(action) {
-        return new Promise((resolve, reject) => {
-            if (!window.grecaptcha) {
-                reject(new Error('reCAPTCHA not loaded'));
-                return;
-            }
-            grecaptcha.ready(() => {
-                grecaptcha.execute('6LfQPdosAAAAANwx0Zs0Bqunuvi5EsGQdHIksEwy', { action })
-                    .then(resolve)
-                    .catch(reject);
-            });
-        });
+    function getRecaptchaResponse() {
+        if (!window.grecaptcha) return null;
+        return grecaptcha.getResponse();
     }
 
-    async function verifyRecaptchaOnServer(token, action) {
+    function resetRecaptcha() {
+        if (!window.grecaptcha) return;
+        grecaptcha.reset();
+    }
+
+    async function verifyRecaptchaOnServer(token) {
         try {
             const response = await fetch('/api/verify-recaptcha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ token, action })
+                body: JSON.stringify({ token })
             });
             return await response.json();
         } catch (error) {
@@ -1765,11 +1761,6 @@
 
         authSignIn.addEventListener('click', async () => {
             try {
-                const recaptchaToken = await getRecaptchaToken('login');
-                const verification = await verifyRecaptchaOnServer(recaptchaToken, 'login');
-                if (!verification.success) {
-                    throw new Error('Проверка reCAPTCHA не пройдена. Попробуйте еще раз.');
-                }
                 const email = usernameToEmail(authUsername.value);
                 await firebaseAuth.signInWithEmailAndPassword(email, authPassword.value);
                 await mergeRunsPlayedFromCloud();
@@ -1782,8 +1773,11 @@
 
         authSignUp.addEventListener('click', async () => {
             try {
-                const recaptchaToken = await getRecaptchaToken('signup');
-                const verification = await verifyRecaptchaOnServer(recaptchaToken, 'signup');
+                const recaptchaResponse = getRecaptchaResponse();
+                if (!recaptchaResponse) {
+                    throw new Error('Пожалуйста, подтвердите, что вы не робот');
+                }
+                const verification = await verifyRecaptchaOnServer(recaptchaResponse);
                 if (!verification.success) {
                     throw new Error('Проверка reCAPTCHA не пройдена. Попробуйте еще раз.');
                 }
@@ -1802,8 +1796,10 @@
                 await syncRunsPlayedToCloud();
                 touchAuthStatusBar();
                 authPanel.classList.remove('open');
+                resetRecaptcha();
             } catch (err) {
                 window.alert(err.message || String(err));
+                resetRecaptcha();
             }
         });
 
