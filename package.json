@@ -1,0 +1,16 @@
+{
+  "name": "femboy-guessor",
+  "version": "1.0.0",
+  "description": "FEMBOY GUESSOR game",
+  "private": true,
+  "scripts": {
+    "build": "echo 'Static HTML project - no build required'",
+    "dev": "echo 'Use a local server to run index.html'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@vercel/speed-insights": "^1.0.12"
+  }
+}
