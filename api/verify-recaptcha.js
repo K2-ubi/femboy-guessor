@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const SECRET_KEY = '6LfQPdosAAAAAEJ_mzckkO82n_hC30RwDqePiDL_';
+const SECRET_KEY = '6LdPPdosAAAAAOFlqrF3LHtbsoiXUo_OmsX78BAZ';
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -15,7 +15,7 @@ module.exports = async (req, res) => {
     return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { token, action } = req.body;
+  const { token } = req.body;
 
   if (!token) {
     return res.status(400).json({ success: false, error: 'Missing token' });
@@ -31,14 +31,8 @@ module.exports = async (req, res) => {
 
     const data = response.data;
 
-    // Для v3 проверяем score и action
-    const score = data.score || 0;
-    const success = data.success && score >= 0.5;
-
     return res.json({
-      success,
-      score,
-      action: data.action,
+      success: data.success,
       error: data['error-codes']?.join(', ')
     });
   } catch (error) {
