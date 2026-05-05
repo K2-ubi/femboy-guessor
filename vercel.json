@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "1.html", "use": "@vercel/static" },
+    { "src": "api/**/*.js", "use": "@vercel/node" }
+  ],
+  "routes": [
+    { "src": "/api/verify-recaptcha", "dest": "/api/verify-recaptcha.js" },
+    { "src": "/(.*)", "dest": "/1.html" }
+  ]
+}
