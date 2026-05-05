@@ -23,9 +23,10 @@
             padding: 16px;
             padding-top: 52px;
             position: relative;
-            cursor: pointer;
+            cursor: pointer; /* намек что кликабельно */
         }
 
+        /* главный контейнер — идеально центрирует содержимое */
         .game-container {
             max-width: 700px;
             width: 100%;
@@ -40,19 +41,23 @@
             pointer-events: auto;
         }
 
+        /* ФОТО-БЛОК — масштабируется, дышит в центре */
+/* ФОТО-БЛОК — теперь прямоугольный */
         .photo-stage {
             width: 100%;
-            aspect-ratio: 3 / 4;
+            aspect-ratio: 3 / 4;       /* вместо квадрата */
             max-width: 520px;
             max-height: 80vh;
             margin: 0 auto;
             background: #0a0a12;
             border-radius: 38px;
             padding: 8px;
-            box-shadow: 0 25px 45px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
-            position: relative;
+            box-shadow:
+                0 25px 45px rgba(0,0,0,.6),
+                inset 0 1px 0 rgba(255,255,255,.05);
         }
 
+        /* контейнер */
         .photo-frame {
             width: 100%;
             height: 100%;
@@ -64,18 +69,21 @@
             justify-content: center;
         }
 
+        /* САМА КАРТИНКА */
         #photo {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: contain;      /* не режет изображение */
             object-position: center;
             display: block;
             transition: transform .2s ease;
+
+            /* качество */
             image-rendering: auto;
             backface-visibility: hidden;
             transform: translateZ(0);
         }
-
+                /* панель счётчика — лаконично */
         .combo-area {
             text-align: center;
             background: rgba(10, 10, 20, 0.6);
@@ -108,6 +116,7 @@
             margin-top: 5px;
         }
 
+        /* две кнопки снизу — минимализм, крупно */
         .buttons-duo {
             display: flex;
             gap: 28px;
@@ -154,6 +163,7 @@
             border-bottom: 3px solid #ff9fcc;
         }
 
+        /* сообщение о статусе игры */
         .game-status {
             background: #0c0c16aa;
             backdrop-filter: blur(12px);
@@ -169,6 +179,23 @@
             margin: 5px auto 0;
         }
 
+        .restart-trigger {
+            background: none;
+            border: none;
+            color: #ffb7ca;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-decoration: underline;
+            cursor: pointer;
+            margin-left: 8px;
+            transition: 0.1s;
+        }
+
+        .restart-trigger:hover {
+            color: white;
+            text-shadow: 0 0 4px #ff99bb;
+        }
+
         footer {
             font-size: 0.7rem;
             text-align: center;
@@ -176,7 +203,25 @@
             margin-top: 20px;
         }
 
-        /* Админ-панель и остальные стили... */
+        /* скрыть стандартную кнопку рестарта, когда оверлей активен — но она не мешает */
+        .restart-btn-out {
+            background: #22223b;
+            border: 1px solid #ff9ebb;
+            color: white;
+            border-radius: 40px;
+            padding: 8px 20px;
+            font-weight: bold;
+            margin-top: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+            transition: 0.1s;
+        }
+        .restart-btn-out:active {
+            transform: scale(0.96);
+        }
+
+        /* АДМИН-ПАНЕЛЬ */
         .admin-panel {
             position: fixed;
             top: 0;
@@ -264,6 +309,17 @@
             box-sizing: border-box;
         }
 
+        .admin-select:focus {
+            outline: none;
+            border-color: #ff9fcc;
+            box-shadow: 0 0 8px rgba(255, 159, 204, 0.3);
+        }
+
+        .admin-select option {
+            background: #1a1a28;
+            color: #ffffff;
+        }
+
         .admin-button {
             width: 100%;
             padding: 14px 20px;
@@ -282,6 +338,10 @@
         .admin-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(255, 159, 204, 0.4);
+        }
+
+        .admin-button:active {
+            transform: scale(0.98);
         }
 
         .admin-button-secondary {
@@ -368,20 +428,135 @@
             margin-top: 15px;
         }
 
+        .admin-close-btn:hover {
+            background: rgba(100, 100, 150, 0.4);
+        }
         .admin-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 14px;
         }
-
         @media (min-width: 980px) {
             .admin-grid {
                 grid-template-columns: 1fr 1fr;
                 align-items: start;
             }
+            .admin-grid .admin-col {
+                min-width: 0;
+            }
+        }
+        .admin-mini-list {
+            margin-top: 8px;
+            max-height: 170px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 200, 210, 0.15);
+            border-radius: 10px;
+            background: #0d0d16;
+            padding: 8px;
+        }
+        .admin-mini-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            align-items: center;
+            padding: 6px 8px;
+            border-radius: 8px;
+            color: #d8d3f2;
+            font-size: 0.78rem;
+            background: #161625;
+            margin-bottom: 6px;
+            word-break: break-all;
+        }
+        .admin-mini-item:last-child { margin-bottom: 0; }
+        .admin-mini-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .admin-mini-actions .admin-button {
+            margin-top: 0;
+            flex: 1;
+            min-width: 150px;
         }
 
-        /* АВТОРИЗАЦИЯ И СТАТИСТИКА */
+        .admin-message {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .admin-message.success {
+            background: rgba(34, 197, 94, 0.2);
+            color: #86efac;
+            border: 1px solid #22c55e;
+        }
+
+        .admin-message.info {
+            background: rgba(59, 130, 246, 0.2);
+            color: #93c5fd;
+            border: 1px solid #3b82f6;
+        }
+
+        .ai-box {
+            margin-top: 14px;
+            padding: 12px;
+            border-radius: 12px;
+            background: #0d0d16;
+            border: 1px solid rgba(255, 200, 210, 0.15);
+        }
+
+        .ai-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .ai-row .admin-input {
+            margin: 0;
+        }
+
+        .ai-candidates {
+            margin-top: 12px;
+            max-height: 240px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .ai-candidate {
+            background: #171728;
+            border: 1px solid rgba(255, 200, 210, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            color: #d8d3f2;
+            font-size: 0.86rem;
+        }
+
+        .ai-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ai-btn {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 10px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.75rem;
+        }
+
+        .ai-btn-boy { background: #1f3a5e; }
+        .ai-btn-girl { background: #7b3352; }
+        .ai-btn-skip { background: #3e3e58; }
+
+        /* ——— Авторизация (компактная плашка) ——— */
         .auth-bar {
             position: fixed;
             top: 0;
@@ -396,17 +571,19 @@
             background: linear-gradient(180deg, rgba(8,8,16,.92), transparent);
             pointer-events: none;
         }
-
         .auth-bar > * { pointer-events: auto; }
-
         .auth-left {
             display: flex;
             align-items: center;
             gap: 8px;
             min-width: 0;
         }
-
-        .stats-btn, .top5-btn {
+        .auth-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .stats-btn {
             border: 1px solid rgba(255,180,200,.45);
             background: rgba(40,30,80,.45);
             color: #ffe7f3;
@@ -417,9 +594,7 @@
             letter-spacing: 1px;
             cursor: pointer;
         }
-
-        .stats-btn:active, .top5-btn:active { transform: scale(0.97); }
-
+        .stats-btn:active { transform: scale(0.97); }
         .auth-pill {
             font-size: 0.75rem;
             color: #e8e0ff;
@@ -433,7 +608,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
         }
-
         .auth-toggle {
             border: 1px solid rgba(255,180,200,.4);
             background: rgba(100,60,120,.4);
@@ -444,6 +618,7 @@
             font-weight: 600;
             cursor: pointer;
         }
+        .auth-toggle:active { transform: scale(0.97); }
 
         .auth-panel {
             display: none;
@@ -458,9 +633,7 @@
             padding: 14px;
             box-shadow: 0 20px 50px rgba(0,0,0,.65);
         }
-
         .auth-panel.open { display: block; }
-
         .auth-panel input {
             width: 100%;
             margin-top: 8px;
@@ -472,7 +645,6 @@
             font-size: 16px;
             box-sizing: border-box;
         }
-
         .auth-panel button.row {
             width: 100%;
             margin-top: 10px;
@@ -482,11 +654,11 @@
             font-weight: 700;
             cursor: pointer;
         }
+        .auth-panel .btn-in { background: linear-gradient(115deg, #5b4ad4, #8b3d7a); color: #fff; }
+        .auth-panel .btn-up { background: rgba(80,80,120,.5); color: #e0dcff; border: 1px solid rgba(255,200,210,.25); }
+        .auth-panel .hint { font-size: 0.7rem; color: #8a82a8; margin-top: 8px; line-height: 1.35; }
 
-        .btn-in { background: linear-gradient(115deg, #5b4ad4, #8b3d7a); color: #fff; }
-        .btn-up { background: rgba(80,80,120,.5); color: #e0dcff; border: 1px solid rgba(255,200,210,.25); }
-
-        /* Оверлей статистики / ТОП-5 */
+        /* ——— Карточка статистики (recap) ——— */
         .stats-recap-overlay {
             position: fixed;
             inset: 0;
@@ -500,88 +672,154 @@
             animation: fadeIn 0.35s ease;
             cursor: pointer;
         }
-
         .stats-recap-card {
-            width: min(480px, calc(100vw - 32px));
-            max-height: 85vh;
-            overflow-y: auto;
-            background: rgba(22,20,38,.95);
+            width: min(420px, calc(100vw - 32px));
+            background: rgba(22,20,38,.9);
             border: 1px solid rgba(255,160,190,.45);
             border-radius: 24px;
             padding: 22px 20px 18px;
             box-shadow: 0 30px 60px rgba(0,0,0,.55);
             cursor: default;
+            overflow: hidden;
         }
-
         .stats-recap-title {
-            font-size: 1rem;
+            font-size: 0.72rem;
             letter-spacing: 3px;
             font-weight: 800;
             color: #a89fd4;
             text-align: center;
             margin-bottom: 12px;
-            border-bottom: 1px solid rgba(255,200,220,.2);
-            padding-bottom: 8px;
         }
-
-        .top5-list {
-            margin: 12px 0;
-        }
-
-        .top5-item {
+        .stats-recap-row {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px solid rgba(255,200,220,.1);
-            font-size: 0.95rem;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 16px;
         }
-
-        .top5-rank {
-            font-weight: 800;
-            width: 40px;
-            color: #ffb7ca;
-        }
-
-        .top5-name {
-            flex: 3;
-            font-weight: 600;
-            color: #e0dcff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .top5-streak {
-            font-weight: 800;
-            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
-            background-clip: text;
+        .stats-recap-score {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #ffd6e8, #ff7eb3);
             -webkit-background-clip: text;
+            background-clip: text;
             color: transparent;
         }
-
-        .your-place {
-            margin-top: 20px;
-            padding: 14px;
-            background: rgba(255,180,200,.12);
-            border-radius: 16px;
-            border: 1px solid rgba(255,180,200,.3);
-            text-align: center;
+        .stats-recap-avg {
+            font-size: 1rem;
+            color: #c9c3f0;
+            text-align: right;
         }
-
-        .your-rank {
-            font-size: 1.2rem;
+        .stats-chart-wrap {
+            position: relative;
+            margin: 8px 0 20px;
+            padding: 4px 0 24px;
+        }
+        .stats-chart-bars {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 2px;
+            height: 88px;
+            border-bottom: 1px solid rgba(255,200,220,.2);
+        }
+        .stats-chart-bar {
+            flex: 1;
+            min-width: 0;
+            background: linear-gradient(180deg, rgba(255,140,180,.85), rgba(120,80,180,.5));
+            border-radius: 3px 3px 0 0;
+            opacity: 0.85;
+            transition: height 0.2s ease;
+        }
+        .stats-marker {
+            position: absolute;
+            bottom: 22px;
+            width: 2px;
+            height: calc(100% - 26px);
+            background: #fff;
+            box-shadow: 0 0 12px #ffb7d5;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
+        .stats-marker-label {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.65rem;
             font-weight: 800;
-            color: #ff9fcc;
+            letter-spacing: 1px;
+            color: #ffb7ca;
+            white-space: nowrap;
         }
-
+        .stats-diff {
+            text-align: center;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #e8e4ff;
+            margin-bottom: 10px;
+        }
         .stats-recap-dismiss {
             text-align: center;
             font-size: 0.85rem;
             color: #9a93c4;
-            margin-top: 16px;
+        }
+        .stats-recap-gameover {
+            text-align: center;
+            padding: 12px 0 6px;
+            border-bottom: 1px solid rgba(255,200,220,.15);
+            margin-bottom: 14px;
+        }
+        .stats-recap-gameover-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #ff7b9c;
+        }
+        .stats-recap-gameover-text {
+            font-size: 0.95rem;
+            color: #d8d3f2;
+            margin-top: 4px;
         }
 
+        @media (max-width: 550px) {
+            .stats-recap-card {
+                padding: 18px 14px 14px;
+                border-radius: 18px;
+            }
+            .stats-recap-score {
+                font-size: 1.8rem;
+            }
+            .stats-recap-avg {
+                font-size: 0.85rem;
+            }
+            .stats-chart-bars {
+                height: 64px;
+            }
+            .stats-diff {
+                font-size: 0.9rem;
+            }
+            .stats-recap-dismiss {
+                font-size: 0.75rem;
+            }
+            .stats-recap-gameover {
+                padding: 10px 0 4px;
+                margin-bottom: 10px;
+            }
+            .stats-recap-gameover-label {
+                font-size: 0.55rem;
+            }
+            .stats-recap-gameover-text {
+                font-size: 0.85rem;
+                margin-top: 2px;
+            }
+        }
+
+        /* ——— Мобильный режим: тап по половинам фото ——— */
+        .photo-stage {
+            position: relative;
+        }
         .photo-tap-zones {
             display: none;
             position: absolute;
@@ -591,22 +829,34 @@
             z-index: 5;
             flex-direction: row;
         }
-
         body.mobile-game .photo-tap-zones {
             display: flex;
         }
-
         .tap-zone {
             flex: 1;
             min-height: 100%;
             touch-action: manipulation;
         }
-
+        .tap-zone-boy {
+            background: linear-gradient(90deg, rgba(30,60,120,.12), transparent);
+        }
+        .tap-zone-girl {
+            background: linear-gradient(270deg, rgba(160,50,100,.12), transparent);
+        }
         body.mobile-game .game-container {
             gap: 18px;
             padding-bottom: env(safe-area-inset-bottom, 12px);
         }
-
+        body.mobile-game footer {
+            font-size: 0.62rem;
+            margin-top: 4px;
+        }
+        body.mobile-game .combo-area {
+            padding: 8px 18px;
+        }
+        body.mobile-game .current-streak {
+            font-size: 2.4rem;
+        }
         .admin-fab {
             display: none;
             position: fixed;
@@ -623,61 +873,85 @@
             letter-spacing: 2px;
             cursor: pointer;
             backdrop-filter: blur(10px);
+            box-shadow: 0 18px 35px rgba(0,0,0,.55);
         }
+        .admin-fab:active { transform: translateX(-50%) scale(0.98); }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<!-- Vercel Analytics + Speed Insights -->
+<script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
+<script src="https://cdn.vercel-insights.com/v1/speed-insights.js" defer></script>
+<script>
+  // Analytics
+  window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  window.va('before', { projectId: 'YOUR_PROJECT_ID' });
+  
+  // Speed Insights
+  window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
+  window.si('before', {
+    projectId: 'YOUR_PROJECT_ID',
+    sampleRate: 1,
+    route: window.location.pathname
+  });
+</script>
 </head>
 <body>
 
 <div class="auth-bar" id="authBar">
     <div class="auth-left">
         <button type="button" class="stats-btn" id="statsBtn">📊 STATS</button>
-        <button type="button" class="top5-btn" id="top5Btn">🏆 ТОП-5</button>
         <span class="auth-pill" id="authStatus">Гость · прогресс только в этом браузере</span>
     </div>
     <div class="auth-right">
-        <button type="button" class="auth-toggle" id="authToggle">🔑</button>
+        <button type="button" class="auth-toggle" id="authToggle" aria-expanded="false">🔑</button>
     </div>
 </div>
-
 <div class="auth-panel" id="authPanel">
     <div style="font-size:0.8rem;color:#ffc0d5;font-weight:700;">Аккаунт</div>
-    <input type="text" id="authUsername" placeholder="Логин латиницей: ivan_k" maxlength="32">
-    <input type="password" id="authPassword" placeholder="Пароль" maxlength="64">
+    <input type="text" id="authUsername" autocomplete="username" placeholder="Логин латиницей: ivan_k" maxlength="32">
+    <input type="password" id="authPassword" autocomplete="current-password" placeholder="Пароль" maxlength="64">
     <button type="button" class="row btn-in" id="authSignIn">Войти</button>
     <button type="button" class="row btn-up" id="authSignUp">Создать аккаунт</button>
     <button type="button" class="row btn-up" id="authSignOut" style="display:none;">Выйти</button>
+    <p class="hint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
 </div>
 
-<div class="game-container">
+<div class="game-container" id="gameContainer">
+    <!-- центр: фото масштабируется идеально -->
     <div class="photo-stage" id="photoStage">
         <div class="photo-frame">
             <img id="photo" alt="Угадай: парень или девушка?" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%232d2a4a'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23ffbfd5' text-anchor='middle' dy='.3em'%3ELOAD%3C/text%3E%3C/svg%3E">
         </div>
-        <div class="photo-tap-zones" id="photoTapZones">
-            <div class="tap-zone tap-zone-boy" data-guess="boy"></div>
-            <div class="tap-zone tap-zone-girl" data-guess="girl"></div>
+        <div class="photo-tap-zones" id="photoTapZones" aria-hidden="true">
+            <div class="tap-zone tap-zone-boy" data-guess="boy" title="Парень — левая половина"></div>
+            <div class="tap-zone tap-zone-girl" data-guess="girl" title="Девушка — правая половина"></div>
         </div>
     </div>
 
-    <div class="combo-area">
+    <!-- счётчик комбо (серия правильных ответов) -->
+    <div class="combo-area" id="comboArea">
         <div class="current-streak" id="streakValue">0</div>
         <div class="streak-label">⚡ ПОДРЯД ⚡</div>
     </div>
 
+    <!-- только две кнопки: ПАРЕНЬ / ДЕВУШКА -->
     <div class="buttons-duo">
         <button class="guess-action boy-guess" id="boyBtn">👨 ПАРЕНЬ</button>
         <button class="guess-action girl-guess" id="girlBtn">👩 ДЕВУШКА</button>
     </div>
 
-    <div class="game-status" id="statusMsg">🎴 Нажми на кнопку, чтобы угадать</div>
-    <footer>🎯 серия прерывается при ошибке — набери максимум комбо!<br>✨ при проигрыше кликни в любое место ✨</footer>
+    <!-- статус игры и рестарт -->
+    <div class="game-status" id="statusMsg">
+        🎴 Нажми на кнопку, чтобы угадать
+    </div>
+    <footer>
+        🎯 серия прерывается при ошибке — набери максимум комбо!<br>
+        ✨ при проигрыше кликни в любое место ✨
+    </footer>
 </div>
 
 <button type="button" class="admin-fab" id="adminFab">⚙️ ADMIN</button>
 
+<!-- АДМИН-ПАНЕЛЬ -->
 <div id="adminPanel" class="admin-panel" style="display: none;">
     <div class="admin-container">
         <div class="admin-title">⚙️ АДМИН ПАНЕЛЬ ⚙️</div>
@@ -686,35 +960,122 @@
             <div class="admin-col">
                 <div class="admin-form-group">
                     <label class="admin-label">📷 URL фото</label>
-                    <input type="text" id="photoUrl" class="admin-input" placeholder="https://...">
+                    <input
+                        type="text"
+                        id="photoUrl"
+                        class="admin-input"
+                        placeholder="Вставь полную ссылку на фото (https://...)"
+                    >
                 </div>
+
                 <div class="admin-form-group">
                     <label class="admin-label">👥 Категория</label>
                     <select id="photoCategory" class="admin-select">
-                        <option value="boy">👨 ПАРЕНЬ</option>
-                        <option value="girl">👩 ДЕВУШКА</option>
+                        <option value="boy">👨 ПАРЕНЬ (boy)</option>
+                        <option value="girl">👩 ДЕВУШКА (girl)</option>
                     </select>
                 </div>
+
                 <button id="addPhotoBtn" class="admin-button">➕ ДОБАВИТЬ ФОТО</button>
-                <div class="admin-list" id="photosList"></div>
-            </div>
-            <div class="admin-col">
+
+                <div class="ai-box">
+                    <label class="admin-label">🤖 Поиск кандидатов (Openverse + OpenRouter с веб-поиском)</label>
+                    <p class="admin-hint" style="margin: 0 0 8px; font-size: 12px; opacity: 0.8; line-height: 1.35;">
+                        Идёт поиск в <strong>Openverse</strong> (запасной домен при сбое), каталоге <strong>Wikimedia Commons</strong> и у AI через <strong>веб-поиск</strong> OpenRouter. Если результатов ноль — страницу не открывай через <code>file://</code>, подними локально HTTP (например <code>npx serve</code>).
+                    </p>
+                    <input
+                        type="password"
+                        id="openRouterKey"
+                        class="admin-input"
+                        placeholder="Вставь OpenRouter API key (не сохраняется)"
+                    >
+                    <div class="ai-row">
+                        <input
+                            type="text"
+                            id="aiQuery"
+                            class="admin-input"
+                            placeholder="Запрос, например: чулки отзывы Ozon"
+                        >
+                        <input
+                            type="number"
+                            id="aiCount"
+                            class="admin-input"
+                            title="За один запрос не больше 50 кандидатов (большее число обрежется)"
+                            min="1"
+                            max="50"
+                            value="10"
+                            placeholder="Кол-во"
+                            style="max-width: 110px;"
+                        >
+                    </div>
+                    <button id="aiFindBtn" class="admin-button admin-button-secondary">🔎 НАЙТИ КАНДИДАТОВ</button>
+                    <div id="aiCandidates" class="ai-candidates"></div>
+                </div>
+
                 <div class="admin-form-group">
-                    <label class="admin-label">👑 Управление админами</label>
-                    <input type="text" id="adminUidInput" class="admin-input" placeholder="UID пользователя">
-                    <div class="admin-mini-actions" style="display:flex; gap:8px; margin-top:8px;">
-                        <button id="addAdminUidBtn" class="admin-button admin-button-secondary" style="width:auto;">✅ ДАТЬ</button>
-                        <button id="removeAdminUidBtn" class="admin-button admin-button-secondary" style="width:auto;">❌ СНЯТЬ</button>
+                    <label class="admin-label" id="photosCountLabel">📝 Все фото (0):</label>
+                    <div class="admin-list" id="photosList"></div>
+                </div>
+            </div>
+
+            <div class="admin-col">
+                <div class="admin-form-group" style="margin-top: 2px;">
+                    <label class="admin-label">👑 Управление админами (Firebase)</label>
+                    <input type="text" id="adminUidInput" class="admin-input" placeholder="UID пользователя для выдачи админки">
+                    <div class="admin-mini-actions">
+                        <button id="addAdminUidBtn" class="admin-button admin-button-secondary">✅ ДАТЬ ADMIN</button>
+                        <button id="removeAdminUidBtn" class="admin-button admin-button-secondary">❌ СНЯТЬ ADMIN</button>
+                    </div>
+                    <div id="adminAccountsList" class="admin-mini-list"></div>
+                </div>
+
+                <div class="admin-form-group" style="margin-top: 18px;">
+                    <label class="admin-label">👤 User stats (для админа)</label>
+                    <input type="text" id="adminUserUid" class="admin-input" placeholder="UID пользователя (Firebase Auth uid)">
+                    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                        <button id="incRunsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 RUN</button>
+                        <button id="decRunsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➖ -1 RUN</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                        <button id="incCorrect10Btn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +10 CORRECT</button>
+                        <button id="decCorrect10Btn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➖ -10 CORRECT</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                        <button id="incIncorrect1Btn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 INCORRECT</button>
+                        <button id="decIncorrect1Btn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➖ -1 INCORRECT</button>
+                    </div>
+                    <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
+                        <button id="incWinsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 WIN</button>
+                        <button id="incLossesBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 LOSS</button>
+                    </div>
+                    <div style="font-size: 0.72rem; opacity: 0.8; color:#9a93c4; margin-top:8px; line-height:1.35;">
+                        WIN/LOSS считаем по правилу: win если серия ≥ 10, иначе loss. Крутилки правят агрегаты в базе.
                     </div>
                 </div>
             </div>
         </div>
+
+        <button id="exportBtn" class="admin-button admin-button-secondary">💾 ЭКСПОРТИРОВАТЬ JSON</button>
+        <button id="importBtn" class="admin-button admin-button-secondary">📥 ИМПОРТИРОВАТЬ JSON</button>
+        <textarea
+            id="jsonInput"
+            class="admin-input"
+            placeholder="Вставь сюда JSON для импорта..."
+            style="display: none; margin-top: 10px; min-height: 100px; font-size: 0.85rem;"
+        ></textarea>
+        <button id="confirmImportBtn" class="admin-button admin-button-secondary" style="display: none; margin-top: 10px;">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>
+
         <button id="closeAdminBtn" class="admin-close-btn">❌ ЗАКРЫТЬ</button>
     </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
-    // ==================== ДАННЫЕ ИГРЫ ====================
+    // --------------------------------------------------------------
+    //  ДАННЫЕ ДЛЯ ИГРЫ (ДОБАВЛЯЙ СВОИ ФОТО ТУТ ↓↓↓)
+    // --------------------------------------------------------------
     const fallbackImagesDataset = [
         { url: "https://ir.ozone.ru/s3/rp-photo-15/wc800/8da51805-8422-4ad6-ad60-68ee2d5d5492.jpeg", answer: "boy" },
         { url: "https://ir.ozone.ru/s3/rp-photo-13/wc800/f692c195-86c6-4619-a4b8-5dcbf95f3ec2.jpeg", answer: "boy" },
@@ -727,17 +1088,246 @@
         { url: "https://ir.ozone.ru/s3/rp-photo-11/wc1600/cd121597-7d56-4f78-ae50-6c7d72e785f9.jpeg", answer: "boy" },
         { url: "https://ir.ozone.ru/s3/rp-photo-13/wc1600/993a1b1c-7fdc-4578-8b9d-71e017e2c1f4.jpeg", answer: "girl" },
     ];
-    let imagesDataset = fallbackImagesDataset.map(item => ({ ...item }));
+    const imagesDataset = fallbackImagesDataset.map(item => ({ ...item }));
+    // --------------------------------------------------------------
 
-    let currentStreak = 0, gameActive = true, currentItem = null, canGuess = true;
-    let imageQueue = [], currentIndex = 0;
+    // ИГРОВОЕ СОСТОЯНИЕ
+    let currentStreak = 0;          // текущая серия правильных ответов ПОДРЯД
+    let gameActive = true;           // активна ли игра (false = проигрыш)
+    let currentItem = null;          // текущий объект {url, answer}
+    let canGuess = true;             // блокировка повторного клика на том же фото
+
+    // Очередь изображений
+    let imageQueue = [];
+    let currentIndex = 0;
+
+    // DOM элементы
     const photoEl = document.getElementById('photo');
     const streakValueSpan = document.getElementById('streakValue');
     const boyBtn = document.getElementById('boyBtn');
     const girlBtn = document.getElementById('girlBtn');
     const statusDiv = document.getElementById('statusMsg');
+    const comboAreaDiv = document.getElementById('comboArea');
 
-    // Firebase
+    // Функции утилиты
+    function shuffleArray(arr) {
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        return arr;
+    }
+
+    function buildFreshQueue() {
+        const copy = imagesDataset.map(item => ({ ...item }));
+        return shuffleArray(copy);
+    }
+
+    function updateStreakUI() {
+        streakValueSpan.innerText = currentStreak;
+        if (currentStreak >= 5) {
+            comboAreaDiv.style.boxShadow = "0 0 12px rgba(255,140,200,0.6)";
+        } else {
+            comboAreaDiv.style.boxShadow = "none";
+        }
+        if (!gameActive) {
+            streakValueSpan.style.opacity = "0.6";
+        } else {
+            streakValueSpan.style.opacity = "1";
+        }
+    }
+
+    // ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ ПРИ ПРОИГРЫШЕ
+    // ПОЛНЫЙ СБРОС ИГРЫ (без оверлея)
+    function getStreakWord(n) {
+        const abs = Math.abs(n) % 100;
+        const lastDigit = abs % 10;
+        if (abs > 10 && abs < 20) return 'правильных ответов';
+        if (lastDigit === 1) return 'правильный ответ';
+        if (lastDigit >= 2 && lastDigit <= 4) return 'правильных ответа';
+        return 'правильных ответов';
+    }
+
+    function fullResetGame() {
+        // сброс параметров
+        currentStreak = 0;
+        gameActive = true;
+        canGuess = true;
+        photoEl.style.filter = "";
+        
+        // пересоздаем колоду заново
+        imageQueue = buildFreshQueue();
+        currentIndex = 0;
+        if (imageQueue.length === 0) {
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%236b4e71'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle'%3EДобавь фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+        }
+        currentItem = imageQueue[0];
+        photoEl.src = currentItem.url;
+        
+        updateStreakUI();
+        
+        // активируем кнопки
+        boyBtn.disabled = false;
+        girlBtn.disabled = false;
+        
+        // чистим статус
+        statusDiv.innerHTML = "✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨";
+        statusDiv.style.color = "#ffdee9";
+        
+        // убираем возможные эффекты
+        streakValueSpan.style.opacity = "1";
+        canGuess = true;
+        
+        // убираем затемнение фото
+        photoEl.style.filter = "";
+    }
+    
+    // Классический рестарт (вызываемый при проигрыше или по клику с оверлея)
+    function resetGame() {
+        fullResetGame();
+    }
+    
+    // Завершение игры с ошибкой (показываем полноэкранный счёт)
+    function endGameWithLose() {
+        if (!gameActive) return;
+        gameActive = false;
+        canGuess = false;
+
+        const finalStreak = currentStreak;
+
+        boyBtn.disabled = true;
+        girlBtn.disabled = true;
+
+        photoEl.style.filter = 'grayscale(0.3) brightness(0.7)';
+        statusDiv.innerHTML = `💔 ПОРАЖЕНИЕ! Твоя серия: ${finalStreak}. Нажми на экран, чтобы начать заново.`;
+
+        (async () => {
+            try {
+                bestStreakLocal = Math.max(Number(bestStreakLocal || 0), Number(finalStreak || 0));
+                localStorage.setItem('bestStreak', String(bestStreakLocal));
+                await saveRun(finalStreak);
+                runsPlayed++;
+                localStorage.setItem('runsPlayed', String(runsPlayed));
+                await syncRunsPlayedToCloud();
+                touchAuthStatusBar();
+            } catch (err) {
+                console.error('saveRun / stats sync', err);
+            }
+            showStatsCard(finalStreak, { gameOver: true });
+        })();
+    }
+    
+    // Загрузка следующего фото после правильного ответа
+    function loadNextPhotoAfterCorrect() {
+        if (!gameActive) return;
+        
+        currentIndex++;
+        if (!imageQueue.length || currentIndex >= imageQueue.length) {
+            imageQueue = buildFreshQueue();
+            currentIndex = 0;
+        }
+        currentItem = imageQueue[currentIndex];
+        if (!currentItem) {
+            imageQueue = buildFreshQueue();
+            currentIndex = 0;
+            currentItem = imageQueue[0];
+        }
+        photoEl.src = currentItem.url;
+        photoEl.alt = "Парень или девушка?";
+        canGuess = true; // разрешаем угадывать заново
+        if (gameActive) {
+            statusDiv.innerHTML = "🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? Набери серию! 🤍";
+        }
+        // активируем кнопки (если игра активна)
+        boyBtn.disabled = !gameActive;
+        girlBtn.disabled = !gameActive;
+    }
+    
+    // Обработка выбора
+    function makeGuess(guess) {
+        if (!gameActive) {
+            statusDiv.innerHTML = "⛔ Игра завершена. Кликни по экрану для новой попытки.";
+            return;
+        }
+        if (!canGuess) {
+            statusDiv.innerHTML = "⏳ Ты уже ответил! Жди следующее фото...";
+            return;
+        }
+        if (!currentItem) {
+            fullResetGame();
+            return;
+        }
+        
+        const isCorrect = (guess === currentItem.answer);
+        
+        if (isCorrect) {
+            // Правильный ответ: увеличиваем серию
+            currentStreak++;
+            updateStreakUI();
+            
+            // Анимация счётчика
+            streakValueSpan.style.transform = "scale(1.1)";
+            setTimeout(() => { if(streakValueSpan) streakValueSpan.style.transform = ""; }, 150);
+            
+            statusDiv.innerHTML = `✅ ПРАВИЛЬНО! +1 к серии! Комбо: ${currentStreak} 🔥`;
+            canGuess = false;
+            loadNextPhotoAfterCorrect();
+        } else {
+            // Ошибка — конец игры
+            const correctAnswerText = (currentItem.answer === 'boy') ? 'ПАРЕНЬ' : 'ДЕВУШКА';
+            statusDiv.innerHTML = `❌ ОШИБКА! На фото был(а) — ${correctAnswerText}. Твоя серия прервана на ${currentStreak}.`;
+            endGameWithLose(); // внутри вызывает оверлей с конечным счётом
+        }
+    }
+    
+    // Инициализация новой игры (при старте)
+    function initGameModule() {
+        imageQueue = buildFreshQueue();
+        currentIndex = 0;
+        if (imageQueue.length === 0) {
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%2331325e'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffc5d9' text-anchor='middle'%3EЗагрузи фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+        }
+        currentItem = imageQueue[0];
+        photoEl.src = currentItem.url;
+        currentStreak = 0;
+        gameActive = true;
+        canGuess = true;
+        updateStreakUI();
+        boyBtn.disabled = false;
+        girlBtn.disabled = false;
+        statusDiv.innerHTML = "🎭 Кто на фото? Нажми кнопку, каждый правильный ответ продлевает серию!";
+        photoEl.style.filter = "";
+    }
+    
+    // добавляем глобальный слушатель клика на body, чтобы рестартовать по клику в любом месте
+    document.body.addEventListener('click', (e) => {
+        if (document.querySelector('.stats-recap-overlay')) return;
+        if (document.getElementById('authPanel')?.classList.contains('open')) return;
+        if (!gameActive) {
+            fullResetGame();
+        }
+    });
+    
+    // отдельно навешиваем события на кнопки
+    boyBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        makeGuess('boy');
+    });
+    girlBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        makeGuess('girl');
+    });
+    
+    // ошибка загрузки картинки
+    photoEl.onerror = function() {
+        if (currentItem) {
+            this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%233d2b46'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffb3c6' text-anchor='middle'%3EОшибка фото%3C/text%3E%3C/svg%3E";
+        }
+    };
+    
+    // ==================== FIREBASE + НАСТРОЙКИ ====================
+    // Меняй пароль тут при необходимости
+    const ADMIN_PASSWORD = 'Dushik23sw';
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
         authDomain: "project-3861147147890788156.firebaseapp.com",
@@ -748,354 +1338,1223 @@
         appId: "1:321657389257:web:68e8310bc34343848b4d18"
     };
     const FIREBASE_PHOTOS_PATH = 'femboy_guessor/photos';
-    const FIREBASE_USER_STATS_PATH = 'femboy_guessor/userStats';
+    /** Записи: push({ score, createdAt, userId }). В консоли Firebase: Authentication → Email/Password (вкл), RTDB rules — разрешить read/write для femboy_guessor/stats (и users/$uid для владельца). */
+    const FIREBASE_STATS_PATH = 'femboy_guessor/stats';
+    const FIREBASE_USERS_PATH = 'femboy_guessor/users';
     const FIREBASE_ADMINS_PATH = 'femboy_guessor/admins';
-    const ADMIN_PASSWORD = 'Dushik23sw';
-    const BOOTSTRAP_ADMIN_UIDS = new Set(['2gjkOATnmleOXudIcmFHHdkc4xr2']);
+    const FIREBASE_USER_STATS_PATH = 'femboy_guessor/userStats';
+    // Bootstrap админы (на случай если не умеешь добавить в RTDB руками).
+    // Лучше хранить админов в RTDB: femboy_guessor/admins/{uid} = true
+    const BOOTSTRAP_ADMIN_UIDS = new Set([
+        '2gjkOATnmleOXudIcmFHHdkc4xr2'
+    ]);
+    let firebaseDb = null;
+    let firebaseAuth = null;
+    let firebaseReady = false;
 
-    let firebaseDb = null, firebaseAuth = null, firebaseReady = false;
+    let runsPlayed = Number(localStorage.getItem('runsPlayed') || '0') || 0;
     let isAdminUser = false;
-    let runsPlayed = Number(localStorage.getItem('runsPlayed') || '0');
-    let bestStreakLocal = Number(localStorage.getItem('bestStreak') || '0');
+    let bestStreakLocal = Number(localStorage.getItem('bestStreak') || '0') || 0;
+    let bestStreakCloud = null;
 
-    function shuffleArray(arr) {
-        for (let i = arr.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [arr[i], arr[j]] = [arr[j], arr[i]];
+    function initFirebase() {
+        try {
+            if (!window.firebase) {
+                console.error('Firebase SDK не загружен');
+                return false;
+            }
+            if (!firebase.apps.length) {
+                firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            firebaseDb = firebase.database();
+            firebaseAuth = firebase.auth();
+            firebaseReady = true;
+            return true;
+        } catch (e) {
+            console.error('Ошибка инициализации Firebase:', e);
+            firebaseReady = false;
+            return false;
         }
-        return arr;
     }
 
-    function buildFreshQueue() { return shuffleArray([...imagesDataset]); }
-    function updateStreakUI() { streakValueSpan.innerText = currentStreak; }
-
-    function fullResetGame() {
-        currentStreak = 0;
-        gameActive = true;
-        canGuess = true;
-        photoEl.style.filter = "";
-        imageQueue = buildFreshQueue();
-        currentIndex = 0;
-        if (imageQueue.length === 0) imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%236b4e71'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle'%3EДобавь фото%3C/text%3E%3C/svg%3E", answer: "boy" });
-        currentItem = imageQueue[0];
-        photoEl.src = currentItem.url;
-        updateStreakUI();
-        boyBtn.disabled = false;
-        girlBtn.disabled = false;
-        statusDiv.innerHTML = "✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨";
-        canGuess = true;
+    function usernameToEmail(username) {
+        const u = String(username || '').trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+        if (u.length < 3) throw new Error('Логин: минимум 3 латинские буквы/цифры/_');
+        return `${u}@femboy-guessor.local`;
     }
 
-    function loadNextPhotoAfterCorrect() {
-        currentIndex++;
-        if (currentIndex >= imageQueue.length) { imageQueue = buildFreshQueue(); currentIndex = 0; }
-        currentItem = imageQueue[currentIndex];
-        photoEl.src = currentItem.url;
-        canGuess = true;
-        if (gameActive) statusDiv.innerHTML = "🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? 🤍";
-        boyBtn.disabled = !gameActive;
-        girlBtn.disabled = !gameActive;
+    async function checkAdminFlag() {
+        isAdminUser = false;
+        if (!firebaseReady || !firebaseDb || !firebaseAuth || !firebaseAuth.currentUser) return false;
+        const uid = firebaseAuth.currentUser.uid;
+        try {
+            if (BOOTSTRAP_ADMIN_UIDS.has(uid)) {
+                isAdminUser = true;
+                return true;
+            }
+            const snap = await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${uid}`).get();
+            isAdminUser = snap.exists() && (snap.val() === true || snap.val() === 1 || snap.val() === '1');
+            return isAdminUser;
+        } catch (e) {
+            console.warn('checkAdminFlag', e);
+            isAdminUser = false;
+            return false;
+        }
+    }
+
+    function refreshAdminFab() {
+        const fab = document.getElementById('adminFab');
+        if (!fab) return;
+        fab.style.display = isAdminUser ? 'inline-flex' : 'none';
     }
 
     async function saveRun(score) {
         if (!firebaseReady || !firebaseDb) return;
-        const uid = firebaseAuth?.currentUser?.uid || null;
-        await firebaseDb.ref('femboy_guessor/stats').push().set({ score, createdAt: Date.now(), userId: uid });
+        const ref = firebaseDb.ref(FIREBASE_STATS_PATH).push();
+        const uid = firebaseAuth && firebaseAuth.currentUser ? firebaseAuth.currentUser.uid : null;
+        const correct = Math.max(0, Number(score) || 0);
+        const incorrect = 1;
+        const win = correct >= 10;
+        await ref.set({
+            score,
+            createdAt: Date.now(),
+            userId: uid || null,
+            correct,
+            incorrect,
+            win
+        });
         if (uid) {
-            await firebaseDb.ref(`${FIREBASE_USER_STATS_PATH}/${uid}`).transaction((curr) => {
-                const c = curr || {};
-                const newBest = Math.max(Number(c.bestStreak || 0), score);
-                return {
-                    runs: (c.runs || 0) + 1,
-                    bestStreak: newBest,
-                    updatedAt: Date.now()
-                };
-            });
+            await updateUserAggregates(uid, { score: correct, correct, incorrect, win });
         }
     }
 
-    async function endGameWithLose() {
-        if (!gameActive) return;
-        gameActive = false;
-        canGuess = false;
-        const finalStreak = currentStreak;
-        boyBtn.disabled = true;
-        girlBtn.disabled = true;
-        photoEl.style.filter = 'grayscale(0.3) brightness(0.7)';
-        statusDiv.innerHTML = `💔 ПОРАЖЕНИЕ! Серия: ${finalStreak}.`;
-        if (finalStreak > bestStreakLocal) {
-            bestStreakLocal = finalStreak;
-            localStorage.setItem('bestStreak', String(bestStreakLocal));
-        }
-        await saveRun(finalStreak);
-        runsPlayed++;
+    async function updateUserAggregates(uid, { score, correct, incorrect, win }) {
+        if (!firebaseReady || !firebaseDb) return;
+        const path = `${FIREBASE_USER_STATS_PATH}/${uid}`;
+        await firebaseDb.ref(path).transaction((curr) => {
+            const now = Date.now();
+            const c = curr && typeof curr === 'object' ? curr : {};
+            const scoreNum = Math.max(0, Number(score) || 0);
+            const runs = Number(c.runs || 0) + 1;
+            const totalCorrect = Number(c.totalCorrect || 0) + (Number(correct) || 0);
+            const totalIncorrect = Number(c.totalIncorrect || 0) + (Number(incorrect) || 0);
+            const wins = Number(c.wins || 0) + (win ? 1 : 0);
+            const losses = Number(c.losses || 0) + (win ? 0 : 1);
+            const bestStreak = Math.max(Number(c.bestStreak || 0), scoreNum);
+            const totalScore = Number(c.totalScore || 0) + scoreNum;
+            const avgStreak = runs > 0 ? totalScore / runs : 0;
+            return {
+                runs,
+                totalCorrect,
+                totalIncorrect,
+                wins,
+                losses,
+                bestStreak,
+                lastStreak: scoreNum,
+                totalScore,
+                avgStreak,
+                updatedAt: now
+            };
+        });
+    }
+
+    async function loadUserAggregates(uid) {
+        if (!firebaseReady || !firebaseDb || !uid) return null;
+        const snap = await firebaseDb.ref(`${FIREBASE_USER_STATS_PATH}/${uid}`).get();
+        return snap.exists() ? snap.val() : null;
+    }
+
+    async function syncRunsPlayedToCloud() {
+        if (!firebaseReady || !firebaseDb || !firebaseAuth || !firebaseAuth.currentUser) return;
+        const uid = firebaseAuth.currentUser.uid;
+        await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${uid}/runsPlayed`).set(runsPlayed);
+    }
+
+    async function mergeRunsPlayedFromCloud() {
+        if (!firebaseReady || !firebaseDb || !firebaseAuth || !firebaseAuth.currentUser) return;
+        const uid = firebaseAuth.currentUser.uid;
+        const snap = await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${uid}/runsPlayed`).get();
+        const cloud = snap.exists() ? Number(snap.val()) || 0 : 0;
+        const local = Number(localStorage.getItem('runsPlayed') || '0') || 0;
+        runsPlayed = Math.max(cloud, local, runsPlayed);
         localStorage.setItem('runsPlayed', String(runsPlayed));
-        showGameOverCard(finalStreak);
     }
 
-    function showGameOverCard(score) {
+    function touchAuthStatusBar() {
+        const statusEl = document.getElementById('authStatus');
+        if (!statusEl) return;
+        if (firebaseAuth && firebaseAuth.currentUser) {
+            const u = firebaseAuth.currentUser;
+            const label = u.displayName || (u.email || '').split('@')[0] || 'игрок';
+            const best = Math.max(Number(bestStreakCloud || 0), Number(bestStreakLocal || 0));
+            statusEl.textContent = `✓ ${label} · рекорд: ${best}`;
+        } else {
+            statusEl.textContent = `Гость · рекорд: ${Number(bestStreakLocal || 0)} (локально)`;
+        }
+    }
+
+    async function loadStats() {
+        if (!firebaseReady || !firebaseDb) return [];
+        const snap = await firebaseDb.ref(FIREBASE_STATS_PATH).get();
+        if (!snap.exists()) return [];
+        return Object.values(snap.val());
+    }
+
+    async function loadAllUserAggregates() {
+        if (!firebaseReady || !firebaseDb) return [];
+        const snap = await firebaseDb.ref(FIREBASE_USER_STATS_PATH).get();
+        if (!snap.exists()) return [];
+        return Object.values(snap.val()).filter((item) => item && Number(item.runs || 0) > 0);
+    }
+
+    function buildDistribution(stats) {
+        const buckets = new Array(20).fill(0);
+        stats.forEach(item => {
+            const s = Number(item && item.score);
+            if (Number.isNaN(s) || s < 0) return;
+            const bucket = Math.min(Math.floor(s / 5), buckets.length - 1);
+            buckets[bucket]++;
+        });
+        return buckets;
+    }
+
+    async function showStatsCard(score, opts = {}) {
+        const { gameOver } = opts;
+        const userAggList = await loadAllUserAggregates();
+        const stats = await loadStats().catch(() => []);
+        if (!userAggList.length && !stats.length) {
+            window.alert('Пока нет данных в базе для сравнения. Сыграй ещё несколько раз или проверь Firebase.');
+            return;
+        }
+
+        const avgByPlayers = userAggList.length
+            ? (userAggList.reduce((sum, x) => sum + Number(x.avgStreak || 0), 0) / userAggList.length)
+            : null;
+        const avgByRuns = stats.length
+            ? (stats.reduce((sum, x) => sum + Number(x.score || 0), 0) / stats.length)
+            : 0;
+        const avg = avgByPlayers === null ? avgByRuns : avgByPlayers;
+        const diff = score - avg;
+        const distribution = buildDistribution(stats);
+        const maxH = Math.max(1, ...distribution);
+
         const overlay = document.createElement('div');
         overlay.className = 'stats-recap-overlay';
+        const diffAbs = Math.abs(diff).toFixed(1);
+        const diffText =
+            Math.abs(diff) < 0.05
+                ? 'Ты ровно на уровне среднего'
+                : diff > 0
+                    ? `Ты выше среднего на ${diffAbs}`
+                    : `Ты ниже среднего на ${diffAbs}`;
+
         const card = document.createElement('div');
         card.className = 'stats-recap-card';
+        card.addEventListener('click', (e) => e.stopPropagation());
+
+        const barsHtml = distribution
+            .map(
+                (n, i) =>
+                    `<div class="stats-chart-bar" style="height:${(n / maxH) * 100}%"
+                         title="${i * 5}–${i * 5 + 4} очков: ${n}"></div>`
+            )
+            .join('');
+
+        const maxScoreAxis = 100;
+        const markerLeft = Math.min(100, Math.max(0, (Math.min(score, maxScoreAxis) / maxScoreAxis) * 100));
+
+        const gameOverHtml = gameOver
+            ? `<div class="stats-recap-gameover">
+                   <div class="stats-recap-gameover-label">СЕРИЯ ПРЕРВАНА</div>
+                   <div class="stats-recap-gameover-text">${score} ${getStreakWord(score)} подряд</div>
+               </div>`
+            : '';
+
         card.innerHTML = `
-            <div class="stats-recap-title">⚡ СЕРИЯ ПРЕРВАНА ⚡</div>
-            <div style="text-align:center; font-size:2.5rem; font-weight:800; background:linear-gradient(135deg,#FFDEE9,#FFB5C8); background-clip:text; -webkit-background-clip:text; color:transparent; margin:12px 0;">${score}</div>
-            <div style="text-align:center; margin-bottom:16px;">${score === 1 ? 'правильный ответ' : (score >= 2 && score <=4 ? 'правильных ответа' : 'правильных ответов')} подряд</div>
-            <div class="stats-recap-dismiss">👆 Нажми вне карточки, чтобы продолжить</div>
+            ${gameOverHtml}
+            <div class="stats-recap-title">SERIES RECAP</div>
+            <div class="stats-recap-row">
+                <div>
+                    <div style="font-size:0.7rem;color:#9a93c4;">Score</div>
+                    <div class="stats-recap-score">${score}</div>
+                </div>
+                <div class="stats-recap-avg">
+                    <div style="font-size:0.7rem;color:#9a93c4;">${avgByPlayers === null ? 'Average' : 'Players avg'}</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:#e0dcff;">${avg.toFixed(1)}</div>
+                </div>
+            </div>
+            <div class="stats-chart-wrap">
+                <div class="stats-chart-bars">${barsHtml}</div>
+                <div class="stats-marker" style="left:${markerLeft}%">
+                    <span class="stats-marker-label">YOU</span>
+                </div>
+            </div>
+            <div class="stats-diff">${diffText}${avgByPlayers === null ? '' : ' (среднее по игрокам)'}</div>
+            <div class="stats-recap-dismiss">👆 Нажми вне карточки, чтобы начать заново</div>
         `;
+
         overlay.appendChild(card);
         document.body.appendChild(overlay);
-        overlay.addEventListener('click', () => { overlay.remove(); fullResetGame(); });
-        card.addEventListener('click', (e) => e.stopPropagation());
+
+        const close = () => {
+            overlay.remove();
+            fullResetGame();
+        };
+        overlay.addEventListener('click', close);
     }
 
-    function makeGuess(guess) {
-        if (!gameActive || !canGuess || !currentItem) return;
-        const isCorrect = (guess === currentItem.answer);
-        if (isCorrect) {
-            currentStreak++;
-            updateStreakUI();
-            statusDiv.innerHTML = `✅ ПРАВИЛЬНО! Серия: ${currentStreak} 🔥`;
-            canGuess = false;
-            loadNextPhotoAfterCorrect();
-        } else {
-            statusDiv.innerHTML = `❌ ОШИБКА! Был(а) — ${currentItem.answer === 'boy' ? 'ПАРЕНЬ' : 'ДЕВУШКА'}.`;
-            endGameWithLose();
+    async function showStatisticsHub() {
+        const uid = firebaseAuth && firebaseAuth.currentUser ? firebaseAuth.currentUser.uid : null;
+        let userAgg = null;
+        try {
+            if (uid) userAgg = await loadUserAggregates(uid);
+        } catch (e) {
+            console.warn('loadUserAggregates', e);
         }
-    }
 
-    // ==================== ТОП-5 И МЕСТО ====================
-    async function loadTop5AndYourPlace() {
-        if (!firebaseReady || !firebaseDb) return null;
-        const snap = await firebaseDb.ref(FIREBASE_USER_STATS_PATH).get();
-        if (!snap.exists()) return { top5: [], yourPlace: null };
-        const users = [];
-        snap.forEach(child => {
-            const data = child.val();
-            const name = child.key;
-            const bestStreak = data.bestStreak || 0;
-            if (bestStreak > 0) users.push({ uid: name, bestStreak, name: name.slice(0, 12) });
-        });
-        users.sort((a,b) => b.bestStreak - a.bestStreak);
-        const top5 = users.slice(0,5);
-        const currentUser = firebaseAuth?.currentUser;
-        let yourPlace = null;
-        if (currentUser) {
-            const idx = users.findIndex(u => u.uid === currentUser.uid);
-            if (idx !== -1) yourPlace = { rank: idx+1, bestStreak: users[idx].bestStreak };
-        }
-        return { top5, yourPlace };
-    }
+        const stats = await loadStats().catch(() => []);
+        const usersAgg = await loadAllUserAggregates().catch(() => []);
+        const totalRuns = stats.length;
+        const globalAvgByRuns = totalRuns ? (stats.reduce((s, x) => s + Number(x.score || 0), 0) / totalRuns) : 0;
+        const globalAvgByPlayers = usersAgg.length
+            ? (usersAgg.reduce((s, x) => s + Number(x.avgStreak || 0), 0) / usersAgg.length)
+            : null;
+        const globalAvg = globalAvgByPlayers === null ? globalAvgByRuns : globalAvgByPlayers;
+        const globalWins = stats.reduce((s, x) => s + (x && x.win ? 1 : 0), 0);
+        const globalLosses = totalRuns - globalWins;
+        const globalCorrect = stats.reduce((s, x) => s + Number(x.correct || x.score || 0), 0);
+        const globalIncorrect = stats.reduce((s, x) => s + Number(x.incorrect || 1), 0);
 
-    async function showTop5Modal() {
-        const data = await loadTop5AndYourPlace();
         const overlay = document.createElement('div');
         overlay.className = 'stats-recap-overlay';
         const card = document.createElement('div');
         card.className = 'stats-recap-card';
-        let top5Html = '<div class="top5-list">';
-        data.top5.forEach((user, i) => {
-            const medal = i === 0 ? '🥇' : (i === 1 ? '🥈' : (i === 2 ? '🥉' : `${i+1}.`));
-            top5Html += `
-                <div class="top5-item">
-                    <span class="top5-rank">${medal}</span>
-                    <span class="top5-name">${escapeHtml(user.name)}</span>
-                    <span class="top5-streak">${user.bestStreak}</span>
-                </div>
-            `;
-        });
-        top5Html += '</div>';
-        let yourHtml = '';
-        if (data.yourPlace) {
-            yourHtml = `
-                <div class="your-place">
-                    <div>🏆 ТВОЁ МЕСТО</div>
-                    <div class="your-rank">#${data.yourPlace.rank} · ${data.yourPlace.bestStreak} очков</div>
-                </div>
-            `;
-        } else if (firebaseAuth?.currentUser) {
-            yourHtml = `<div class="your-place">✨ Сыграй пару раундов, чтобы попасть в рейтинг! ✨</div>`;
-        } else {
-            yourHtml = `<div class="your-place">🔑 Войди в аккаунт, чтобы попасть в ТОП!</div>`;
-        }
+        card.addEventListener('click', (e) => e.stopPropagation());
+
+        const userBlock = uid
+            ? (userAgg
+                ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);">
+                     <div style="font-size:0.72rem;color:#9a93c4;letter-spacing:2px;font-weight:800;text-align:center;">YOUR STATS</div>
+                     <div style="display:flex;justify-content:space-between;margin-top:10px;color:#e8e4ff;font-weight:700;">
+                       <div>Runs</div><div>${Number(userAgg.runs||0)}</div>
+                     </div>
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                       <div>Wins / Losses</div><div>${Number(userAgg.wins||0)} / ${Number(userAgg.losses||0)}</div>
+                     </div>
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                       <div>Correct / Incorrect</div><div>${Number(userAgg.totalCorrect||0)} / ${Number(userAgg.totalIncorrect||0)}</div>
+                     </div>
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                       <div>Best streak</div><div>${Number(userAgg.bestStreak||0)}</div>
+                     </div>
+                   </div>`
+                : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);opacity:.85;color:#c9c3f0;text-align:center;">
+                     Нет агрегированной статистики для аккаунта (сыграй 1 раз после входа).
+                   </div>`)
+            : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);opacity:.85;color:#c9c3f0;text-align:center;">
+                 Войди в аккаунт, чтобы не терять статистику на другом устройстве.
+               </div>`;
+
         card.innerHTML = `
-            <div class="stats-recap-title">🏆 ТОП-5 ИГРОКОВ</div>
-            ${top5Html}
-            ${yourHtml}
-            <div class="stats-recap-dismiss">✖️ Нажми вне карточки</div>
+            <div class="stats-recap-title">STATISTICS</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;">
+              <div style="color:#9a93c4;font-size:0.75rem;font-weight:800;letter-spacing:2px;">GLOBAL</div>
+              <div style="color:#c9c3f0;font-size:0.8rem;">runs: <b style="color:#fff;">${totalRuns}</b></div>
+            </div>
+            <div style="margin-top:10px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+              <div>${globalAvgByPlayers === null ? 'Average streak' : 'Players avg streak'}</div><div>${globalAvg.toFixed(1)}</div>
+            </div>
+            <div style="margin-top:6px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+              <div>Wins / Losses</div><div>${globalWins} / ${globalLosses}</div>
+            </div>
+            <div style="margin-top:6px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+              <div>Correct / Incorrect</div><div>${globalCorrect} / ${globalIncorrect}</div>
+            </div>
+            <div style="margin-top:10px;color:#9a93c4;font-size:0.72rem;line-height:1.35;opacity:.9;">
+              WIN = серия ≥ 10. INCORRECT = последний промах (1 на серию).
+            </div>
+            ${userBlock}
+            <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
         `;
         overlay.appendChild(card);
         document.body.appendChild(overlay);
         overlay.addEventListener('click', () => overlay.remove());
-        card.addEventListener('click', (e) => e.stopPropagation());
     }
 
-    function escapeHtml(str) { return String(str).replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
-
-    // Инициализация
-    function initGameModule() {
-        imageQueue = buildFreshQueue();
-        currentIndex = 0;
-        if (imageQueue.length === 0) imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%2331325e'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffc5d9' text-anchor='middle'%3EЗагрузи фото%3C/text%3E%3C/svg%3E", answer: "boy" });
-        currentItem = imageQueue[0];
-        photoEl.src = currentItem.url;
-        currentStreak = 0;
-        gameActive = true;
-        canGuess = true;
-        updateStreakUI();
-        boyBtn.disabled = false;
-        girlBtn.disabled = false;
-        statusDiv.innerHTML = "🎭 Кто на фото? Нажми кнопку!";
-        photoEl.style.filter = "";
-    }
-
-    boyBtn.addEventListener('click', () => makeGuess('boy'));
-    girlBtn.addEventListener('click', () => makeGuess('girl'));
-    document.body.addEventListener('click', (e) => { if (!gameActive && !document.querySelector('.stats-recap-overlay')) fullResetGame(); });
-
-    // Firebase
-    function initFirebase() {
-        if (!window.firebase) return false;
-        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
-        firebaseDb = firebase.database();
-        firebaseAuth = firebase.auth();
-        firebaseReady = true;
-        return true;
-    }
-
-    async function loadPhotosFromRealtimeDb() {
-        if (!firebaseReady || !firebaseDb) return false;
-        const snap = await firebaseDb.ref(FIREBASE_PHOTOS_PATH).get();
-        if (snap.exists() && Array.isArray(snap.val())) {
-            imagesDataset = snap.val().filter(p => p.url && (p.answer === 'boy' || p.answer === 'girl')).map(p => ({ url: p.url, answer: p.answer }));
-            return true;
-        }
-        return false;
-    }
-
-    async function savePhotosToRealtimeDb() { if (firebaseReady && firebaseDb) await firebaseDb.ref(FIREBASE_PHOTOS_PATH).set(imagesDataset); }
-
-    async function checkAdminFlag() {
-        if (!firebaseAuth?.currentUser) return false;
-        const uid = firebaseAuth.currentUser.uid;
-        if (BOOTSTRAP_ADMIN_UIDS.has(uid)) { isAdminUser = true; return true; }
-        const snap = await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${uid}`).get();
-        isAdminUser = snap.exists() && snap.val() === true;
-        return isAdminUser;
-    }
-
-    function refreshAdminFab() { document.getElementById('adminFab').style.display = isAdminUser ? 'inline-flex' : 'none'; }
-
-    function usernameToEmail(username) {
-        const u = String(username).trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
-        if (u.length < 3) throw new Error('Логин: минимум 3 символа');
-        return `${u}@femboy-guessor.local`;
+    function applyMobileMode() {
+        const mq = window.matchMedia('(max-width: 640px), (pointer: coarse)');
+        const apply = () => document.body.classList.toggle('mobile-game', mq.matches);
+        apply();
+        mq.addEventListener('change', apply);
     }
 
     function initAuthUi() {
-        const authPanel = document.getElementById('authPanel');
+        const authBar = document.getElementById('authBar');
         const authToggle = document.getElementById('authToggle');
+        const authPanel = document.getElementById('authPanel');
+        const authStatus = document.getElementById('authStatus');
+        const authUsername = document.getElementById('authUsername');
+        const authPassword = document.getElementById('authPassword');
         const authSignIn = document.getElementById('authSignIn');
         const authSignUp = document.getElementById('authSignUp');
         const authSignOut = document.getElementById('authSignOut');
-        const authUsername = document.getElementById('authUsername');
-        const authPassword = document.getElementById('authPassword');
-        const authStatus = document.getElementById('authStatus');
-        authToggle.addEventListener('click', () => authPanel.classList.toggle('open'));
-        document.addEventListener('click', (e) => { if (!authPanel.contains(e.target) && e.target !== authToggle) authPanel.classList.remove('open'); });
-        authSignIn.addEventListener('click', async () => {
-            try { await firebaseAuth.signInWithEmailAndPassword(usernameToEmail(authUsername.value), authPassword.value); authPanel.classList.remove('open'); } catch(err) { alert(err.message); }
+        if (!firebaseAuth) return;
+
+        const refreshAuthUi = (user) => {
+            if (user) {
+                const label = user.displayName || (user.email || '').split('@')[0] || 'игрок';
+                const best = Math.max(Number(bestStreakCloud || 0), Number(bestStreakLocal || 0));
+                authStatus.textContent = `✓ ${label} · рекорд: ${best}`;
+                authSignOut.style.display = 'block';
+                authSignIn.style.display = 'none';
+                authSignUp.style.display = 'none';
+            } else {
+                authStatus.textContent = `Гость · рекорд: ${Number(bestStreakLocal || 0)} (локально)`;
+                authSignOut.style.display = 'none';
+                authSignIn.style.display = 'block';
+                authSignUp.style.display = 'block';
+            }
+        };
+
+        firebaseAuth.onAuthStateChanged(async (user) => {
+            if (user) {
+                await mergeRunsPlayedFromCloud();
+                await checkAdminFlag();
+                refreshAdminFab();
+                try {
+                    const agg = await loadUserAggregates(user.uid);
+                    bestStreakCloud = agg ? Number(agg.bestStreak || 0) : 0;
+                } catch (e) {
+                    console.warn('loadUserAggregates(bestStreak)', e);
+                    bestStreakCloud = null;
+                }
+                refreshAuthUi(user);
+            } else {
+                isAdminUser = false;
+                refreshAdminFab();
+                bestStreakCloud = null;
+                refreshAuthUi(null);
+            }
         });
+
+        authToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            authPanel.classList.toggle('open');
+            authToggle.setAttribute('aria-expanded', authPanel.classList.contains('open'));
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!authPanel.contains(e.target) && e.target !== authToggle && !authBar.contains(e.target)) {
+                authPanel.classList.remove('open');
+            }
+        });
+
+        authSignIn.addEventListener('click', async () => {
+            try {
+                const email = usernameToEmail(authUsername.value);
+                await firebaseAuth.signInWithEmailAndPassword(email, authPassword.value);
+                await mergeRunsPlayedFromCloud();
+                touchAuthStatusBar();
+                authPanel.classList.remove('open');
+            } catch (err) {
+                window.alert(err.message || String(err));
+            }
+        });
+
         authSignUp.addEventListener('click', async () => {
             try {
                 const email = usernameToEmail(authUsername.value);
                 const cred = await firebaseAuth.createUserWithEmailAndPassword(email, authPassword.value);
-                await cred.user.updateProfile({ displayName: authUsername.value });
+                const name = String(authUsername.value || '').trim().slice(0, 32);
+                await cred.user.updateProfile({ displayName: name });
+                if (firebaseDb) {
+                    await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${cred.user.uid}`).update({
+                        username: name,
+                        createdAt: Date.now(),
+                        runsPlayed
+                    });
+                }
+                await mergeRunsPlayedFromCloud();
+                await syncRunsPlayedToCloud();
+                touchAuthStatusBar();
                 authPanel.classList.remove('open');
-            } catch(err) { alert(err.message); }
+            } catch (err) {
+                window.alert(err.message || String(err));
+            }
         });
-        authSignOut.addEventListener('click', async () => { await firebaseAuth.signOut(); authPanel.classList.remove('open'); });
-        firebaseAuth.onAuthStateChanged(async (user) => {
-            if (user) {
-                const name = user.displayName || user.email.split('@')[0];
-                authStatus.textContent = `✓ ${name}`;
-                authSignOut.style.display = 'block';
-                authSignIn.style.display = 'none';
-                authSignUp.style.display = 'none';
-                await checkAdminFlag();
-                refreshAdminFab();
-            } else {
-                authStatus.textContent = 'Гость';
-                authSignOut.style.display = 'none';
-                authSignIn.style.display = 'block';
-                authSignUp.style.display = 'block';
-                isAdminUser = false;
-                refreshAdminFab();
+
+        authSignOut.addEventListener('click', async () => {
+            try {
+                await firebaseAuth.signOut();
+                touchAuthStatusBar();
+                authPanel.classList.remove('open');
+            } catch (err) {
+                window.alert(err.message || String(err));
             }
         });
     }
 
-    // Админ-панель
-    async function openAdminPanel() {
-        if (!isAdminUser && prompt('Введите пароль админки:') !== ADMIN_PASSWORD) return;
-        document.getElementById('adminPanel').style.display = 'flex';
-        await loadPhotosFromRealtimeDb();
-        updatePhotosList();
+    const photoTapZones = document.getElementById('photoTapZones');
+    if (photoTapZones) {
+        photoTapZones.addEventListener('click', (e) => {
+            const z = e.target.closest('[data-guess]');
+            if (!z) return;
+            e.stopPropagation();
+            makeGuess(z.getAttribute('data-guess'));
+        });
     }
 
-    function updatePhotosList() {
-        const list = document.getElementById('photosList');
-        list.innerHTML = '';
-        imagesDataset.forEach((item, idx) => {
-            const div = document.createElement('div');
-            div.className = 'admin-item';
-            div.innerHTML = `<span>${item.url.slice(0,50)}... [${item.answer}]</span><button class="admin-item-delete" data-idx="${idx}">🗑️</button>`;
-            list.appendChild(div);
+    // Stats button / URL hook
+    const statsBtn = document.getElementById('statsBtn');
+    if (statsBtn) {
+        statsBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await showStatisticsHub();
         });
-        document.querySelectorAll('.admin-item-delete').forEach(btn => btn.addEventListener('click', async (e) => {
-            const idx = parseInt(btn.dataset.idx);
-            imagesDataset.splice(idx, 1);
-            await savePhotosToRealtimeDb();
-            updatePhotosList();
+    }
+
+    // Admin FAB (только для админов из Firebase)
+    const adminFab = document.getElementById('adminFab');
+    if (adminFab) {
+        adminFab.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await openAdminPanel();
+        });
+    }
+
+    // ==================== АДМИН-ПАНЕЛЬ ====================
+    const adminPanel = document.getElementById('adminPanel');
+    const photoUrlInput = document.getElementById('photoUrl');
+    const photoCategorySelect = document.getElementById('photoCategory');
+    const addPhotoBtn = document.getElementById('addPhotoBtn');
+    const photosList = document.getElementById('photosList');
+    const adminMessage = document.getElementById('adminMessage');
+    const closeAdminBtn = document.getElementById('closeAdminBtn');
+    const exportBtn = document.getElementById('exportBtn');
+    const importBtn = document.getElementById('importBtn');
+    const jsonInput = document.getElementById('jsonInput');
+    const confirmImportBtn = document.getElementById('confirmImportBtn');
+    const openRouterKeyInput = document.getElementById('openRouterKey');
+    const aiQueryInput = document.getElementById('aiQuery');
+    const aiCountInput = document.getElementById('aiCount');
+    const aiFindBtn = document.getElementById('aiFindBtn');
+    const aiCandidatesDiv = document.getElementById('aiCandidates');
+    const adminUidInput = document.getElementById('adminUidInput');
+    const addAdminUidBtn = document.getElementById('addAdminUidBtn');
+    const removeAdminUidBtn = document.getElementById('removeAdminUidBtn');
+    const adminAccountsList = document.getElementById('adminAccountsList');
+    let aiCandidates = [];
+
+    function normalizePhotoItem(item) {
+        if (!item || typeof item.url !== 'string') return null;
+        const gender = (item.gender === 'boy' || item.gender === 'girl') ? item.gender : item.answer;
+        if (gender !== 'boy' && gender !== 'girl') return null;
+        return { url: item.url, answer: gender, gender };
+    }
+
+    function isValidPhotosArray(value) {
+        return Array.isArray(value) && value.every(item =>
+            normalizePhotoItem(item) !== null
+        );
+    }
+
+    function toRealtimePayload(items) {
+        return items.map(item => ({
+            url: item.url,
+            gender: item.gender || item.answer
         }));
     }
 
-    document.getElementById('addPhotoBtn')?.addEventListener('click', async () => {
-        const url = document.getElementById('photoUrl').value.trim();
-        const category = document.getElementById('photoCategory').value;
-        if (!url) return alert('Введи URL');
-        imagesDataset.push({ url, answer: category });
-        await savePhotosToRealtimeDb();
-        updatePhotosList();
-        document.getElementById('photoUrl').value = '';
-    });
-    document.getElementById('closeAdminBtn')?.addEventListener('click', () => { document.getElementById('adminPanel').style.display = 'none'; fullResetGame(); });
-    document.getElementById('adminFab')?.addEventListener('click', openAdminPanel);
-    document.getElementById('statsBtn')?.addEventListener('click', () => alert('📊 Статистика в разработке'));
-    document.getElementById('top5Btn')?.addEventListener('click', showTop5Modal);
+    // Загрузка фото из Firebase Realtime Database
+    async function loadPhotosFromRealtimeDb() {
+        if (!firebaseReady || !firebaseDb) {
+            return false;
+        }
+        try {
+            const snapshot = await firebaseDb.ref(FIREBASE_PHOTOS_PATH).get();
+            if (!snapshot.exists()) return false;
+            const parsed = snapshot.val();
+            if (isValidPhotosArray(parsed)) {
+                const normalized = parsed.map(normalizePhotoItem).filter(Boolean);
+                imagesDataset.length = 0;
+                imagesDataset.push(...normalized);
+                return true;
+            }
+            console.warn('В Firebase лежит некорректный формат photos');
+            return false;
+        } catch (e) {
+            console.error('Ошибка загрузки из Firebase:', e);
+            return false;
+        }
+    }
 
-    document.querySelectorAll('.admin-mini-actions button').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            if (!isAdminUser) return alert('Нет прав');
-            const uid = document.getElementById('adminUidInput').value.trim();
-            if (!uid) return alert('Введи UID');
-            const isAdd = btn.id === 'addAdminUidBtn';
-            await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${uid}`).set(isAdd ? true : null);
-            alert(isAdd ? 'Админ добавлен' : 'Админ удалён');
+    // Сохранение фото в Firebase Realtime Database
+    async function savePhotosToRealtimeDb() {
+        if (!firebaseReady || !firebaseDb) {
+            throw new Error('Firebase не инициализирован');
+        }
+        await firebaseDb.ref(FIREBASE_PHOTOS_PATH).set(toRealtimePayload(imagesDataset));
+    }
+
+    // Показ сообщения в админ-панели
+    function showAdminMessage(text, type = 'info') {
+        adminMessage.innerHTML = `<div class="admin-message ${type}">${text}</div>`;
+        setTimeout(() => {
+            adminMessage.innerHTML = '';
+        }, 3000);
+    }
+
+    // Обновление списка фото в админ-панели
+    function updatePhotosList() {
+        photosList.innerHTML = '';
+        imagesDataset.forEach((item, index) => {
+            const photoItem = document.createElement('div');
+            photoItem.className = 'admin-item';
+
+        const category = item.gender === 'boy' || item.answer === 'boy' ? 'boy' : 'girl';
+        const categoryLabel = category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА';
+            const shortUrl = item.url.length > 50 ? item.url.substring(0, 50) + '...' : item.url;
+
+            photoItem.innerHTML = `
+                <div style="flex: 1; overflow: hidden;">
+                    <span class="admin-item-category ${category}">${categoryLabel}</span>
+                    <span style="word-break: break-all;">${shortUrl} | пол: ${category}</span>
+                </div>
+                <button class="admin-item-delete" onclick="deletePhoto(${index})">🗑️ Удалить</button>
+            `;
+            photosList.appendChild(photoItem);
         });
+
+        // Обновляем количество
+        const totalLabel = document.getElementById('photosCountLabel');
+        if (totalLabel) {
+            totalLabel.textContent = `📝 Все фото (${imagesDataset.length}):`;
+        }
+    }
+
+    // Добавление фото
+    addPhotoBtn.addEventListener('click', async () => {
+        const url = photoUrlInput.value.trim();
+        const category = photoCategorySelect.value;
+
+        if (!url) {
+            showAdminMessage('❌ URL пуст! Вставь ссылку на фото', 'info');
+            return;
+        }
+
+        if (!url.startsWith('http')) {
+            showAdminMessage('❌ Ссылка должна начинаться с http:// или https://', 'info');
+            return;
+        }
+
+        const newPhoto = { url, answer: category, gender: category };
+        imagesDataset.push(newPhoto);
+        try {
+            await savePhotosToRealtimeDb();
+            updatePhotosList();
+        } catch (e) {
+            imagesDataset.pop();
+            showAdminMessage(`❌ Не удалось сохранить в Firebase: ${e.message}`, 'info');
+            return;
+        }
+
+        photoUrlInput.value = '';
+        showAdminMessage(`✅ Фото добавлено! (${category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА'})`, 'success');
     });
 
+    // Удаление фото
+    window.deletePhoto = async function(index) {
+        const removed = imagesDataset[index];
+        imagesDataset.splice(index, 1);
+        try {
+            await savePhotosToRealtimeDb();
+            updatePhotosList();
+            showAdminMessage('🗑️ Фото удалено', 'info');
+        } catch (e) {
+            if (removed) {
+                imagesDataset.splice(index, 0, removed);
+            }
+            showAdminMessage(`❌ Не удалось удалить из Firebase: ${e.message}`, 'info');
+        }
+    };
+
+    // Экспорт в JSON
+    exportBtn.addEventListener('click', () => {
+        const json = JSON.stringify(imagesDataset, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'photos_backup.json';
+        a.click();
+        URL.revokeObjectURL(url);
+        showAdminMessage('💾 JSON экспортирован', 'success');
+    });
+
+    // Импорт JSON
+    importBtn.addEventListener('click', () => {
+        jsonInput.style.display = jsonInput.style.display === 'none' ? 'block' : 'none';
+        confirmImportBtn.style.display = confirmImportBtn.style.display === 'none' ? 'block' : 'none';
+    });
+
+    // Подтверждение импорта
+    confirmImportBtn.addEventListener('click', async () => {
+        const jsonText = jsonInput.value.trim();
+
+        if (!jsonText) {
+            showAdminMessage('❌ JSON пуст!', 'info');
+            return;
+        }
+
+        try {
+            const parsed = JSON.parse(jsonText);
+
+            if (!Array.isArray(parsed)) {
+                showAdminMessage('❌ JSON должен быть массивом!', 'info');
+                return;
+            }
+
+            if (!isValidPhotosArray(parsed)) {
+                showAdminMessage('❌ Некорректный формат! Нужны поля: url (string) и gender/answer ("boy" или "girl")', 'info');
+                return;
+            }
+
+            const previous = imagesDataset.map(item => ({ ...item }));
+            try {
+                const normalized = parsed.map(normalizePhotoItem).filter(Boolean);
+                imagesDataset.length = 0;
+                imagesDataset.push(...normalized);
+                await savePhotosToRealtimeDb();
+                updatePhotosList();
+            } catch (e) {
+                imagesDataset.length = 0;
+                imagesDataset.push(...previous);
+                showAdminMessage(`❌ Импорт не сохранен в Firebase: ${e.message}`, 'info');
+                return;
+            }
+
+            jsonInput.value = '';
+            jsonInput.style.display = 'none';
+            confirmImportBtn.style.display = 'none';
+
+            showAdminMessage(`✅ ${parsed.length} фото импортировано!`, 'success');
+        } catch (e) {
+            showAdminMessage(`❌ Ошибка JSON: ${e.message}`, 'info');
+        }
+    });
+
+    // Закрытие админ-панели
+    closeAdminBtn.addEventListener('click', () => {
+        adminPanel.style.display = 'none';
+        initGameModule(); // Перезагружаем игру с новыми фото
+    });
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function renderAiCandidates() {
+        aiCandidatesDiv.innerHTML = '';
+        if (!aiCandidates.length) {
+            aiCandidatesDiv.innerHTML = '<div style="opacity:0.75;">Кандидатов пока нет</div>';
+            return;
+        }
+        aiCandidates.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'ai-candidate';
+            const score = typeof item.confidence === 'number' ? `${Math.round(item.confidence * 100)}%` : 'n/a';
+            card.innerHTML = `
+                <div><b>#${index + 1}</b> ${escapeHtml(item.title || 'Без названия')}</div>
+                <div style="margin-top:6px;">image: <a href="${escapeHtml(item.imageUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.imageUrl)}</a></div>
+                <div style="margin-top:4px;">source: <a href="${escapeHtml(item.sourceUrl)}" target="_blank" rel="noopener noreferrer">${escapeHtml(item.sourceUrl)}</a></div>
+                <div style="margin-top:4px;">AI: <b>${escapeHtml(item.suggestedGender || 'unknown')}</b>, confidence: ${score}</div>
+                <div style="margin-top:4px; opacity:0.85;">${escapeHtml(item.reason || '')}</div>
+                <div class="ai-actions">
+                    <button class="ai-btn ai-btn-boy" onclick="applyAiCandidate(${index}, 'boy')">ADD BOY</button>
+                    <button class="ai-btn ai-btn-girl" onclick="applyAiCandidate(${index}, 'girl')">ADD GIRL</button>
+                    <button class="ai-btn ai-btn-skip" onclick="skipAiCandidate(${index})">SKIP</button>
+                </div>
+            `;
+            aiCandidatesDiv.appendChild(card);
+        });
+    }
+
+    /** Из ответа модели достаём массив объектов-кандидатов (не только корневой JSON-массив). */
+    function unwrapAiCandidatesPayload(parsed) {
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === 'object') {
+            const preferredKeys = ['candidates', 'images', 'results', 'items', 'data', 'photos'];
+            for (const k of preferredKeys) {
+                if (Array.isArray(parsed[k])) return parsed[k];
+            }
+            for (const v of Object.values(parsed)) {
+                if (Array.isArray(v)) return v;
+            }
+        }
+        return [];
+    }
+
+    /** Парсинг JSON из ответа чата с зачисткой markdown и захватом массива/объекта в тексте. */
+    function parseAiCandidatesJson(content) {
+        let trimmed = (content || '').trim();
+        const tryParse = (s) => {
+            const p = JSON.parse(s);
+            return unwrapAiCandidatesPayload(p);
+        };
+        try {
+            return tryParse(trimmed);
+        } catch (first) {
+            trimmed = trimmed.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+            try {
+                return tryParse(trimmed);
+            } catch (second) {
+                const arrStart = trimmed.indexOf('[');
+                const arrEnd = trimmed.lastIndexOf(']');
+                if (arrStart !== -1 && arrEnd > arrStart) {
+                    try {
+                        return tryParse(trimmed.slice(arrStart, arrEnd + 1));
+                    } catch (third) {
+                        /* fall through */
+                    }
+                }
+                const objStart = trimmed.indexOf('{');
+                const objEnd = trimmed.lastIndexOf('}');
+                if (objStart !== -1 && objEnd > objStart) {
+                    try {
+                        return tryParse(trimmed.slice(objStart, objEnd + 1));
+                    } catch (fourth) {
+                        /* fall through */
+                    }
+                }
+                throw second;
+            }
+        }
+    }
+
+    /** Распространённый формат от моделей: //cdn… → https://… */
+    function normalizeHttpsImageUrl(s) {
+        if (typeof s !== 'string') return '';
+        let u = s.trim();
+        if (u.startsWith('//')) u = `https:${u}`;
+        return u;
+    }
+
+    function sanitizeAiCandidates(raw) {
+        const list = unwrapAiCandidatesPayload(raw);
+        return list
+            .map(item => {
+                if (!item || typeof item.imageUrl !== 'string') return null;
+                const imageUrl = normalizeHttpsImageUrl(item.imageUrl.split('?')[0]);
+                if (!imageUrl.startsWith('http')) return null;
+                return {
+                    imageUrl,
+                    sourceUrl: typeof item.sourceUrl === 'string' ? item.sourceUrl.trim() : '',
+                    title: typeof item.title === 'string' ? item.title.trim() : '',
+                    suggestedGender: item.suggestedGender === 'boy' || item.suggestedGender === 'girl' ? item.suggestedGender : 'unknown',
+                    confidence: typeof item.confidence === 'number' ? Math.max(0, Math.min(1, item.confidence)) : null,
+                    reason: typeof item.reason === 'string' ? item.reason.trim() : ''
+                };
+            })
+            .filter(Boolean);
+    }
+
+    /** Openverse: два хоста (иногда один недоступен из сети / блокировок). */
+    async function fetchCandidatesFromOpenverse(query, count) {
+        const pageSize = Math.min(20, Math.max(1, count));
+        const bases = ['https://api.openverse.org', 'https://api.openverse.engineering'];
+        for (const base of bases) {
+            try {
+                const url = `${base}/v1/images/?q=${encodeURIComponent(query)}&page_size=${pageSize}`;
+                const response = await fetch(url, { mode: 'cors' });
+                if (!response.ok) continue;
+                const data = await response.json();
+                const rows = (data.results || []).slice(0, count).map(r => {
+                    const rawU = typeof r.url === 'string' ? r.url : (typeof r.thumbnail === 'string' ? r.thumbnail : '');
+                    const imageUrl = normalizeHttpsImageUrl(rawU.split('?')[0]);
+                    return {
+                        imageUrl,
+                        sourceUrl: typeof r.foreign_landing_url === 'string' ? r.foreign_landing_url : (typeof r.detail_url === 'string' ? r.detail_url : ''),
+                        title: typeof r.title === 'string' ? r.title : '',
+                        suggestedGender: 'unknown',
+                        confidence: null,
+                        reason: typeof r.provider === 'string' ? `Openverse · ${r.provider}` : 'Openverse'
+                    };
+                }).filter(c => c.imageUrl.startsWith('http'));
+                if (rows.length) return rows;
+            } catch (err) {
+                console.warn('Openverse', base, err);
+            }
+        }
+        return [];
+    }
+
+    /** Wikimedia Commons — почти всегда отдаёт картинки по латинице и по многим запросам; CORS origin=*. */
+    async function fetchCandidatesFromWikimediaCommons(query, count) {
+        const lim = Math.min(50, Math.max(3, count));
+        const api = new URL('https://commons.wikimedia.org/w/api.php');
+        api.searchParams.set('action', 'query');
+        api.searchParams.set('format', 'json');
+        api.searchParams.set('origin', '*');
+        api.searchParams.set('generator', 'search');
+        api.searchParams.set('gsrnamespace', '6');
+        api.searchParams.set('gsrsearch', query);
+        api.searchParams.set('gsrlimit', String(lim));
+        api.searchParams.set('prop', 'imageinfo');
+        api.searchParams.set('iiprop', 'url|mime');
+        const response = await fetch(api.toString(), { mode: 'cors' });
+        if (!response.ok) throw new Error(`Commons HTTP ${response.status}`);
+        const data = await response.json();
+        const pages = data.query?.pages ? Object.values(data.query.pages) : [];
+        const out = [];
+        for (const pg of pages) {
+            const ii = pg?.imageinfo?.[0];
+            if (!ii?.url) continue;
+            const mime = ii.mime || '';
+            if (mime && !mime.startsWith('image/')) continue;
+            let imageUrl = normalizeHttpsImageUrl(ii.url.split('?')[0]);
+            if (!imageUrl.startsWith('http')) continue;
+            const wikiTitle = (pg.title || '').replace(/ /g, '_');
+            const sourceUrl = wikiTitle ? `https://commons.wikimedia.org/wiki/${encodeURIComponent(wikiTitle)}` : '';
+            out.push({
+                imageUrl,
+                sourceUrl,
+                title: typeof pg.title === 'string' ? pg.title.replace(/^File:/i, '') : '',
+                suggestedGender: 'unknown',
+                confidence: null,
+                reason: 'Wikimedia Commons'
+            });
+            if (out.length >= count) break;
+        }
+        return out;
+    }
+
+    function mergeCandidateLists(uniqueMax, ...lists) {
+        const seen = new Set();
+        const out = [];
+        for (const list of lists) {
+            if (!Array.isArray(list)) continue;
+            for (const c of list) {
+                if (!c || typeof c.imageUrl !== 'string') continue;
+                const u = normalizeHttpsImageUrl(c.imageUrl.split('?')[0]);
+                if (!u.startsWith('http')) continue;
+                if (seen.has(u)) continue;
+                seen.add(u);
+                out.push({ ...c, imageUrl: u });
+                if (out.length >= uniqueMax) return out;
+            }
+        }
+        return out;
+    }
+
+    async function fetchCandidatesFromOpenRouter({ apiKey, query, count }) {
+        const prompt = `Ты помогаешь контент-админу. Запрос: "${query}".
+У тебя есть результаты веб-поиска в контексте запроса. Составь до ${count} кандидатов.
+В imageUrl ставь только прямые ссылки https на файлы изображений, которые действительно встречаются в тексте сниппетов или на страницах из выдачи (jpg, png, webp, gif). Если надёжной прямой ссылки на файл нет — не добавляй элемент.
+Не выдумывай URL.
+Ответ — JSON-массив объектов:
+[
+  {
+    "title": "короткий заголовок",
+    "imageUrl": "https://...",
+    "sourceUrl": "https://...",
+    "suggestedGender": "boy|girl|unknown",
+    "confidence": 0.0,
+    "reason": "откуда взята ссылка"
+  }
+]
+Только JSON, без markdown.`;
+
+        const webMaxResults = Math.min(25, Math.max(5, count));
+        const baseBody = {
+            model: 'openai/gpt-4o-mini',
+            temperature: 0.15,
+            messages: [
+                { role: 'system', content: 'Отвечай только JSON-массивом, без текста до или после.' },
+                { role: 'user', content: prompt }
+            ]
+        };
+
+        const post = async (body) =>
+            fetch('https://openrouter.ai/api/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${apiKey}`
+                },
+                body: JSON.stringify(body)
+            });
+
+        let response = await post({ ...baseBody, plugins: [{ id: 'web', max_results: webMaxResults }] });
+        if (!response.ok) {
+            response = await post(baseBody);
+        }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`OpenRouter error ${response.status}: ${errorText}`);
+        }
+        const data = await response.json();
+        const content = data?.choices?.[0]?.message?.content || '[]';
+        const extracted = parseAiCandidatesJson(content);
+        return sanitizeAiCandidates(extracted);
+    }
+
+    aiFindBtn.addEventListener('click', async () => {
+        const apiKey = openRouterKeyInput.value.trim();
+        const query = aiQueryInput.value.trim();
+        const count = Math.max(1, Math.min(50, Number(aiCountInput.value || 10)));
+
+        if (!apiKey.startsWith('sk-or-v1-')) {
+            showAdminMessage('❌ Вставь валидный OpenRouter key', 'info');
+            return;
+        }
+        if (!query) {
+            showAdminMessage('❌ Введи поисковый запрос', 'info');
+            return;
+        }
+
+        aiFindBtn.disabled = true;
+        aiFindBtn.textContent = '⏳ ИЩУ...';
+        try {
+            const verseTask = fetchCandidatesFromOpenverse(query, count).catch((err) => {
+                console.warn('Openverse', err);
+                return [];
+            });
+            const commonsTask = fetchCandidatesFromWikimediaCommons(query, count).catch((err) => {
+                console.warn('Wikimedia Commons', err);
+                return [];
+            });
+            const aiTask = fetchCandidatesFromOpenRouter({ apiKey, query, count }).catch((err) => {
+                console.warn('OpenRouter', err);
+                return [];
+            });
+            const [verse, commons, ai] = await Promise.all([verseTask, commonsTask, aiTask]);
+            aiCandidates = mergeCandidateLists(count, verse, commons, ai);
+            renderAiCandidates();
+            if (!aiCandidates.length) {
+                showAdminMessage(
+                    '⚠️ Кандидатов 0: не сработали Openverse, Wikimedia Commons и AI. Частые причины: страница открыта как file:// (открой через локальный сервер, например npx serve), блокировка запросов (адблок, корпоративный фильтр) или чересчур редкий запрос. Для Commons попробуй короткий запрос латиницей (socks, portrait). Либо вставь прямую ссылку на фото.',
+                    'info'
+                );
+            } else {
+                const parts = [`всего ${aiCandidates.length}`];
+                if (verse.length) parts.push('есть из Openverse');
+                if (commons.length) parts.push('есть из Wikimedia Commons');
+                if (ai.length) parts.push('плюс AI с веб-поиском');
+                showAdminMessage(`✅ Найдено кандидатов (${parts.join('; ')}).`, 'success');
+            }
+        } catch (e) {
+            showAdminMessage(`❌ Ошибка AI-поиска: ${e.message}`, 'info');
+        } finally {
+            aiFindBtn.disabled = false;
+            aiFindBtn.textContent = '🔎 НАЙТИ КАНДИДАТОВ';
+        }
+    });
+
+    window.skipAiCandidate = function(index) {
+        aiCandidates.splice(index, 1);
+        renderAiCandidates();
+    };
+
+    window.applyAiCandidate = async function(index, gender) {
+        const candidate = aiCandidates[index];
+        if (!candidate) return;
+        const newPhoto = { url: candidate.imageUrl, answer: gender, gender };
+        imagesDataset.push(newPhoto);
+        try {
+            await savePhotosToRealtimeDb();
+            aiCandidates.splice(index, 1);
+            renderAiCandidates();
+            updatePhotosList();
+            showAdminMessage(`✅ Добавлено в базу: ${gender}`, 'success');
+        } catch (e) {
+            imagesDataset.pop();
+            showAdminMessage(`❌ Не удалось сохранить: ${e.message}`, 'info');
+        }
+    };
+
+    // Открытие админ-панели по параметру URL ?admin
+    function requestAdminAccess() {
+        const password = window.prompt('Введите пароль админки:');
+        if (password === null) return false;
+        if (password !== ADMIN_PASSWORD) {
+            window.alert('Неверный пароль');
+            return false;
+        }
+        return true;
+    }
+
+    async function openAdminPanel() {
+        if (!isAdminUser) {
+            if (!requestAdminAccess()) return;
+        }
+        adminPanel.style.display = 'flex';
+        const loaded = await loadPhotosFromRealtimeDb();
+        await loadAdminAccountsList();
+        updatePhotosList();
+        showAdminMessage(
+            loaded ? '☁️ Фото загружены из Realtime Database' : 'ℹ️ База пустая или недоступна, используются 10 запасных фото из кода',
+            'info'
+        );
+    }
+
+    async function checkAdminMode() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('admin')) {
+            await openAdminPanel();
+        }
+    }
+
+    async function checkStatisticMode() {
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('statistic')) {
+            await showStatisticsHub();
+        }
+    }
+
+    // Проверяем при загрузке
     async function startApp() {
         initFirebase();
         initAuthUi();
+        applyMobileMode();
         await loadPhotosFromRealtimeDb();
         initGameModule();
-        const mobileCheck = () => document.body.classList.toggle('mobile-game', window.matchMedia('(max-width: 640px), (pointer: coarse)').matches);
-        mobileCheck();
-        window.addEventListener('resize', mobileCheck);
+        touchAuthStatusBar();
+        await checkAdminMode();
+        await checkStatisticMode();
     }
     startApp();
+
+    // Подстраховка: также проверяем нажатие Ctrl+Shift+A
+    document.addEventListener('keydown', async (e) => {
+        if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+            e.preventDefault();
+            const isClosed = adminPanel.style.display === 'none' || adminPanel.style.display === '';
+            if (isClosed) {
+                await openAdminPanel();
+            } else {
+                adminPanel.style.display = 'none';
+                initGameModule();
+            }
+        }
+    });
+
+    // Админ-крутилки статистики по UID
+    const adminUserUidInput = document.getElementById('adminUserUid');
+    const incRunsBtn = document.getElementById('incRunsBtn');
+    const decRunsBtn = document.getElementById('decRunsBtn');
+    const incCorrect10Btn = document.getElementById('incCorrect10Btn');
+    const decCorrect10Btn = document.getElementById('decCorrect10Btn');
+    const incIncorrect1Btn = document.getElementById('incIncorrect1Btn');
+    const decIncorrect1Btn = document.getElementById('decIncorrect1Btn');
+    const incWinsBtn = document.getElementById('incWinsBtn');
+    const incLossesBtn = document.getElementById('incLossesBtn');
+
+    async function adminBumpAgg(uid, patch) {
+        if (!isAdminUser) throw new Error('Не админ');
+        if (!uid) throw new Error('Вставь UID');
+        if (!firebaseReady || !firebaseDb) throw new Error('Firebase не готов');
+        const path = `${FIREBASE_USER_STATS_PATH}/${uid}`;
+        await firebaseDb.ref(path).transaction((curr) => {
+            const c = curr && typeof curr === 'object' ? curr : {};
+            const next = { ...c };
+            for (const [k, v] of Object.entries(patch)) {
+                next[k] = Math.max(0, Number(next[k] || 0) + Number(v || 0));
+            }
+            next.updatedAt = Date.now();
+            return next;
+        });
+        showAdminMessage('✅ Обновлено', 'success');
+    }
+
+    function getAdminUid() {
+        return String(adminUserUidInput && adminUserUidInput.value || '').trim();
+    }
+
+    if (incRunsBtn) incRunsBtn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { runs: 1 }));
+    if (decRunsBtn) decRunsBtn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { runs: -1 }));
+    if (incCorrect10Btn) incCorrect10Btn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { totalCorrect: 10 }));
+    if (decCorrect10Btn) decCorrect10Btn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { totalCorrect: -10 }));
+    if (incIncorrect1Btn) incIncorrect1Btn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { totalIncorrect: 1 }));
+    if (decIncorrect1Btn) decIncorrect1Btn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { totalIncorrect: -1 }));
+    if (incWinsBtn) incWinsBtn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { wins: 1 }));
+    if (incLossesBtn) incLossesBtn.addEventListener('click', async () => adminBumpAgg(getAdminUid(), { losses: 1 }));
+
+    async function loadAdminAccountsList() {
+        if (!adminAccountsList) return;
+        adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Загрузка админов...</div>';
+        if (!firebaseReady || !firebaseDb) {
+            adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Firebase не готов</div>';
+            return;
+        }
+        try {
+            const snap = await firebaseDb.ref(FIREBASE_ADMINS_PATH).get();
+            if (!snap.exists()) {
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Список пуст</div>';
+                return;
+            }
+            const obj = snap.val() || {};
+            const entries = Object.entries(obj).filter(([, v]) => v === true || v === 1 || v === '1');
+            if (!entries.length) {
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Список пуст</div>';
+                return;
+            }
+            adminAccountsList.innerHTML = '';
+            entries.forEach(([uid]) => {
+                const row = document.createElement('div');
+                row.className = 'admin-mini-item';
+                row.innerHTML = `
+                    <span>${uid}</span>
+                    <button class="admin-item-delete" style="margin-left:0;" data-remove-admin="${uid}">Снять</button>
+                `;
+                adminAccountsList.appendChild(row);
+            });
+        } catch (e) {
+            adminAccountsList.innerHTML = `<div style="opacity:.75;color:#ff9ebc;font-size:.8rem;">Ошибка: ${e.message}</div>`;
+        }
+    }
+
+    async function setAdminUidValue(uid, value) {
+        if (!isAdminUser) throw new Error('Только для админа');
+        if (!firebaseReady || !firebaseDb) throw new Error('Firebase не готов');
+        const normalizedUid = String(uid || '').trim();
+        if (!normalizedUid) throw new Error('Введи UID');
+        if (value) {
+            await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${normalizedUid}`).set(true);
+        } else {
+            await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${normalizedUid}`).remove();
+        }
+        await loadAdminAccountsList();
+        showAdminMessage(value ? '✅ Админ добавлен в Firebase' : '✅ Админ удален из Firebase', 'success');
+    }
+
+    if (addAdminUidBtn) addAdminUidBtn.addEventListener('click', async () => {
+        try {
+            await setAdminUidValue(adminUidInput && adminUidInput.value, true);
+        } catch (e) {
+            showAdminMessage(`❌ ${e.message}`, 'info');
+        }
+    });
+    if (removeAdminUidBtn) removeAdminUidBtn.addEventListener('click', async () => {
+        try {
+            await setAdminUidValue(adminUidInput && adminUidInput.value, false);
+        } catch (e) {
+            showAdminMessage(`❌ ${e.message}`, 'info');
+        }
+    });
+    if (adminAccountsList) adminAccountsList.addEventListener('click', async (e) => {
+        const btn = e.target.closest('[data-remove-admin]');
+        if (!btn) return;
+        try {
+            await setAdminUidValue(btn.getAttribute('data-remove-admin'), false);
+        } catch (err) {
+            showAdminMessage(`❌ ${err.message}`, 'info');
+        }
+    });
 </script>
 </body>
 </html>
