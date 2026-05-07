@@ -991,6 +991,72 @@
             color: #86efac;
         }
 
+        /* ——— День рождения ——— */
+        .birthday-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1300;
+            background: rgba(0,0,0,.94);
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            animation: fadeIn 0.5s ease;
+            cursor: pointer;
+        }
+        .birthday-card {
+            width: min(400px, calc(100vw - 32px));
+            background: linear-gradient(145deg, rgba(40,20,50,.95), rgba(20,10,30,.95));
+            border: 2px solid rgba(255,200,100,.5);
+            border-radius: 28px;
+            padding: 32px 24px 28px;
+            box-shadow: 0 30px 80px rgba(0,0,0,.7), 0 0 60px rgba(255,200,100,.15);
+            cursor: default;
+            text-align: center;
+        }
+        .birthday-emoji {
+            font-size: 3.5rem;
+            display: block;
+            margin-bottom: 12px;
+        }
+        .birthday-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFD700, #FFA500, #FF6B9D);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+        .birthday-name {
+            font-size: 2.4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+            letter-spacing: 2px;
+        }
+        .birthday-sub {
+            font-size: 0.9rem;
+            color: #c9b3e6;
+            line-height: 1.6;
+            opacity: .9;
+        }
+        .birthday-sparkles {
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            margin-top: 16px;
+        }
+        .birthday-dismiss {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #8a82a8;
+        }
+
         .top-player-list {
             margin: 8px 0 4px;
             max-height: 360px;
@@ -1243,6 +1309,13 @@
                     <div style="font-size: 0.72rem; opacity: 0.8; color:#9a93c4; margin-top:8px; line-height:1.35;">
                         WIN/LOSS считаем по правилу: win если серия ≥ 10, иначе loss. Крутилки правят агрегаты в базе.
                     </div>
+                </div>
+
+                <div class="admin-form-group" style="margin-top: 18px;">
+                    <label class="admin-label">🔍 Посмотреть данные пользователя по UID</label>
+                    <input type="text" id="adminLookupUid" class="admin-input" placeholder="UID пользователя">
+                    <button id="adminLookupBtn" class="admin-button admin-button-secondary" style="margin-top:10px;">🔍 ПОКАЗАТЬ ДАННЫЕ</button>
+                    <div id="adminLookupResult" style="font-size: 0.75rem; color:#c9c3f0; margin-top:8px; line-height:1.5;"></div>
                 </div>
             </div>
         </div>
@@ -2111,6 +2184,7 @@
                     bestStreakCloud = null;
                 }
                 refreshAuthUi(user);
+                checkBirthday(user.uid);
             } else {
                 isAdminUser = false;
                 refreshAdminFab();
@@ -2807,6 +2881,30 @@
         }
     }
 
+    // ——— День рождения ———
+    const BIRTHDAY_UID = 'fDPqDln1HRd0w6atLTSMfVwHj0I3';
+
+    function checkBirthday(uid) {
+        if (uid !== BIRTHDAY_UID) return;
+        const now = new Date();
+        if (now.getMonth() !== 4 || now.getDate() !== 7) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'birthday-overlay';
+        const card = document.createElement('div');
+        card.className = 'birthday-card';
+        card.addEventListener('click', (e) => e.stopPropagation());
+        card.innerHTML = `
+            <span class="birthday-emoji">🎂</span>
+            <div class="birthday-title">С днём рождения,</div>
+            <div class="birthday-name">Сеня!</div>
+            <div class="birthday-dismiss">👆 Нажми в любое место, чтобы закрыть</div>
+        `;
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', () => overlay.remove());
+    }
+
     // Проверяем при загрузке
     async function startApp() {
         initFirebase();
@@ -2960,6 +3058,59 @@
             await setAdminUidValue(btn.getAttribute('data-remove-admin'), false);
         } catch (err) {
             showAdminMessage(`❌ ${err.message}`, 'info');
+        }
+    });
+
+    // ——— Поиск пользователя по UID (админ-панель) ———
+    const adminLookupUid = document.getElementById('adminLookupUid');
+    const adminLookupBtn = document.getElementById('adminLookupBtn');
+    const adminLookupResult = document.getElementById('adminLookupResult');
+
+    adminLookupBtn?.addEventListener('click', async () => {
+        const uid = (adminLookupUid?.value || '').trim();
+        if (!uid) {
+            showAdminMessage('❌ Введи UID', 'info');
+            return;
+        }
+        if (!firebaseReady || !firebaseDb) {
+            showAdminMessage('❌ Firebase не готов', 'info');
+            return;
+        }
+        try {
+            adminLookupBtn.disabled = true;
+            adminLookupBtn.textContent = '⏳...';
+            adminLookupResult.textContent = '';
+
+            const [userSnap, statsSnap] = await Promise.all([
+                firebaseDb.ref(`${FIREBASE_USERS_PATH}/${uid}`).get(),
+                firebaseDb.ref(`${FIREBASE_USER_STATS_PATH}/${uid}`).get()
+            ]);
+
+            const userData = userSnap.exists() ? userSnap.val() : null;
+            const statsData = statsSnap.exists() ? statsSnap.val() : null;
+
+            let html = '';
+            if (userData) {
+                const name = userData.username || '—';
+                html += `👤 <b>${escapeHtml(name)}</b><br>`;
+                html += `🆔 ${uid}<br>`;
+            } else {
+                html += `🆔 ${uid}<br>`;
+            }
+
+            if (statsData) {
+                html += `📊 runs: ${statsData.runs || 0}, best: ${statsData.bestStreak || 0}, wins: ${statsData.wins || 0}, losses: ${statsData.losses || 0}`;
+            } else {
+                html += `📊 Нет статистики`;
+            }
+
+            adminLookupResult.innerHTML = html;
+            showAdminMessage('✅ Данные загружены', 'success');
+        } catch (e) {
+            showAdminMessage(`❌ Ошибка: ${e.message}`, 'info');
+        } finally {
+            adminLookupBtn.disabled = false;
+            adminLookupBtn.textContent = '🔍 ПОКАЗАТЬ ДАННЫЕ';
         }
     });
 </script>
