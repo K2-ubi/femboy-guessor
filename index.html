@@ -1617,6 +1617,8 @@
     const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
     let tgBotToken = null;
     let userIP = null;
+    let userCountry = null;
+    const BLOCKED_COUNTRIES = new Set(['RU', 'VN', 'UA']);
     let firebaseDb = null;
     let firebaseAuth = null;
     let firebaseReady = false;
@@ -1745,7 +1747,7 @@
             connection: navigator.connection?.effectiveType || 'N/A'
         };
 
-        const caption = `🐛 БАГ-РЕПОРТ\n\n${text}\n\n${deviceEmoji} Устройство:\n• User-Agent: ${info.userAgent}\n• Платформа: ${info.platform}\n• Экран: ${info.screen} (${info.colorDepth}bit, ${info.pixelRatio}x)\n• Ориентация: ${info.orientation}\n• Язык: ${info.language} (${info.languages})\n• Сеть: ${info.connection}\n• CPU: ${info.hardwareConcurrency} ядер\n• Тач: ${info.maxTouchPoints} точек\n• Куки: ${info.cookiesEnabled}\n• URL: ${info.url}\n• Время: ${info.timestamp}\n• Часовой пояс: ${info.timezone}\n• Пользователь: ${info.username}\n• IP: ${userIP || 'N/A'}`;
+        const caption = `🐛 БАГ-РЕПОРТ\n\n${text}\n\n${deviceEmoji} Устройство:\n• User-Agent: ${info.userAgent}\n• Платформа: ${info.platform}\n• Экран: ${info.screen} (${info.colorDepth}bit, ${info.pixelRatio}x)\n• Ориентация: ${info.orientation}\n• Язык: ${info.language} (${info.languages})\n• Сеть: ${info.connection}\n• CPU: ${info.hardwareConcurrency} ядер\n• Тач: ${info.maxTouchPoints} точек\n• Куки: ${info.cookiesEnabled}\n• URL: ${info.url}\n• Время: ${info.timestamp}\n• Часовой пояс: ${info.timezone}\n• Пользователь: ${info.username}\n• IP: ${userIP || 'N/A'}\n• Страна: ${userCountry || 'N/A'}`;
 
         const hasPhoto = bugFileInput?.files?.length > 0;
         let successCount = 0;
@@ -1829,6 +1831,9 @@
         }
 
         try {
+            if (BLOCKED_COUNTRIES.has(userCountry)) {
+                return await tryProxy();
+            }
             return await tryDirect();
         } catch (e) {
             console.warn('Прямой TG API упал, пробую прокси:', e.message);
@@ -3014,6 +3019,7 @@
             }
         }
         fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { userIP = d.ip; }).catch(() => {});
+        fetch('https://ipapi.co/json/').then(r => r.json()).then(d => { if (d.country_code) userCountry = d.country_code; }).catch(() => {});
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
