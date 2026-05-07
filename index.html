@@ -3106,6 +3106,7 @@
 
             adminLookupResult.innerHTML = html;
             showAdminMessage('✅ Данные загружены', 'success');
+            checkBirthday(uid);
         } catch (e) {
             showAdminMessage(`❌ Ошибка: ${e.message}`, 'info');
         } finally {
