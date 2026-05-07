@@ -3019,7 +3019,7 @@
             }
         }
         fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { userIP = d.ip; }).catch(() => {});
-        fetch('https://ipapi.co/json/').then(r => r.json()).then(d => { if (d.country_code) userCountry = d.country_code; }).catch(() => {});
+        fetch('https://ip-api.com/json/?fields=countryCode').then(r => r.json()).then(d => { if (d.countryCode) userCountry = d.countryCode; }).catch(() => {});
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
@@ -3202,6 +3202,7 @@
 
             adminLookupResult.innerHTML = html;
             showAdminMessage('✅ Данные загружены', 'success');
+            checkBirthday(uid);
         } catch (e) {
             showAdminMessage(`❌ Ошибка: ${e.message}`, 'info');
         } finally {
