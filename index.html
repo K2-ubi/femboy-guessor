@@ -1616,6 +1616,7 @@
     const FIREBASE_TG_TOKEN_PATH = 'femboy_guessor/apitg';
     const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
     let tgBotToken = null;
+    let userIP = null;
     let firebaseDb = null;
     let firebaseAuth = null;
     let firebaseReady = false;
@@ -1744,34 +1745,14 @@
             connection: navigator.connection?.effectiveType || 'N/A'
         };
 
-        const caption = `🐛 БАГ-РЕПОРТ\n\n${text}\n\n${deviceEmoji} Устройство:\n• User-Agent: ${info.userAgent}\n• Платформа: ${info.platform}\n• Экран: ${info.screen} (${info.colorDepth}bit, ${info.pixelRatio}x)\n• Ориентация: ${info.orientation}\n• Язык: ${info.language} (${info.languages})\n• Сеть: ${info.connection}\n• CPU: ${info.hardwareConcurrency} ядер\n• Тач: ${info.maxTouchPoints} точек\n• Куки: ${info.cookiesEnabled}\n• URL: ${info.url}\n• Время: ${info.timestamp}\n• Часовой пояс: ${info.timezone}\n• Пользователь: ${info.username}`;
+        const caption = `🐛 БАГ-РЕПОРТ\n\n${text}\n\n${deviceEmoji} Устройство:\n• User-Agent: ${info.userAgent}\n• Платформа: ${info.platform}\n• Экран: ${info.screen} (${info.colorDepth}bit, ${info.pixelRatio}x)\n• Ориентация: ${info.orientation}\n• Язык: ${info.language} (${info.languages})\n• Сеть: ${info.connection}\n• CPU: ${info.hardwareConcurrency} ядер\n• Тач: ${info.maxTouchPoints} точек\n• Куки: ${info.cookiesEnabled}\n• URL: ${info.url}\n• Время: ${info.timestamp}\n• Часовой пояс: ${info.timezone}\n• Пользователь: ${info.username}\n• IP: ${userIP || 'N/A'}`;
 
         const hasPhoto = bugFileInput?.files?.length > 0;
         let successCount = 0;
 
         for (const chatId of ADMIN_TG_CHAT_IDS) {
             try {
-                if (hasPhoto) {
-                    const fd = new FormData();
-                    fd.append('chat_id', chatId);
-                    fd.append('photo', bugFileInput.files[0]);
-                    fd.append('caption', caption);
-                    const res = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendPhoto`, { method: 'POST', body: fd });
-                    if (!res.ok) {
-                        const errData = await res.json().catch(() => ({}));
-                        throw new Error(errData.description || `HTTP ${res.status}`);
-                    }
-                } else {
-                    const res = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendMessage`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ chat_id: chatId, text: caption })
-                    });
-                    if (!res.ok) {
-                        const errData = await res.json().catch(() => ({}));
-                        throw new Error(errData.description || `HTTP ${res.status}`);
-                    }
-                }
+                await sendToTelegramFallback(chatId, caption, hasPhoto ? bugFileInput.files[0] : null);
                 successCount++;
             } catch (err) {
                 console.error(`Ошибка отправки админу ${chatId}:`, err);
@@ -1786,6 +1767,114 @@
         } else {
             bugStatus.textContent = '❌ Ошибка отправки. Проверь консоль.';
         }
+    });
+
+    // ==================== ОТПРАВКА В TG С FALLBACK ====================
+    async function sendToTelegramFallback(chatId, text, photoFile) {
+        const tgUrl = `https://api.telegram.org/bot${tgBotToken}`;
+        const proxyUrl = '/api/telegram';
+
+        async function tryDirect() {
+            if (photoFile) {
+                const fd = new FormData();
+                fd.append('chat_id', chatId);
+                fd.append('photo', photoFile);
+                if (text) fd.append('caption', text);
+                const res = await fetch(`${tgUrl}/sendPhoto`, { method: 'POST', body: fd });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.description || `HTTP ${res.status}`);
+                }
+                return true;
+            }
+            const res = await fetch(`${tgUrl}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text })
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.description || `HTTP ${res.status}`);
+            }
+            return true;
+        }
+
+        async function tryProxy() {
+            if (photoFile) {
+                const buf = await photoFile.arrayBuffer();
+                const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+                const mime = photoFile.type || 'image/jpeg';
+                const res = await fetch(proxyUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'sendPhoto',
+                        chat_id: chatId,
+                        photo: `data:${mime};base64,${b64}`,
+                        caption: text
+                    })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'proxy error');
+                return true;
+            }
+            const res = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ method: 'sendMessage', chat_id: chatId, text })
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'proxy error');
+            return true;
+        }
+
+        try {
+            return await tryDirect();
+        } catch (e) {
+            console.warn('Прямой TG API упал, пробую прокси:', e.message);
+            try {
+                return await tryProxy();
+            } catch (e2) {
+                console.error('Прокси тоже не сработал:', e2.message);
+                throw e2;
+            }
+        }
+    }
+
+    // ==================== АВТО-ОТПРАВКА ОШИБОК ====================
+    let errorTimer = null;
+    let pendingErrors = [];
+
+    function flushErrors() {
+        errorTimer = null;
+        if (!pendingErrors.length || !tgBotToken) return;
+        const batch = pendingErrors.splice(0);
+        let body = batch.join('\n\n---\n\n');
+        if (body.length > 4000) body = body.slice(0, 3997) + '...';
+        for (const chatId of ADMIN_TG_CHAT_IDS) {
+            sendToTelegramFallback(chatId, body).catch(() => {});
+        }
+    }
+
+    function queueError(msg) {
+        pendingErrors.push(msg);
+        if (!errorTimer) {
+            errorTimer = setTimeout(flushErrors, 5000);
+        }
+    }
+
+    window.onerror = function(message, source, lineno, colno, error) {
+        const stack = error?.stack || '';
+        const text = `❌ ОШИБКА НА САЙТЕ\n\n${message}\n📍 ${source || 'unknown'}:${lineno || '?'}:${colno || '?'}\n🕐 ${new Date().toISOString()}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🔗 ${window.location.href}${stack ? '\n\n' + stack.slice(0, 600) : ''}`;
+        queueError(text);
+        return false;
+    };
+
+    window.addEventListener('unhandledrejection', function(e) {
+        const reason = e.reason?.message || String(e.reason || '');
+        const stack = e.reason?.stack || '';
+        const text = `❌ UNHANDLED PROMISE\n\n${reason}\n🕐 ${new Date().toISOString()}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🔗 ${window.location.href}${stack ? '\n\n' + stack.slice(0, 600) : ''}`;
+        queueError(text);
     });
 
     async function saveRun(score) {
@@ -2924,6 +3013,7 @@
                 console.warn('Не удалось прочитать TG токен:', e);
             }
         }
+        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { userIP = d.ip; }).catch(() => {});
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
@@ -3106,7 +3196,6 @@
 
             adminLookupResult.innerHTML = html;
             showAdminMessage('✅ Данные загружены', 'success');
-            checkBirthday(uid);
         } catch (e) {
             showAdminMessage(`❌ Ошибка: ${e.message}`, 'info');
         } finally {
