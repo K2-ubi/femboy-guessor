@@ -877,6 +877,120 @@
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
 
+        /* ——— Баг-репорт модалка ——— */
+        .bug-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1200;
+            background: rgba(0,0,0,.94);
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            animation: fadeIn 0.35s ease;
+            cursor: pointer;
+        }
+        .bug-card {
+            width: min(420px, calc(100vw - 32px));
+            background: rgba(22,20,38,.9);
+            border: 1px solid rgba(255,160,190,.45);
+            border-radius: 24px;
+            padding: 22px 20px 18px;
+            box-shadow: 0 30px 60px rgba(0,0,0,.55);
+            cursor: default;
+        }
+        .bug-title {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-align: center;
+            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 16px;
+        }
+        .bug-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            background: #1a1a28;
+            border: 1px solid rgba(255,200,210,.2);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 0.95rem;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            box-sizing: border-box;
+            transition: .2s;
+        }
+        .bug-textarea:focus {
+            outline: none;
+            border-color: #ff9fcc;
+            box-shadow: 0 0 8px rgba(255,159,204,.3);
+        }
+        .bug-file-label {
+            display: block;
+            margin-top: 12px;
+            padding: 10px 16px;
+            background: #1a1a28;
+            border: 1px dashed rgba(255,200,210,.3);
+            border-radius: 12px;
+            color: #b9b3e6;
+            font-size: 0.85rem;
+            text-align: center;
+            cursor: pointer;
+            transition: .2s;
+        }
+        .bug-file-label:hover {
+            border-color: #ff9fcc;
+            background: #22223b;
+        }
+        .bug-file-label.has-file {
+            border-color: #86efac;
+            color: #86efac;
+        }
+        .bug-file-input { display: none; }
+        .bug-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .bug-send-btn {
+            flex: 1;
+            padding: 12px;
+            background: linear-gradient(115deg, #b3416ec9, #802c51c9);
+            border: 1px solid #ff9fcc;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: .15s;
+        }
+        .bug-send-btn:active { transform: scale(0.98); }
+        .bug-send-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .bug-close-btn {
+            flex: 1;
+            padding: 12px;
+            background: rgba(100,100,150,.2);
+            border: 1px solid rgba(255,200,210,.2);
+            border-radius: 12px;
+            color: #c9c3f0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: .15s;
+        }
+        .bug-close-btn:active { transform: scale(0.98); }
+        .bug-status {
+            text-align: center;
+            font-size: 0.85rem;
+            margin-top: 10px;
+            min-height: 1.2em;
+            color: #86efac;
+        }
+
         .top-player-list {
             margin: 8px 0 4px;
             max-height: 360px;
@@ -966,7 +1080,21 @@
         <span class="auth-pill" id="authStatus">Гость · прогресс только в этом браузере</span>
     </div>
     <div class="auth-right">
+        <button type="button" class="auth-toggle" id="bugReportBtn" title="Баг-репорт">🐛</button>
         <button type="button" class="auth-toggle" id="authToggle" aria-expanded="false">🔑</button>
+    </div>
+</div>
+<div class="bug-overlay" id="bugOverlay" style="display:none;">
+    <div class="bug-card">
+        <div class="bug-title">🐛 БАГ-РЕПОРТ</div>
+        <textarea class="bug-textarea" id="bugText" placeholder="Опишите проблему (обязательно)..." required></textarea>
+        <label class="bug-file-label" id="bugFileLabel" for="bugFileInput">📎 Прикрепить скриншот (необязательно)</label>
+        <input type="file" class="bug-file-input" id="bugFileInput" accept="image/*">
+        <div class="bug-actions">
+            <button class="bug-send-btn" id="bugSendBtn">📤 ОТПРАВИТЬ</button>
+            <button class="bug-close-btn" id="bugCloseBtn">❌ ОТМЕНА</button>
+        </div>
+        <div class="bug-status" id="bugStatus"></div>
     </div>
 </div>
 <div class="auth-panel" id="authPanel">
@@ -1412,6 +1540,9 @@
     const BOOTSTRAP_ADMIN_UIDS = new Set([
         '2gjkOATnmleOXudIcmFHHdkc4xr2'
     ]);
+    const FIREBASE_TG_TOKEN_PATH = 'femboy_guessor/apitg';
+    const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
+    let tgBotToken = null;
     let firebaseDb = null;
     let firebaseAuth = null;
     let firebaseReady = false;
@@ -1471,6 +1602,118 @@
         if (!fab) return;
         fab.style.display = isAdminUser ? 'inline-flex' : 'none';
     }
+
+    // ==================== БАГ-РЕПОРТ В TELEGRAM ====================
+    const bugOverlay = document.getElementById('bugOverlay');
+    const bugText = document.getElementById('bugText');
+    const bugFileInput = document.getElementById('bugFileInput');
+    const bugFileLabel = document.getElementById('bugFileLabel');
+    const bugSendBtn = document.getElementById('bugSendBtn');
+    const bugCloseBtn = document.getElementById('bugCloseBtn');
+    const bugStatus = document.getElementById('bugStatus');
+
+    document.getElementById('bugReportBtn')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        bugText.value = '';
+        bugFileInput.value = '';
+        bugStatus.textContent = '';
+        bugFileLabel.textContent = '📎 Прикрепить скриншот (необязательно)';
+        bugFileLabel.classList.remove('has-file');
+        bugSendBtn.disabled = false;
+        bugOverlay.style.display = 'flex';
+    });
+
+    bugCloseBtn?.addEventListener('click', () => { bugOverlay.style.display = 'none'; });
+    bugOverlay?.addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) bugOverlay.style.display = 'none';
+    });
+
+    bugFileInput?.addEventListener('change', function() {
+        if (this.files && this.files.length > 0) {
+            bugFileLabel.textContent = `📎 ${this.files[0].name}`;
+            bugFileLabel.classList.add('has-file');
+        } else {
+            bugFileLabel.textContent = '📎 Прикрепить скриншот (необязательно)';
+            bugFileLabel.classList.remove('has-file');
+        }
+    });
+
+    bugSendBtn?.addEventListener('click', async () => {
+        const text = bugText.value.trim();
+        if (!text) {
+            bugStatus.textContent = '❌ Введите описание проблемы';
+            return;
+        }
+
+        bugSendBtn.disabled = true;
+        bugSendBtn.textContent = '⏳ ОТПРАВКА...';
+        bugStatus.textContent = '';
+
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        const deviceEmoji = isMobile ? '📱' : '💻';
+
+        const info = {
+            userAgent: navigator.userAgent,
+            platform: navigator.platform,
+            screen: `${screen.width}x${screen.height}`,
+            colorDepth: screen.colorDepth,
+            pixelRatio: window.devicePixelRatio,
+            language: navigator.language,
+            languages: navigator.languages?.join(', '),
+            url: window.location.href,
+            timestamp: new Date().toISOString(),
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            username: firebaseAuth?.currentUser?.displayName || 'гость',
+            cookiesEnabled: navigator.cookieEnabled,
+            hardwareConcurrency: navigator.hardwareConcurrency || 'N/A',
+            maxTouchPoints: navigator.maxTouchPoints,
+            orientation: screen.orientation?.type || 'N/A',
+            connection: navigator.connection?.effectiveType || 'N/A'
+        };
+
+        const caption = `🐛 БАГ-РЕПОРТ\n\n${text}\n\n${deviceEmoji} Устройство:\n• User-Agent: ${info.userAgent}\n• Платформа: ${info.platform}\n• Экран: ${info.screen} (${info.colorDepth}bit, ${info.pixelRatio}x)\n• Ориентация: ${info.orientation}\n• Язык: ${info.language} (${info.languages})\n• Сеть: ${info.connection}\n• CPU: ${info.hardwareConcurrency} ядер\n• Тач: ${info.maxTouchPoints} точек\n• Куки: ${info.cookiesEnabled}\n• URL: ${info.url}\n• Время: ${info.timestamp}\n• Часовой пояс: ${info.timezone}\n• Пользователь: ${info.username}`;
+
+        const hasPhoto = bugFileInput?.files?.length > 0;
+        let successCount = 0;
+
+        for (const chatId of ADMIN_TG_CHAT_IDS) {
+            try {
+                if (hasPhoto) {
+                    const fd = new FormData();
+                    fd.append('chat_id', chatId);
+                    fd.append('photo', bugFileInput.files[0]);
+                    fd.append('caption', caption);
+                    const res = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendPhoto`, { method: 'POST', body: fd });
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({}));
+                        throw new Error(errData.description || `HTTP ${res.status}`);
+                    }
+                } else {
+                    const res = await fetch(`https://api.telegram.org/bot${tgBotToken}/sendMessage`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ chat_id: chatId, text: caption })
+                    });
+                    if (!res.ok) {
+                        const errData = await res.json().catch(() => ({}));
+                        throw new Error(errData.description || `HTTP ${res.status}`);
+                    }
+                }
+                successCount++;
+            } catch (err) {
+                console.error(`Ошибка отправки админу ${chatId}:`, err);
+            }
+        }
+
+        bugSendBtn.disabled = false;
+        bugSendBtn.textContent = '📤 ОТПРАВИТЬ';
+        if (successCount > 0) {
+            bugStatus.textContent = '✅ Отправлено!';
+            setTimeout(() => { bugOverlay.style.display = 'none'; }, 1500);
+        } else {
+            bugStatus.textContent = '❌ Ошибка отправки. Проверь консоль.';
+        }
+    });
 
     async function saveRun(score) {
         if (!firebaseReady || !firebaseDb) return;
@@ -2567,6 +2810,22 @@
     // Проверяем при загрузке
     async function startApp() {
         initFirebase();
+        if (firebaseReady && firebaseDb) {
+            try {
+                const snap = await firebaseDb.ref(FIREBASE_TG_TOKEN_PATH).get();
+                if (snap.exists()) {
+                    const v = snap.val();
+                    if (typeof v === 'string') {
+                        tgBotToken = v.trim();
+                    } else if (typeof v === 'object' && v !== null) {
+                        const vals = Object.values(v).filter(x => typeof x === 'string');
+                        tgBotToken = vals.length ? vals[0].trim() : null;
+                    }
+                }
+            } catch (e) {
+                console.warn('Не удалось прочитать TG токен:', e);
+            }
+        }
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
