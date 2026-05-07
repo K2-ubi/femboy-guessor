@@ -876,6 +876,69 @@
             box-shadow: 0 18px 35px rgba(0,0,0,.55);
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
+
+        .top-player-list {
+            margin: 8px 0 4px;
+            max-height: 360px;
+            overflow-y: auto;
+        }
+        .top-player-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            margin-bottom: 4px;
+            background: rgba(255,255,255,0.03);
+            transition: background 0.15s;
+        }
+        .top-player-item:first-child {
+            background: rgba(255,180,50,0.08);
+            border: 1px solid rgba(255,180,50,0.2);
+        }
+        .top-player-item:nth-child(2) {
+            background: rgba(200,200,220,0.05);
+            border: 1px solid rgba(200,200,220,0.12);
+        }
+        .top-player-item:nth-child(3) {
+            background: rgba(180,120,60,0.05);
+            border: 1px solid rgba(180,120,60,0.12);
+        }
+        .top-player-rank {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: #ffb7ca;
+            min-width: 32px;
+            text-align: center;
+        }
+        .top-player-rank.gold { color: #ffd700; }
+        .top-player-rank.silver { color: #c0c0c0; }
+        .top-player-rank.bronze { color: #cd7f32; }
+        .top-player-name {
+            font-weight: 700;
+            color: #e8e4ff;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .top-player-streak {
+            font-weight: 800;
+            font-size: 1.1rem;
+            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            min-width: 40px;
+            text-align: right;
+        }
+        .top-player-empty {
+            text-align: center;
+            padding: 24px;
+            color: #9a93c4;
+            font-size: 0.9rem;
+        }
     </style>
 <!-- Vercel Analytics + Speed Insights -->
 <script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
@@ -899,6 +962,7 @@
 <div class="auth-bar" id="authBar">
     <div class="auth-left">
         <button type="button" class="stats-btn" id="statsBtn">📊 STATS</button>
+        <button type="button" class="stats-btn" id="topBtn">🏆 ТОП</button>
         <span class="auth-pill" id="authStatus">Гость · прогресс только в этом браузере</span>
     </div>
     <div class="auth-right">
@@ -1681,6 +1745,81 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
+    async function showTopPlayers() {
+        if (!firebaseReady || !firebaseDb) {
+            window.alert('Firebase не подключён');
+            return;
+        }
+        try {
+            const [usersSnap, statsSnap] = await Promise.all([
+                firebaseDb.ref(FIREBASE_USERS_PATH).get(),
+                firebaseDb.ref(FIREBASE_USER_STATS_PATH).get()
+            ]);
+
+            const usersData = usersSnap.exists() ? usersSnap.val() : {};
+            const statsData = statsSnap.exists() ? statsSnap.val() : {};
+
+            const players = [];
+            for (const [uid, stat] of Object.entries(statsData)) {
+                if (!stat || !Number(stat.bestStreak || 0)) continue;
+                const userInfo = usersData[uid] || {};
+                const username = userInfo.username || (uid.length > 8 ? uid.slice(0, 8) + '…' : uid);
+                players.push({
+                    username,
+                    bestStreak: Number(stat.bestStreak || 0),
+                    wins: Number(stat.wins || 0),
+                    runs: Number(stat.runs || 0),
+                    totalCorrect: Number(stat.totalCorrect || 0),
+                    totalIncorrect: Number(stat.totalIncorrect || 0)
+                });
+            }
+
+            if (!players.length) {
+                window.alert('Пока нет данных для топа. Сыграйте несколько раз.');
+                return;
+            }
+
+            players.sort((a, b) => b.bestStreak - a.bestStreak || b.wins - a.wins || b.runs - a.runs);
+
+            const overlay = document.createElement('div');
+            overlay.className = 'stats-recap-overlay';
+            const card = document.createElement('div');
+            card.className = 'stats-recap-card';
+            card.addEventListener('click', (e) => e.stopPropagation());
+
+            const rankClass = (i) => {
+                if (i === 0) return 'gold';
+                if (i === 1) return 'silver';
+                if (i === 2) return 'bronze';
+                return '';
+            };
+
+            const itemsHtml = players.slice(0, 100).map((p, i) => `
+                <div class="top-player-item">
+                    <span class="top-player-rank ${rankClass(i)}">#${i + 1}</span>
+                    <span class="top-player-name">${escapeHtml(p.username)}</span>
+                    <span class="top-player-streak">${p.bestStreak}</span>
+                </div>
+            `).join('');
+
+            card.innerHTML = `
+                <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
+                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:#9a93c4;letter-spacing:1px;">топ по лучшей серии</div>
+                <div class="top-player-list">
+                    ${itemsHtml || '<div class="top-player-empty">Нет данных</div>'}
+                </div>
+                <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
+            `;
+
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => overlay.remove());
+        } catch (e) {
+            console.error('showTopPlayers', e);
+            window.alert('Ошибка загрузки топа: ' + e.message);
+        }
+    }
+
     function applyMobileMode() {
         const mq = window.matchMedia('(max-width: 640px), (pointer: coarse)');
         const apply = () => document.body.classList.toggle('mobile-game', mq.matches);
@@ -1810,6 +1949,15 @@
         statsBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await showStatisticsHub();
+        });
+    }
+
+    // Top players button
+    const topBtn = document.getElementById('topBtn');
+    if (topBtn) {
+        topBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await showTopPlayers();
         });
     }
 
