@@ -2155,6 +2155,25 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
+       // ==================== ГОСТЕВОЙ ID ====================
+    function getGuestId() {
+        let guestId = localStorage.getItem('guestId');
+        if (!guestId) {
+            guestId = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('guestId', guestId);
+        }
+        return guestId;
+    }
+    
+    function getPlayerName(username, uid) {
+        // Если имя не задано или пустое/совпадает с началом UID
+        if (!username || username.trim() === '' || username === (uid && uid.length > 8 ? uid.slice(0, 8) + '…' : uid)) {
+            return `Гость${getGuestId()}`;
+        }
+        return username;
+    }
+    
+    // ==================== ИСПРАВЛЕННАЯ ТАБЛИЦА ЛИДЕРОВ ====================
     async function showTopPlayers() {
         if (!firebaseReady || !firebaseDb) {
             window.alert('Firebase не подключён');
@@ -2165,15 +2184,17 @@
                 firebaseDb.ref(FIREBASE_USERS_PATH).get(),
                 firebaseDb.ref(FIREBASE_USER_STATS_PATH).get()
             ]);
-
+    
             const usersData = usersSnap.exists() ? usersSnap.val() : {};
             const statsData = statsSnap.exists() ? statsSnap.val() : {};
-
+    
             const players = [];
             for (const [uid, stat] of Object.entries(statsData)) {
                 if (!stat || !Number(stat.bestStreak || 0)) continue;
                 const userInfo = usersData[uid] || {};
-                const username = userInfo.username || (uid.length > 8 ? uid.slice(0, 8) + '…' : uid);
+                const rawUsername = userInfo.username || (uid.length > 8 ? uid.slice(0, 8) + '…' : uid);
+                // Используем getPlayerName для определения имени
+                const username = getPlayerName(rawUsername, uid);
                 players.push({
                     username,
                     bestStreak: Number(stat.bestStreak || 0),
@@ -2183,27 +2204,27 @@
                     totalIncorrect: Number(stat.totalIncorrect || 0)
                 });
             }
-
+    
             if (!players.length) {
                 window.alert('Пока нет данных для топа. Сыграйте несколько раз.');
                 return;
             }
-
+    
             players.sort((a, b) => b.bestStreak - a.bestStreak || b.wins - a.wins || b.runs - a.runs);
-
+    
             const overlay = document.createElement('div');
             overlay.className = 'stats-recap-overlay';
             const card = document.createElement('div');
             card.className = 'stats-recap-card';
             card.addEventListener('click', (e) => e.stopPropagation());
-
+    
             const rankClass = (i) => {
                 if (i === 0) return 'gold';
                 if (i === 1) return 'silver';
                 if (i === 2) return 'bronze';
                 return '';
             };
-
+    
             const itemsHtml = players.slice(0, 100).map((p, i) => `
                 <div class="top-player-item">
                     <span class="top-player-rank ${rankClass(i)}">#${i + 1}</span>
@@ -2211,7 +2232,7 @@
                     <span class="top-player-streak">${p.bestStreak}</span>
                 </div>
             `).join('');
-
+    
             card.innerHTML = `
                 <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
                 <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:#9a93c4;letter-spacing:1px;">топ по лучшей серии</div>
@@ -2220,7 +2241,7 @@
                 </div>
                 <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
             `;
-
+    
             overlay.appendChild(card);
             document.body.appendChild(overlay);
             overlay.addEventListener('click', () => overlay.remove());
