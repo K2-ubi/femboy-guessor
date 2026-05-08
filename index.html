@@ -1187,37 +1187,38 @@
 
 <div class="auth-bar" id="authBar">
     <div class="auth-left">
-        <button type="button" class="stats-btn" id="statsBtn">📊 STATS</button>
-        <button type="button" class="stats-btn" id="topBtn">🏆 ТОП</button>
-        <span class="auth-pill" id="authStatus">Гость · прогресс только в этом браузере</span>
+        <button type="button" class="stats-btn" id="statsBtn" data-i18n="statsBtn">📊 STATS</button>
+        <button type="button" class="stats-btn" id="topBtn" data-i18n="topBtn">🏆 ТОП</button>
+        <span class="auth-pill" id="authStatus" data-i18n="authGuestBar">Гость · прогресс только в этом браузере</span>
     </div>
     <div class="auth-right">
-        <button type="button" class="auth-toggle" id="themeToggleBtn" title="Сменить тему"></button>
-        <button type="button" class="auth-toggle" id="bugReportBtn" title="Баг-репорт">🐛</button>
+        <button type="button" class="auth-toggle" id="themeToggleBtn" data-i18n-title="themeToggleTitle" title="Сменить тему"></button>
+        <button type="button" class="auth-toggle" id="langToggle" title="Switch language">🇬🇧</button>
+        <button type="button" class="auth-toggle" id="bugReportBtn" data-i18n-title="bugReportTitle" title="Баг-репорт">🐛</button>
         <button type="button" class="auth-toggle" id="authToggle" aria-expanded="false">🔑</button>
     </div>
 </div>
-<div class="bug-overlay" id="bugOverlay" style="display:none;">
-    <div class="bug-card">
-        <div class="bug-title">🐛 БАГ-РЕПОРТ</div>
-        <textarea class="bug-textarea" id="bugText" placeholder="Опишите проблему (обязательно)..." required></textarea>
-        <label class="bug-file-label" id="bugFileLabel" for="bugFileInput">📎 Прикрепить скриншот (необязательно)</label>
-        <input type="file" class="bug-file-input" id="bugFileInput" accept="image/*">
-        <div class="bug-actions">
-            <button class="bug-send-btn" id="bugSendBtn">📤 ОТПРАВИТЬ</button>
-            <button class="bug-close-btn" id="bugCloseBtn">❌ ОТМЕНА</button>
+    <div class="bug-overlay" id="bugOverlay" style="display:none;">
+        <div class="bug-card">
+            <div class="bug-title" data-i18n="bugTitle">🐛 БАГ-РЕПОРТ</div>
+            <textarea class="bug-textarea" id="bugText" data-i18n-placeholder="bugPlaceholder" placeholder="Опишите проблему (обязательно)..." required></textarea>
+            <label class="bug-file-label" id="bugFileLabel" for="bugFileInput" data-i18n="bugFileLabel">📎 Прикрепить скриншот (необязательно)</label>
+            <input type="file" class="bug-file-input" id="bugFileInput" accept="image/*">
+            <div class="bug-actions">
+                <button class="bug-send-btn" id="bugSendBtn" data-i18n="bugSend">📤 ОТПРАВИТЬ</button>
+                <button class="bug-close-btn" id="bugCloseBtn" data-i18n="bugCancel">❌ ОТМЕНА</button>
+            </div>
+            <div class="bug-status" id="bugStatus"></div>
         </div>
-        <div class="bug-status" id="bugStatus"></div>
     </div>
-</div>
 <div class="auth-panel" id="authPanel">
-    <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;">Аккаунт</div>
-    <input type="text" id="authUsername" autocomplete="username" placeholder="Логин латиницей: ivan_k" maxlength="32">
-    <input type="password" id="authPassword" autocomplete="current-password" placeholder="Пароль" maxlength="64">
-    <button type="button" class="row btn-in" id="authSignIn">Войти</button>
-    <button type="button" class="row btn-up" id="authSignUp">Создать аккаунт</button>
-    <button type="button" class="row btn-up" id="authSignOut" style="display:none;">Выйти</button>
-    <p class="hint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
+    <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;" data-i18n="authAccount">Аккаунт</div>
+    <input type="text" id="authUsername" autocomplete="username" data-i18n-placeholder="authUsername" placeholder="Логин латиницей: ivan_k" maxlength="32">
+    <input type="password" id="authPassword" autocomplete="current-password" data-i18n-placeholder="authPassword" placeholder="Пароль" maxlength="64">
+    <button type="button" class="row btn-in" id="authSignIn" data-i18n="authSignIn">Войти</button>
+    <button type="button" class="row btn-up" id="authSignUp" data-i18n="authSignUp">Создать аккаунт</button>
+    <button type="button" class="row btn-up" id="authSignOut" style="display:none;" data-i18n="authSignOut">Выйти</button>
+    <p class="hint" data-i18n-html="authHint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
 </div>
 
 <div class="game-container" id="gameContainer">
@@ -1227,28 +1228,28 @@
             <img id="photo" alt="Угадай: парень или девушка?" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%232d2a4a'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23ffbfd5' text-anchor='middle' dy='.3em'%3ELOAD%3C/text%3E%3C/svg%3E">
         </div>
         <div class="photo-tap-zones" id="photoTapZones" aria-hidden="true">
-            <div class="tap-zone tap-zone-boy" data-guess="boy" title="Парень — левая половина"></div>
-            <div class="tap-zone tap-zone-girl" data-guess="girl" title="Девушка — правая половина"></div>
+            <div class="tap-zone tap-zone-boy" data-guess="boy" data-i18n-title="tapZoneBoyTitle" title="Парень — левая половина"></div>
+            <div class="tap-zone tap-zone-girl" data-guess="girl" data-i18n-title="tapZoneGirlTitle" title="Девушка — правая половина"></div>
         </div>
     </div>
 
     <!-- счётчик комбо (серия правильных ответов) -->
     <div class="combo-area" id="comboArea">
         <div class="current-streak" id="streakValue">0</div>
-        <div class="streak-label">⚡ ПОДРЯД ⚡</div>
+        <div class="streak-label" data-i18n="streakLabel">⚡ ПОДРЯД ⚡</div>
     </div>
 
     <!-- только две кнопки: ПАРЕНЬ / ДЕВУШКА -->
     <div class="buttons-duo">
-        <button class="guess-action boy-guess" id="boyBtn">👨 ПАРЕНЬ</button>
-        <button class="guess-action girl-guess" id="girlBtn">👩 ДЕВУШКА</button>
+        <button class="guess-action boy-guess" id="boyBtn" data-i18n="boyBtn">👨 ПАРЕНЬ</button>
+        <button class="guess-action girl-guess" id="girlBtn" data-i18n="girlBtn">👩 ДЕВУШКА</button>
     </div>
 
     <!-- статус игры и рестарт -->
-    <div class="game-status" id="statusMsg">
+    <div class="game-status" id="statusMsg" data-i18n="statusDefault">
         🎴 Нажми на кнопку, чтобы угадать
     </div>
-    <footer>
+    <footer data-i18n-html="footer1">
         🎯 серия прерывается при ошибке — набери максимум комбо!<br>
         ✨ при проигрыше кликни в любое место ✨
     </footer>
@@ -1259,39 +1260,41 @@
 <!-- АДМИН-ПАНЕЛЬ -->
 <div id="adminPanel" class="admin-panel" style="display: none;">
     <div class="admin-container">
-        <div class="admin-title">⚙️ АДМИН ПАНЕЛЬ ⚙️</div>
+        <div class="admin-title" data-i18n="adminTitle">⚙️ АДМИН ПАНЕЛЬ ⚙️</div>
         <div id="adminMessage"></div>
         <div class="admin-grid">
             <div class="admin-col">
                 <div class="admin-form-group">
-                    <label class="admin-label">📷 URL фото</label>
+                    <label class="admin-label" data-i18n="adminPhotoUrl">📷 URL фото</label>
                     <input
                         type="text"
                         id="photoUrl"
                         class="admin-input"
+                        data-i18n-placeholder="adminPhotoUrlPlaceholder"
                         placeholder="Вставь полную ссылку на фото (https://...)"
                     >
                 </div>
 
                 <div class="admin-form-group">
-                    <label class="admin-label">👥 Категория</label>
+                    <label class="admin-label" data-i18n="adminCategory">👥 Категория</label>
                     <select id="photoCategory" class="admin-select">
-                        <option value="boy">👨 ПАРЕНЬ (boy)</option>
-                        <option value="girl">👩 ДЕВУШКА (girl)</option>
+                        <option value="boy" data-i18n="adminCategoryBoy">👨 ПАРЕНЬ (boy)</option>
+                        <option value="girl" data-i18n="adminCategoryGirl">👩 ДЕВУШКА (girl)</option>
                     </select>
                 </div>
 
-                <button id="addPhotoBtn" class="admin-button">➕ ДОБАВИТЬ ФОТО</button>
+                <button id="addPhotoBtn" class="admin-button" data-i18n="adminAddPhoto">➕ ДОБАВИТЬ ФОТО</button>
 
                 <div class="ai-box">
-                    <label class="admin-label">🤖 Поиск кандидатов (Openverse + OpenRouter с веб-поиском)</label>
-                    <p class="admin-hint" style="margin: 0 0 8px; font-size: 12px; opacity: 0.8; line-height: 1.35;">
+                    <label class="admin-label" data-i18n="adminAiBox">🤖 Поиск кандидатов (Openverse + OpenRouter с веб-поиском)</label>
+                    <p class="admin-hint" data-i18n-html="adminAiHint" style="margin: 0 0 8px; font-size: 12px; opacity: 0.8; line-height: 1.35;">
                         Идёт поиск в <strong>Openverse</strong> (запасной домен при сбое), каталоге <strong>Wikimedia Commons</strong> и у AI через <strong>веб-поиск</strong> OpenRouter. Если результатов ноль — страницу не открывай через <code>file://</code>, подними локально HTTP (например <code>npx serve</code>).
                     </p>
                     <input
                         type="password"
                         id="openRouterKey"
                         class="admin-input"
+                        data-i18n-placeholder="adminAiKeyPlaceholder"
                         placeholder="Вставь OpenRouter API key (не сохраняется)"
                     >
                     <div class="ai-row">
@@ -1299,44 +1302,47 @@
                             type="text"
                             id="aiQuery"
                             class="admin-input"
+                            data-i18n-placeholder="adminAiQueryPlaceholder"
                             placeholder="Запрос, например: чулки отзывы Ozon"
                         >
                         <input
                             type="number"
                             id="aiCount"
                             class="admin-input"
+                            data-i18n-title="aiCountTitle"
                             title="За один запрос не больше 50 кандидатов (большее число обрежется)"
                             min="1"
                             max="50"
                             value="10"
+                            data-i18n-placeholder="adminAiCountPlaceholder"
                             placeholder="Кол-во"
                             style="max-width: 110px;"
                         >
                     </div>
-                    <button id="aiFindBtn" class="admin-button admin-button-secondary">🔎 НАЙТИ КАНДИДАТОВ</button>
+                    <button id="aiFindBtn" class="admin-button admin-button-secondary" data-i18n="adminAiFind">🔎 НАЙТИ КАНДИДАТОВ</button>
                     <div id="aiCandidates" class="ai-candidates"></div>
                 </div>
 
                 <div class="admin-form-group">
-                    <label class="admin-label" id="photosCountLabel">📝 Все фото (0):</label>
+                    <label class="admin-label" id="photosCountLabel" data-i18n="adminPhotosCount">📝 Все фото (0):</label>
                     <div class="admin-list" id="photosList"></div>
                 </div>
             </div>
 
             <div class="admin-col">
                 <div class="admin-form-group" style="margin-top: 2px;">
-                    <label class="admin-label">👑 Управление админами (Firebase)</label>
-                    <input type="text" id="adminUidInput" class="admin-input" placeholder="UID пользователя для выдачи админки">
+                    <label class="admin-label" data-i18n="adminManageAdmins">👑 Управление админами (Firebase)</label>
+                    <input type="text" id="adminUidInput" class="admin-input" data-i18n-placeholder="adminUidPlaceholder" placeholder="UID пользователя для выдачи админки">
                     <div class="admin-mini-actions">
-                        <button id="addAdminUidBtn" class="admin-button admin-button-secondary">✅ ДАТЬ ADMIN</button>
-                        <button id="removeAdminUidBtn" class="admin-button admin-button-secondary">❌ СНЯТЬ ADMIN</button>
+                        <button id="addAdminUidBtn" class="admin-button admin-button-secondary" data-i18n="adminAddAdmin">✅ ДАТЬ ADMIN</button>
+                        <button id="removeAdminUidBtn" class="admin-button admin-button-secondary" data-i18n="adminRemoveAdmin">❌ СНЯТЬ ADMIN</button>
                     </div>
                     <div id="adminAccountsList" class="admin-mini-list"></div>
                 </div>
 
                 <div class="admin-form-group" style="margin-top: 18px;">
-                    <label class="admin-label">👤 User stats (для админа)</label>
-                    <input type="text" id="adminUserUid" class="admin-input" placeholder="UID пользователя (Firebase Auth uid)">
+                    <label class="admin-label" data-i18n="adminUserStats">👤 User stats (для админа)</label>
+                    <input type="text" id="adminUserUid" class="admin-input" data-i18n-placeholder="adminUserUidPlaceholder" placeholder="UID пользователя (Firebase Auth uid)">
                     <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap;">
                         <button id="incRunsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 RUN</button>
                         <button id="decRunsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➖ -1 RUN</button>
@@ -1353,31 +1359,32 @@
                         <button id="incWinsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 WIN</button>
                         <button id="incLossesBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 LOSS</button>
                     </div>
-                    <div style="font-size: 0.72rem; opacity: 0.8; color:var(--text-close); margin-top:8px; line-height:1.35;">
+                    <div style="font-size: 0.72rem; opacity: 0.8; color:var(--text-close); margin-top:8px; line-height:1.35;" data-i18n="adminWinNote">
                         WIN/LOSS считаем по правилу: win если серия ≥ 10, иначе loss. Крутилки правят агрегаты в базе.
                     </div>
                 </div>
 
                 <div class="admin-form-group" style="margin-top: 18px;">
-                    <label class="admin-label">🔍 Посмотреть данные пользователя по UID</label>
-                    <input type="text" id="adminLookupUid" class="admin-input" placeholder="UID пользователя">
-                    <button id="adminLookupBtn" class="admin-button admin-button-secondary" style="margin-top:10px;">🔍 ПОКАЗАТЬ ДАННЫЕ</button>
+                    <label class="admin-label" data-i18n="adminLookupTitle">🔍 Посмотреть данные пользователя по UID</label>
+                    <input type="text" id="adminLookupUid" class="admin-input" data-i18n-placeholder="adminLookupPlaceholder" placeholder="UID пользователя">
+                    <button id="adminLookupBtn" class="admin-button admin-button-secondary" style="margin-top:10px;" data-i18n="adminLookupBtn">🔍 ПОКАЗАТЬ ДАННЫЕ</button>
                     <div id="adminLookupResult" style="font-size: 0.75rem; color:var(--text-secondary); margin-top:8px; line-height:1.5;"></div>
                 </div>
             </div>
         </div>
 
-        <button id="exportBtn" class="admin-button admin-button-secondary">💾 ЭКСПОРТИРОВАТЬ JSON</button>
-        <button id="importBtn" class="admin-button admin-button-secondary">📥 ИМПОРТИРОВАТЬ JSON</button>
+        <button id="exportBtn" class="admin-button admin-button-secondary" data-i18n="adminExport">💾 ЭКСПОРТИРОВАТЬ JSON</button>
+        <button id="importBtn" class="admin-button admin-button-secondary" data-i18n="adminImport">📥 ИМПОРТИРОВАТЬ JSON</button>
         <textarea
             id="jsonInput"
             class="admin-input"
+            data-i18n-placeholder="adminImportPlaceholder"
             placeholder="Вставь сюда JSON для импорта..."
             style="display: none; margin-top: 10px; min-height: 100px; font-size: 0.85rem;"
         ></textarea>
-        <button id="confirmImportBtn" class="admin-button admin-button-secondary" style="display: none; margin-top: 10px;">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>
+        <button id="confirmImportBtn" class="admin-button admin-button-secondary" style="display: none; margin-top: 10px;" data-i18n="adminConfirmImport">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>
 
-        <button id="closeAdminBtn" class="admin-close-btn">❌ ЗАКРЫТЬ</button>
+        <button id="closeAdminBtn" class="admin-close-btn" data-i18n="adminClose">❌ ЗАКРЫТЬ</button>
     </div>
 </div>
 
@@ -1432,6 +1439,406 @@
             });
         }
     }
+    // ==================== I18N ====================
+    let currentLang = localStorage.getItem('femboyLang') || 'ru';
+    const LANGUAGES = {
+        ru: {
+            // Game UI static
+            'title': 'FEMBOY GUESSOR — Комбо-серия',
+            'streakLabel': '⚡ ПОДРЯД ⚡',
+            'boyBtn': '👨 ПАРЕНЬ',
+            'girlBtn': '👩 ДЕВУШКА',
+            'statusDefault': '🎴 Нажми на кнопку, чтобы угадать',
+            'footer1': '🎯 серия прерывается при ошибке — набери максимум комбо!',
+            'footer2': '✨ при проигрыше кликни в любое место ✨',
+            'statsBtn': '📊 STATS',
+            'topBtn': '🏆 ТОП',
+            'adminFab': '⚙️ ADMIN',
+            // Status messages
+            'statusNewGame': '✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨',
+            'statusLose': '💔 ПОРАЖЕНИЕ! Твоя серия: {0}. Нажми на экран, чтобы начать заново.',
+            'statusAsk': '🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? Набери серию! 🤍',
+            'statusGameOver': '⛔ Игра завершена. Кликни по экрану для новой попытки.',
+            'statusAlreadyAnswered': '⏳ Ты уже ответил! Жди следующее фото...',
+            'statusCorrect': '✅ ПРАВИЛЬНО! +1 к серии! Комбо: {0} 🔥',
+            'statusWrong': '❌ ОШИБКА! На фото был(а) — {0}. Твоя серия прервана на {1}.',
+            'statusStart': '🎭 Кто на фото? Нажми кнопку, каждый правильный ответ продлевает серию!',
+            // Photo placeholders
+            'photoAdd': 'Добавь фото',
+            'photoLoad': 'Загрузи фото',
+            'photoError': 'Ошибка фото',
+            'photoAlt': 'Парень или девушка?',
+            // Answer
+            'answerBoy': 'ПАРЕНЬ',
+            'answerGirl': 'ДЕВУШКА',
+            // Auth
+            'authGuestStatus': 'Гость · рекорд: {0} (локально)',
+            'authLoggedInStatus': '✓ {0} · рекорд: {1}',
+            'authGuestBar': 'Гость · прогресс только в этом браузере',
+            'authAccount': 'Аккаунт',
+            'authUsername': 'Логин латиницей: ivan_k',
+            'authPassword': 'Пароль',
+            'authSignIn': 'Войти',
+            'authSignUp': 'Создать аккаунт',
+            'authSignOut': 'Выйти',
+            'authHint': 'Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.',
+            // Streak plural (Russian)
+            'streakFew': 'правильных ответа',
+            'streakMany': 'правильных ответов',
+            'streakOne': 'правильный ответ',
+            // Stats card
+            'statsTitle': 'SERIES RECAP',
+            'statsScore': 'Score',
+            'statsAverage': 'Average',
+            'statsPlayersAvg': 'Players avg',
+            'statsYou': 'YOU',
+            'statsOnAvg': '(среднее по игрокам)',
+            'statsAtLevel': 'Ты ровно на уровне среднего',
+            'statsAbove': 'Ты выше среднего на {0}',
+            'statsBelow': 'Ты ниже среднего на {0}',
+            'statsGameOver': 'СЕРИЯ ПРЕРВАНА',
+            'statsGameOverLine': '{0} {1} подряд',
+            'statsDismissRestart': '👆 Нажми вне карточки, чтобы начать заново',
+            'statsDismissClose': '👆 Нажми вне карточки, чтобы закрыть',
+            'statsNoData': 'Пока нет данных в базе для сравнения. Сыграй ещё несколько раз или проверь Firebase.',
+            // Stats hub
+            'hubTitle': 'STATISTICS',
+            'hubGlobal': 'GLOBAL',
+            'hubRuns': 'runs: <b style="color:#fff;">{0}</b>',
+            'hubAvgStreak': 'Average streak',
+            'hubPlayersAvgStreak': 'Players avg streak',
+            'hubWinsLosses': 'Wins / Losses',
+            'hubCorrectIncorrect': 'Correct / Incorrect',
+            'hubWinNote': 'WIN = серия ≥ 10. INCORRECT = последний промах (1 на серию).',
+            'hubNoAgg': 'Нет агрегированной статистики для аккаунта (сыграй 1 раз после входа).',
+            'hubLoginPrompt': 'Войди в аккаунт, чтобы не терять статистику на другом устройстве.',
+            'hubYourStats': 'YOUR STATS',
+            'hubRunsLabel': 'Runs',
+            'hubBestStreak': 'Best streak',
+            // Leaderboard
+            'lbTitle': '🏆 LEADERBOARD 🏆',
+            'lbSubtitle': 'топ по лучшей серии',
+            'lbEmpty': 'Нет данных',
+            'lbNoData': 'Пока нет данных для топа. Сыграйте несколько раз.',
+            'lbError': 'Ошибка загрузки топа: {0}',
+            // Bug report
+            'bugTitle': '🐛 БАГ-РЕПОРТ',
+            'bugPlaceholder': 'Опишите проблему (обязательно)...',
+            'bugFileLabel': '📎 Прикрепить скриншот (необязательно)',
+            'bugSend': '📤 ОТПРАВИТЬ',
+            'bugCancel': '❌ ОТМЕНА',
+            'bugNoText': '❌ Введите описание проблемы',
+            'bugSending': '⏳ ОТПРАВКА...',
+            'bugSent': '✅ Отправлено!',
+            'bugError': '❌ Ошибка отправки. Проверь консоль.',
+            // Birthday
+            'bdayTitle': 'С днём рождения,',
+            'bdayName': 'Сеня!',
+            'bdayDismiss': '👆 Нажми в любое место, чтобы закрыть',
+            // Admin panel hints
+            'adminTitle': '⚙️ АДМИН ПАНЕЛЬ ⚙️',
+            'adminPhotoUrl': '📷 URL фото',
+            'adminPhotoUrlPlaceholder': 'Вставь полную ссылку на фото (https://...)',
+            'adminCategory': '👥 Категория',
+            'adminCategoryBoy': '👨 ПАРЕНЬ (boy)',
+            'adminCategoryGirl': '👩 ДЕВУШКА (girl)',
+            'adminAddPhoto': '➕ ДОБАВИТЬ ФОТО',
+            'adminAiBox': '🤖 Поиск кандидатов (Openverse + OpenRouter с веб-поиском)',
+            'adminAiHint': 'Идёт поиск в <strong>Openverse</strong> (запасной домен при сбое), каталоге <strong>Wikimedia Commons</strong> и у AI через <strong>веб-поиск</strong> OpenRouter. Если результатов ноль — страницу не открывай через <code>file://</code>, подними локально HTTP (например <code>npx serve</code>).',
+            'adminAiKeyPlaceholder': 'Вставь OpenRouter API key (не сохраняется)',
+            'adminAiQueryPlaceholder': 'Запрос, например: чулки отзывы Ozon',
+            'adminAiCountPlaceholder': 'Кол-во',
+            'adminAiFind': '🔎 НАЙТИ КАНДИДАТОВ',
+            'adminNoCandidates': 'Кандидатов пока нет',
+            'adminPhotosCount': '📝 Все фото ({0}):',
+            'adminClose': '❌ ЗАКРЫТЬ',
+            'adminExport': '💾 ЭКСПОРТИРОВАТЬ JSON',
+            'adminImport': '📥 ИМПОРТИРОВАТЬ JSON',
+            'adminImportPlaceholder': 'Вставь сюда JSON для импорта...',
+            'adminConfirmImport': '✅ ПОДТВЕРДИТЬ ИМПОРТ',
+            'adminManageAdmins': '👑 Управление админами (Firebase)',
+            'adminUidPlaceholder': 'UID пользователя для выдачи админки',
+            'adminAddAdmin': '✅ ДАТЬ ADMIN',
+            'adminRemoveAdmin': '❌ СНЯТЬ ADMIN',
+            'adminUserStats': '👤 User stats (для админа)',
+            'adminUserUidPlaceholder': 'UID пользователя (Firebase Auth uid)',
+            'adminLookupTitle': '🔍 Посмотреть данные пользователя по UID',
+            'adminLookupPlaceholder': 'UID пользователя',
+            'adminLookupBtn': '🔍 ПОКАЗАТЬ ДАННЫЕ',
+            'adminWinNote': 'WIN/LOSS считаем по правилу: win если серия ≥ 10, иначе loss. Крутилки правят агрегаты в базе.',
+            'adminNoStats': '📊 Нет статистики',
+            'adminExportSuccess': '💾 JSON экспортирован',
+            'adminImportSuccess': '✅ {0} фото импортировано!',
+            'adminAddedSuccess': '✅ Фото добавлено! ({0})',
+            'adminDeletedSuccess': '🗑️ Фото удалено',
+            'adminAdminAdded': '✅ Админ добавлен в Firebase',
+            'adminAdminRemoved': '✅ Админ удален из Firebase',
+            'adminDataLoaded': '✅ Данные загружены',
+            'adminUpdated': '✅ Обновлено',
+            'adminLoading': 'Загрузка админов...',
+            'adminEmptyList': 'Список пуст',
+            'adminFirebaseNotReady': 'Firebase не готов',
+            'adminLoadError': 'Ошибка: {0}',
+            'adminNoUid': 'Введи UID',
+            'adminUidRequired': 'Вставь UID',
+            'adminNotAdmin': 'Не админ',
+            'adminFirebaseInitError': 'Firebase не инициализирован',
+            'adminFirebaseNotReadyMsg': 'Firebase не готов',
+            // Search admin
+            'adminSearchOk': '✅ Данные загружены',
+            'adminSearchError': '❌ Ошибка: {0}',
+            // AI messages
+            'aiUrlEmpty': '❌ URL пуст! Вставь ссылку на фото',
+            'aiUrlInvalid': '❌ Ссылка должна начинаться с http:// или https://',
+            'aiSaveError': '❌ Не удалось сохранить в Firebase: {0}',
+            'aiDeleteError': '❌ Не удалось удалить из Firebase: {0}',
+            'aiImportError': '❌ Импорт не сохранен в Firebase: {0}',
+            'aiInvalidKey': '❌ Вставь валидный OpenRouter key',
+            'aiNoQuery': '❌ Введи поисковый запрос',
+            'aiJsonEmpty': '❌ JSON пуст!',
+            'aiJsonNotArray': '❌ JSON должен быть массивом!',
+            'aiJsonInvalid': '❌ Некорректный формат! Нужны поля: url (string) и gender/answer ("boy" или "girl")',
+            'aiJsonParseError': '❌ Ошибка JSON: {0}',
+            'aiAddedGender': '✅ Добавлено в базу: {0}',
+            // lang toggle
+            'langToggle': '🇬🇧',
+            'themeToggleTitle': 'Сменить тему',
+            'bugReportTitle': 'Баг-репорт',
+            'tapZoneBoyTitle': 'Парень — левая половина',
+            'tapZoneGirlTitle': 'Девушка — правая половина',
+            'aiCountTitle': 'За один запрос не больше 50 кандидатов (большее число обрежется)',
+            'statsGameOverLineText': '{0} {1} подряд',
+            'adminPasswordPrompt': 'Введите пароль админки:',
+            'adminWrongPassword': 'Неверный пароль',
+            'adminRemoveBtn': 'Снять',
+            'aiSearching': '⏳ ИЩУ...',
+            'aiFindBtnText': '🔎 НАЙТИ КАНДИДАТОВ',
+            'adminLookupBtnText': '🔍 ПОКАЗАТЬ ДАННЫЕ',
+            'adminLookupLoading': '⏳...',
+        },
+        en: {
+            'title': 'FEMBOY GUESSOR — Combo streak',
+            'streakLabel': '⚡ STREAK ⚡',
+            'boyBtn': '👨 BOY',
+            'girlBtn': '👩 GIRL',
+            'statusDefault': '🎴 Tap a button to guess',
+            'footer1': '🎯 streak breaks on mistake — get the longest combo!',
+            'footer2': '✨ click anywhere to restart ✨',
+            'statsBtn': '📊 STATS',
+            'topBtn': '🏆 TOP',
+            'adminFab': '⚙️ ADMIN',
+            'statusNewGame': '✨ NEW GAME! Guess and build your streak! ✨',
+            'statusLose': '💔 DEFEAT! Your streak: {0}. Tap the screen to restart.',
+            'statusAsk': '🤍 Who is this? BOY or GIRL? Build your streak! 🤍',
+            'statusGameOver': '⛔ Game over. Click the screen for a new try.',
+            'statusAlreadyAnswered': '⏳ You already answered! Wait for the next photo...',
+            'statusCorrect': '✅ CORRECT! +1 streak! Combo: {0} 🔥',
+            'statusWrong': '❌ WRONG! The photo was — {0}. Your streak ended at {1}.',
+            'statusStart': '🎭 Who is in the photo? Press a button, each correct answer extends the streak!',
+            'photoAdd': 'Add photos',
+            'photoLoad': 'Load photos',
+            'photoError': 'Photo error',
+            'photoAlt': 'Boy or girl?',
+            'answerBoy': 'BOY',
+            'answerGirl': 'GIRL',
+            'authGuestStatus': 'Guest · best: {0} (local)',
+            'authLoggedInStatus': '✓ {0} · best: {1}',
+            'authGuestBar': 'Guest · progress is browser-only',
+            'authAccount': 'Account',
+            'authUsername': 'Username (latin): ivan_k',
+            'authPassword': 'Password',
+            'authSignIn': 'Sign In',
+            'authSignUp': 'Create account',
+            'authSignOut': 'Sign Out',
+            'authHint': 'No email required: we use a technical address like <code>name@femboy-guessor.local</code> inside Firebase. Password is stored by Firebase.',
+            'streakFew': 'correct answers',
+            'streakMany': 'correct answers',
+            'streakOne': 'correct answer',
+            'statsTitle': 'SERIES RECAP',
+            'statsScore': 'Score',
+            'statsAverage': 'Average',
+            'statsPlayersAvg': 'Players avg',
+            'statsYou': 'YOU',
+            'statsOnAvg': '(players avg)',
+            'statsAtLevel': 'You are exactly at the average',
+            'statsAbove': 'You are {0} above average',
+            'statsBelow': 'You are {0} below average',
+            'statsGameOver': 'STREAK BROKEN',
+            'statsGameOverLine': '{0} {1} in a row',
+            'statsDismissRestart': '👆 Tap outside the card to restart',
+            'statsDismissClose': '👆 Tap outside the card to close',
+            'statsNoData': 'No data in the database yet. Play a few more times or check Firebase.',
+            'hubTitle': 'STATISTICS',
+            'hubGlobal': 'GLOBAL',
+            'hubRuns': 'runs: <b style="color:#fff;">{0}</b>',
+            'hubAvgStreak': 'Average streak',
+            'hubPlayersAvgStreak': 'Players avg streak',
+            'hubWinsLosses': 'Wins / Losses',
+            'hubCorrectIncorrect': 'Correct / Incorrect',
+            'hubWinNote': 'WIN = streak ≥ 10. INCORRECT = last miss (1 per run).',
+            'hubNoAgg': 'No aggregated stats for this account (play 1 run after logging in).',
+            'hubLoginPrompt': 'Sign in to keep your stats across devices.',
+            'hubYourStats': 'YOUR STATS',
+            'hubRunsLabel': 'Runs',
+            'hubBestStreak': 'Best streak',
+            'lbTitle': '🏆 LEADERBOARD 🏆',
+            'lbSubtitle': 'top by best streak',
+            'lbEmpty': 'No data',
+            'lbNoData': 'No data for the leaderboard yet. Play a few games.',
+            'lbError': 'Error loading leaderboard: {0}',
+            'bugTitle': '🐛 BUG REPORT',
+            'bugPlaceholder': 'Describe the problem (required)...',
+            'bugFileLabel': '📎 Attach a screenshot (optional)',
+            'bugSend': '📤 SEND',
+            'bugCancel': '❌ CANCEL',
+            'bugNoText': '❌ Please describe the problem',
+            'bugSending': '⏳ SENDING...',
+            'bugSent': '✅ Sent!',
+            'bugError': '❌ Send error. Check the console.',
+            'bdayTitle': 'Happy Birthday,',
+            'bdayName': 'Senya!',
+            'bdayDismiss': '👆 Tap anywhere to close',
+            'adminTitle': '⚙️ ADMIN PANEL ⚙️',
+            'adminPhotoUrl': '📷 Photo URL',
+            'adminPhotoUrlPlaceholder': 'Paste the full photo link (https://...)',
+            'adminCategory': '👥 Category',
+            'adminCategoryBoy': '👨 BOY (boy)',
+            'adminCategoryGirl': '👩 GIRL (girl)',
+            'adminAddPhoto': '➕ ADD PHOTO',
+            'adminAiBox': '🤖 Find candidates (Openverse + OpenRouter with web search)',
+            'adminAiHint': 'Searching <strong>Openverse</strong> (fallback domain), <strong>Wikimedia Commons</strong> and AI via <strong>web search</strong> via OpenRouter. If zero results — don\'t open via <code>file://</code>, use a local HTTP server (e.g. <code>npx serve</code>).',
+            'adminAiKeyPlaceholder': 'Paste your OpenRouter API key (not saved)',
+            'adminAiQueryPlaceholder': 'Query, e.g.: thigh highs reviews',
+            'adminAiCountPlaceholder': 'Count',
+            'adminAiFind': '🔎 FIND CANDIDATES',
+            'adminNoCandidates': 'No candidates yet',
+            'adminPhotosCount': '📝 All photos ({0}):',
+            'adminClose': '❌ CLOSE',
+            'adminExport': '💾 EXPORT JSON',
+            'adminImport': '📥 IMPORT JSON',
+            'adminImportPlaceholder': 'Paste JSON here for import...',
+            'adminConfirmImport': '✅ CONFIRM IMPORT',
+            'adminManageAdmins': '👑 Manage admins (Firebase)',
+            'adminUidPlaceholder': 'User UID to grant admin',
+            'adminAddAdmin': '✅ GRANT ADMIN',
+            'adminRemoveAdmin': '❌ REMOVE ADMIN',
+            'adminUserStats': '👤 User stats (admin only)',
+            'adminUserUidPlaceholder': 'User UID (Firebase Auth uid)',
+            'adminLookupTitle': '🔍 Look up user data by UID',
+            'adminLookupPlaceholder': 'User UID',
+            'adminLookupBtn': '🔍 SHOW DATA',
+            'adminWinNote': 'WIN/LOSS rule: win if streak ≥ 10, otherwise loss. Buttons adjust aggregates in DB.',
+            'adminNoStats': '📊 No stats',
+            'adminExportSuccess': '💾 JSON exported',
+            'adminImportSuccess': '✅ {0} photos imported!',
+            'adminAddedSuccess': '✅ Photo added! ({0})',
+            'adminDeletedSuccess': '🗑️ Photo deleted',
+            'adminAdminAdded': '✅ Admin added in Firebase',
+            'adminAdminRemoved': '✅ Admin removed from Firebase',
+            'adminDataLoaded': '✅ Data loaded',
+            'adminUpdated': '✅ Updated',
+            'adminLoading': 'Loading admins...',
+            'adminEmptyList': 'List is empty',
+            'adminFirebaseNotReady': 'Firebase not ready',
+            'adminLoadError': 'Error: {0}',
+            'adminNoUid': 'Enter UID',
+            'adminUidRequired': 'Enter UID',
+            'adminNotAdmin': 'Not admin',
+            'adminFirebaseInitError': 'Firebase not initialized',
+            'adminFirebaseNotReadyMsg': 'Firebase not ready',
+            'adminSearchOk': '✅ Data loaded',
+            'adminSearchError': '❌ Error: {0}',
+            'aiUrlEmpty': '❌ URL is empty! Paste a photo link',
+            'aiUrlInvalid': '❌ Link must start with http:// or https://',
+            'aiSaveError': '❌ Failed to save in Firebase: {0}',
+            'aiDeleteError': '❌ Failed to delete from Firebase: {0}',
+            'aiImportError': '❌ Import failed to save in Firebase: {0}',
+            'aiInvalidKey': '❌ Enter a valid OpenRouter key',
+            'aiNoQuery': '❌ Enter a search query',
+            'aiJsonEmpty': '❌ JSON is empty!',
+            'aiJsonNotArray': '❌ JSON must be an array!',
+            'aiJsonInvalid': '❌ Invalid format! Required fields: url (string) and gender/answer ("boy" or "girl")',
+            'aiJsonParseError': '❌ JSON error: {0}',
+            'aiAddedGender': '✅ Added to database: {0}',
+            'langToggle': '🇷🇺',
+            'themeToggleTitle': 'Toggle theme',
+            'bugReportTitle': 'Bug report',
+            'tapZoneBoyTitle': 'Boy — left half',
+            'tapZoneGirlTitle': 'Girl — right half',
+            'aiCountTitle': 'Max 50 candidates per request (larger numbers will be truncated)',
+            'statsGameOverLineText': '{0} {1} in a row',
+            'adminPasswordPrompt': 'Enter admin password:',
+            'adminWrongPassword': 'Wrong password',
+            'adminRemoveBtn': 'Remove',
+            'aiSearching': '⏳ SEARCHING...',
+            'aiFindBtnText': '🔎 FIND CANDIDATES',
+            'adminLookupBtnText': '🔍 SHOW DATA',
+            'adminLookupLoading': '⏳...',
+        }
+    };
+    function t(key, ...args) {
+        const lang = LANGUAGES[currentLang] || LANGUAGES.ru;
+        let str = lang[key];
+        if (str === undefined) str = LANGUAGES.ru[key];
+        if (str === undefined) str = key;
+        if (args.length) {
+            args.forEach((arg, i) => { str = str.replace(new RegExp('\\{' + i + '\\}', 'g'), String(arg)); });
+        }
+        return str;
+    }
+    function setLanguage(lang) {
+        if (!LANGUAGES[lang]) return;
+        currentLang = lang;
+        localStorage.setItem('femboyLang', lang);
+        const langBtn = document.getElementById('langToggle');
+        if (langBtn) langBtn.textContent = t('langToggle');
+
+        document.title = t('title');
+
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            if (el.id === 'authStatus') {
+                if (firebaseAuth && firebaseAuth.currentUser) {
+                    const u = firebaseAuth.currentUser;
+                    const label = u.displayName || (u.email || '').split('@')[0] || 'player';
+                    const best = Math.max(Number(bestStreakCloud || 0), Number(bestStreakLocal || 0));
+                    el.textContent = t('authLoggedInStatus', label, best);
+                } else {
+                    el.textContent = t('authGuestStatus', Number(bestStreakLocal || 0));
+                }
+                return;
+            }
+            if (el.id === 'photosCountLabel') return;
+            const key = el.getAttribute('data-i18n');
+            if (key && t(key) !== key) el.textContent = t(key);
+        });
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+            const key = el.getAttribute('data-i18n-placeholder');
+            if (key) el.placeholder = t(key);
+        });
+        document.querySelectorAll('[data-i18n-html]').forEach(el => {
+            const key = el.getAttribute('data-i18n-html');
+            if (key === 'footer1') {
+                el.innerHTML = t('footer1') + '<br>' + t('footer2');
+            } else {
+                const val = t(key);
+                if (val !== key) el.innerHTML = val;
+            }
+        });
+        document.querySelectorAll('[data-i18n-title]').forEach(el => {
+            const key = el.getAttribute('data-i18n-title');
+            if (key) el.title = t(key);
+        });
+
+        if (statusDiv && gameActive) {
+            statusDiv.innerHTML = t('statusAsk');
+        } else if (statusDiv) {
+            statusDiv.innerHTML = t('statusDefault');
+        }
+        if (photoEl) photoEl.alt = t('photoAlt');
+        updateStreakUI();
+    }
+    // ==================== END I18N ====================
+
     // ИГРОВОЕ СОСТОЯНИЕ
     let currentStreak = 0;          // текущая серия правильных ответов ПОДРЯД
     let gameActive = true;           // активна ли игра (false = проигрыш)
@@ -1481,45 +1888,40 @@
     // ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ ПРИ ПРОИГРЫШЕ
     // ПОЛНЫЙ СБРОС ИГРЫ (без оверлея)
     function getStreakWord(n) {
+        if (currentLang === 'en') return t('streakMany');
         const abs = Math.abs(n) % 100;
         const lastDigit = abs % 10;
-        if (abs > 10 && abs < 20) return 'правильных ответов';
-        if (lastDigit === 1) return 'правильный ответ';
-        if (lastDigit >= 2 && lastDigit <= 4) return 'правильных ответа';
-        return 'правильных ответов';
+        if (abs > 10 && abs < 20) return t('streakMany');
+        if (lastDigit === 1) return t('streakOne');
+        if (lastDigit >= 2 && lastDigit <= 4) return t('streakFew');
+        return t('streakMany');
     }
 
     function fullResetGame() {
-        // сброс параметров
         currentStreak = 0;
         gameActive = true;
         canGuess = true;
         photoEl.style.filter = "";
         
-        // пересоздаем колоду заново
         imageQueue = buildFreshQueue();
         currentIndex = 0;
         if (imageQueue.length === 0) {
-            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%236b4e71'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle'%3EДобавь фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%236b4e71'/%3E%3Ctext x='50%25' y='50%25' fill='white' text-anchor='middle'%3E" + encodeURIComponent(t('photoAdd')) + "%3C/text%3E%3C/svg%3E", answer: "boy" });
         }
         currentItem = imageQueue[0];
         photoEl.src = currentItem.url;
         
         updateStreakUI();
         
-        // активируем кнопки
         boyBtn.disabled = false;
         girlBtn.disabled = false;
         
-        // чистим статус
-        statusDiv.innerHTML = "✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨";
+        statusDiv.innerHTML = t('statusNewGame');
         statusDiv.style.color = "var(--text-status)";
         
-        // убираем возможные эффекты
         streakValueSpan.style.opacity = "1";
         canGuess = true;
         
-        // убираем затемнение фото
         photoEl.style.filter = "";
     }
     
@@ -1540,7 +1942,7 @@
         girlBtn.disabled = true;
 
         photoEl.style.filter = 'grayscale(0.3) brightness(0.7)';
-        statusDiv.innerHTML = `💔 ПОРАЖЕНИЕ! Твоя серия: ${finalStreak}. Нажми на экран, чтобы начать заново.`;
+        statusDiv.innerHTML = t('statusLose', finalStreak);
 
         (async () => {
             try {
@@ -1574,10 +1976,10 @@
             currentItem = imageQueue[0];
         }
         photoEl.src = currentItem.url;
-        photoEl.alt = "Парень или девушка?";
-        canGuess = true; // разрешаем угадывать заново
+        photoEl.alt = t('photoAlt');
+        canGuess = true;
         if (gameActive) {
-            statusDiv.innerHTML = "🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? Набери серию! 🤍";
+            statusDiv.innerHTML = t('statusAsk');
         }
         // активируем кнопки (если игра активна)
         boyBtn.disabled = !gameActive;
@@ -1587,11 +1989,11 @@
     // Обработка выбора
     function makeGuess(guess) {
         if (!gameActive) {
-            statusDiv.innerHTML = "⛔ Игра завершена. Кликни по экрану для новой попытки.";
+            statusDiv.innerHTML = t('statusGameOver');
             return;
         }
         if (!canGuess) {
-            statusDiv.innerHTML = "⏳ Ты уже ответил! Жди следующее фото...";
+            statusDiv.innerHTML = t('statusAlreadyAnswered');
             return;
         }
         if (!currentItem) {
@@ -1602,22 +2004,19 @@
         const isCorrect = (guess === currentItem.answer);
         
         if (isCorrect) {
-            // Правильный ответ: увеличиваем серию
             currentStreak++;
             updateStreakUI();
             
-            // Анимация счётчика
             streakValueSpan.style.transform = "scale(1.1)";
             setTimeout(() => { if(streakValueSpan) streakValueSpan.style.transform = ""; }, 150);
             
-            statusDiv.innerHTML = `✅ ПРАВИЛЬНО! +1 к серии! Комбо: ${currentStreak} 🔥`;
+            statusDiv.innerHTML = t('statusCorrect', currentStreak);
             canGuess = false;
             loadNextPhotoAfterCorrect();
         } else {
-            // Ошибка — конец игры
-            const correctAnswerText = (currentItem.answer === 'boy') ? 'ПАРЕНЬ' : 'ДЕВУШКА';
-            statusDiv.innerHTML = `❌ ОШИБКА! На фото был(а) — ${correctAnswerText}. Твоя серия прервана на ${currentStreak}.`;
-            endGameWithLose(); // внутри вызывает оверлей с конечным счётом
+            const correctAnswerText = (currentItem.answer === 'boy') ? t('answerBoy') : t('answerGirl');
+            statusDiv.innerHTML = t('statusWrong', correctAnswerText, currentStreak);
+            endGameWithLose();
         }
     }
     
@@ -1626,7 +2025,7 @@
         imageQueue = buildFreshQueue();
         currentIndex = 0;
         if (imageQueue.length === 0) {
-            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%2331325e'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffc5d9' text-anchor='middle'%3EЗагрузи фото%3C/text%3E%3C/svg%3E", answer: "boy" });
+            imageQueue.push({ url: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%2331325e'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffc5d9' text-anchor='middle'%3E" + encodeURIComponent(t('photoLoad')) + "%3C/text%3E%3C/svg%3E", answer: "boy" });
         }
         currentItem = imageQueue[0];
         photoEl.src = currentItem.url;
@@ -1636,7 +2035,7 @@
         updateStreakUI();
         boyBtn.disabled = false;
         girlBtn.disabled = false;
-        statusDiv.innerHTML = "🎭 Кто на фото? Нажми кнопку, каждый правильный ответ продлевает серию!";
+        statusDiv.innerHTML = t('statusStart');
         photoEl.style.filter = "";
     }
     
@@ -1662,7 +2061,7 @@
     // ошибка загрузки картинки
     photoEl.onerror = function() {
         if (currentItem) {
-            this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%233d2b46'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffb3c6' text-anchor='middle'%3EОшибка фото%3C/text%3E%3C/svg%3E";
+            this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%233d2b46'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffb3c6' text-anchor='middle'%3E" + encodeURIComponent(t('photoError')) + "%3C/text%3E%3C/svg%3E";
         }
     };
     
@@ -1769,7 +2168,7 @@
         bugText.value = '';
         bugFileInput.value = '';
         bugStatus.textContent = '';
-        bugFileLabel.textContent = '📎 Прикрепить скриншот (необязательно)';
+        bugFileLabel.textContent = t('bugFileLabel');
         bugFileLabel.classList.remove('has-file');
         bugSendBtn.disabled = false;
         bugOverlay.style.display = 'flex';
@@ -1785,7 +2184,7 @@
             bugFileLabel.textContent = `📎 ${this.files[0].name}`;
             bugFileLabel.classList.add('has-file');
         } else {
-            bugFileLabel.textContent = '📎 Прикрепить скриншот (необязательно)';
+            bugFileLabel.textContent = t('bugFileLabel');
             bugFileLabel.classList.remove('has-file');
         }
     });
@@ -1793,12 +2192,12 @@
     bugSendBtn?.addEventListener('click', async () => {
         const text = bugText.value.trim();
         if (!text) {
-            bugStatus.textContent = '❌ Введите описание проблемы';
+            bugStatus.textContent = t('bugNoText');
             return;
         }
 
         bugSendBtn.disabled = true;
-        bugSendBtn.textContent = '⏳ ОТПРАВКА...';
+        bugSendBtn.textContent = t('bugSending');
         bugStatus.textContent = '';
 
         const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1838,12 +2237,12 @@
         }
 
         bugSendBtn.disabled = false;
-        bugSendBtn.textContent = '📤 ОТПРАВИТЬ';
+        bugSendBtn.textContent = t('bugSend');
         if (successCount > 0) {
-            bugStatus.textContent = '✅ Отправлено!';
+            bugStatus.textContent = t('bugSent');
             setTimeout(() => { bugOverlay.style.display = 'none'; }, 1500);
         } else {
-            bugStatus.textContent = '❌ Ошибка отправки. Проверь консоль.';
+            bugStatus.textContent = t('bugError');
         }
     });
 
@@ -2035,11 +2434,11 @@
         if (!statusEl) return;
         if (firebaseAuth && firebaseAuth.currentUser) {
             const u = firebaseAuth.currentUser;
-            const label = u.displayName || (u.email || '').split('@')[0] || 'игрок';
+            const label = u.displayName || (u.email || '').split('@')[0] || 'player';
             const best = Math.max(Number(bestStreakCloud || 0), Number(bestStreakLocal || 0));
-            statusEl.textContent = `✓ ${label} · рекорд: ${best}`;
+            statusEl.textContent = t('authLoggedInStatus', label, best);
         } else {
-            statusEl.textContent = `Гость · рекорд: ${Number(bestStreakLocal || 0)} (локально)`;
+            statusEl.textContent = t('authGuestStatus', Number(bestStreakLocal || 0));
         }
     }
 
@@ -2073,7 +2472,7 @@
         const userAggList = await loadAllUserAggregates();
         const stats = await loadStats().catch(() => []);
         if (!userAggList.length && !stats.length) {
-            window.alert('Пока нет данных в базе для сравнения. Сыграй ещё несколько раз или проверь Firebase.');
+            window.alert(t('statsNoData'));
             return;
         }
 
@@ -2093,10 +2492,10 @@
         const diffAbs = Math.abs(diff).toFixed(1);
         const diffText =
             Math.abs(diff) < 0.05
-                ? 'Ты ровно на уровне среднего'
+                ? t('statsAtLevel')
                 : diff > 0
-                    ? `Ты выше среднего на ${diffAbs}`
-                    : `Ты ниже среднего на ${diffAbs}`;
+                    ? t('statsAbove', diffAbs)
+                    : t('statsBelow', diffAbs);
 
         const card = document.createElement('div');
         card.className = 'stats-recap-card';
@@ -2115,32 +2514,32 @@
 
         const gameOverHtml = gameOver
             ? `<div class="stats-recap-gameover">
-                   <div class="stats-recap-gameover-label">СЕРИЯ ПРЕРВАНА</div>
-                   <div class="stats-recap-gameover-text">${score} ${getStreakWord(score)} подряд</div>
+                   <div class="stats-recap-gameover-label">${t('statsGameOver')}</div>
+                   <div class="stats-recap-gameover-text">${t('statsGameOverLineText', score, getStreakWord(score))}</div>
                </div>`
             : '';
 
         card.innerHTML = `
             ${gameOverHtml}
-            <div class="stats-recap-title">SERIES RECAP</div>
+            <div class="stats-recap-title">${t('statsTitle')}</div>
             <div class="stats-recap-row">
                 <div>
-                    <div style="font-size:0.7rem;color:var(--text-close);">Score</div>
+                    <div style="font-size:0.7rem;color:var(--text-close);">${t('statsScore')}</div>
                     <div class="stats-recap-score">${score}</div>
                 </div>
                 <div class="stats-recap-avg">
-                    <div style="font-size:0.7rem;color:var(--text-close);">${avgByPlayers === null ? 'Average' : 'Players avg'}</div>
+                    <div style="font-size:0.7rem;color:var(--text-close);">${avgByPlayers === null ? t('statsAverage') : t('statsPlayersAvg')}</div>
                     <div style="font-size:1.35rem;font-weight:800;color:var(--text-secondary);">${avg.toFixed(1)}</div>
                 </div>
             </div>
             <div class="stats-chart-wrap">
                 <div class="stats-chart-bars">${barsHtml}</div>
                 <div class="stats-marker" style="left:${markerLeft}%">
-                    <span class="stats-marker-label">YOU</span>
+                    <span class="stats-marker-label">${t('statsYou')}</span>
                 </div>
             </div>
-            <div class="stats-diff">${diffText}${avgByPlayers === null ? '' : ' (среднее по игрокам)'}</div>
-            <div class="stats-recap-dismiss">👆 Нажми вне карточки, чтобы начать заново</div>
+            <div class="stats-diff">${diffText}${avgByPlayers === null ? '' : ' ' + t('statsOnAvg')}</div>
+            <div class="stats-recap-dismiss">${t('statsDismissRestart')}</div>
         `;
 
         overlay.appendChild(card);
@@ -2184,47 +2583,47 @@
         const userBlock = uid
             ? (userAgg
                 ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);">
-                     <div style="font-size:0.72rem;color:var(--text-close);letter-spacing:2px;font-weight:800;text-align:center;">YOUR STATS</div>
+                     <div style="font-size:0.72rem;color:var(--text-close);letter-spacing:2px;font-weight:800;text-align:center;">${t('hubYourStats')}</div>
                      <div style="display:flex;justify-content:space-between;margin-top:10px;color:var(--text-diff);font-weight:700;">
-                       <div>Runs</div><div>${Number(userAgg.runs||0)}</div>
+                       <div>${t('hubRunsLabel')}</div><div>${Number(userAgg.runs||0)}</div>
                      </div>
                      <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
-                       <div>Wins / Losses</div><div>${Number(userAgg.wins||0)} / ${Number(userAgg.losses||0)}</div>
+                       <div>${t('hubWinsLosses')}</div><div>${Number(userAgg.wins||0)} / ${Number(userAgg.losses||0)}</div>
                      </div>
                      <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
-                       <div>Correct / Incorrect</div><div>${Number(userAgg.totalCorrect||0)} / ${Number(userAgg.totalIncorrect||0)}</div>
+                       <div>${t('hubCorrectIncorrect')}</div><div>${Number(userAgg.totalCorrect||0)} / ${Number(userAgg.totalIncorrect||0)}</div>
                      </div>
                      <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
-                       <div>Best streak</div><div>${Number(userAgg.bestStreak||0)}</div>
+                       <div>${t('hubBestStreak')}</div><div>${Number(userAgg.bestStreak||0)}</div>
                      </div>
                    </div>`
                 : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);opacity:.85;color:var(--text-secondary);text-align:center;">
-                     Нет агрегированной статистики для аккаунта (сыграй 1 раз после входа).
+                     ${t('hubNoAgg')}
                    </div>`)
             : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);opacity:.85;color:var(--text-secondary);text-align:center;">
-                 Войди в аккаунт, чтобы не терять статистику на другом устройстве.
+                 ${t('hubLoginPrompt')}
                </div>`;
 
         card.innerHTML = `
-            <div class="stats-recap-title">STATISTICS</div>
+            <div class="stats-recap-title">${t('hubTitle')}</div>
             <div style="display:flex;justify-content:space-between;gap:10px;">
-              <div style="color:var(--text-close);font-size:0.75rem;font-weight:800;letter-spacing:2px;">GLOBAL</div>
-              <div style="color:var(--text-secondary);font-size:0.8rem;">runs: <b style="color:#fff;">${totalRuns}</b></div>
+              <div style="color:var(--text-close);font-size:0.75rem;font-weight:800;letter-spacing:2px;">${t('hubGlobal')}</div>
+              <div style="color:var(--text-secondary);font-size:0.8rem;">${t('hubRuns', totalRuns)}</div>
             </div>
             <div style="margin-top:10px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
-              <div>${globalAvgByPlayers === null ? 'Average streak' : 'Players avg streak'}</div><div>${globalAvg.toFixed(1)}</div>
+              <div>${globalAvgByPlayers === null ? t('hubAvgStreak') : t('hubPlayersAvgStreak')}</div><div>${globalAvg.toFixed(1)}</div>
             </div>
             <div style="margin-top:6px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
-              <div>Wins / Losses</div><div>${globalWins} / ${globalLosses}</div>
+              <div>${t('hubWinsLosses')}</div><div>${globalWins} / ${globalLosses}</div>
             </div>
             <div style="margin-top:6px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
-              <div>Correct / Incorrect</div><div>${globalCorrect} / ${globalIncorrect}</div>
+              <div>${t('hubCorrectIncorrect')}</div><div>${globalCorrect} / ${globalIncorrect}</div>
             </div>
             <div style="margin-top:10px;color:var(--text-close);font-size:0.72rem;line-height:1.35;opacity:.9;">
-              WIN = серия ≥ 10. INCORRECT = последний промах (1 на серию).
+              ${t('hubWinNote')}
             </div>
             ${userBlock}
-            <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
+            <div class="stats-recap-dismiss" style="margin-top:14px;">${t('statsDismissClose')}</div>
         `;
         overlay.appendChild(card);
         document.body.appendChild(overlay);
@@ -2251,7 +2650,7 @@
     // ==================== ИСПРАВЛЕННАЯ ТАБЛИЦА ЛИДЕРОВ ====================
     async function showTopPlayers() {
         if (!firebaseReady || !firebaseDb) {
-            window.alert('Firebase не подключён');
+            window.alert(currentLang === 'en' ? 'Firebase not connected' : 'Firebase не подключён');
             return;
         }
         try {
@@ -2281,7 +2680,7 @@
             }
     
             if (!players.length) {
-                window.alert('Пока нет данных для топа. Сыграйте несколько раз.');
+                window.alert(t('lbNoData'));
                 return;
             }
     
@@ -2309,12 +2708,12 @@
             `).join('');
     
             card.innerHTML = `
-                <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
-                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:var(--text-close);letter-spacing:1px;">топ по лучшей серии</div>
+                <div class="stats-recap-title">${t('lbTitle')}</div>
+                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:var(--text-close);letter-spacing:1px;">${t('lbSubtitle')}</div>
                 <div class="top-player-list">
-                    ${itemsHtml || '<div class="top-player-empty">Нет данных</div>'}
+                    ${itemsHtml || '<div class="top-player-empty">' + t('lbEmpty') + '</div>'}
                 </div>
-                <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
+                <div class="stats-recap-dismiss" style="margin-top:14px;">${t('statsDismissClose')}</div>
             `;
     
             overlay.appendChild(card);
@@ -2322,7 +2721,7 @@
             overlay.addEventListener('click', () => overlay.remove());
         } catch (e) {
             console.error('showTopPlayers', e);
-            window.alert('Ошибка загрузки топа: ' + e.message);
+            window.alert(t('lbError', e.message));
         }
     }
 
@@ -2347,14 +2746,14 @@
 
         const refreshAuthUi = (user) => {
             if (user) {
-                const label = user.displayName || (user.email || '').split('@')[0] || 'игрок';
+                const label = user.displayName || (user.email || '').split('@')[0] || 'player';
                 const best = Math.max(Number(bestStreakCloud || 0), Number(bestStreakLocal || 0));
-                authStatus.textContent = `✓ ${label} · рекорд: ${best}`;
+                authStatus.textContent = t('authLoggedInStatus', label, best);
                 authSignOut.style.display = 'block';
                 authSignIn.style.display = 'none';
                 authSignUp.style.display = 'none';
             } else {
-                authStatus.textContent = `Гость · рекорд: ${Number(bestStreakLocal || 0)} (локально)`;
+                authStatus.textContent = t('authGuestStatus', Number(bestStreakLocal || 0));
                 authSignOut.style.display = 'none';
                 authSignIn.style.display = 'block';
                 authSignUp.style.display = 'block';
@@ -2437,6 +2836,15 @@
             } catch (err) {
                 window.alert(err.message || String(err));
             }
+        });
+    }
+
+    // Language toggle
+    const langToggle = document.getElementById('langToggle');
+    if (langToggle) {
+        langToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            setLanguage(currentLang === 'ru' ? 'en' : 'ru');
         });
     }
 
@@ -2567,7 +2975,7 @@
             photoItem.className = 'admin-item';
 
         const category = item.gender === 'boy' || item.answer === 'boy' ? 'boy' : 'girl';
-        const categoryLabel = category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА';
+        const categoryLabel = category === 'boy' ? t('boyBtn') : t('girlBtn');
             const shortUrl = item.url.length > 50 ? item.url.substring(0, 50) + '...' : item.url;
 
             photoItem.innerHTML = `
@@ -2583,7 +2991,7 @@
         // Обновляем количество
         const totalLabel = document.getElementById('photosCountLabel');
         if (totalLabel) {
-            totalLabel.textContent = `📝 Все фото (${imagesDataset.length}):`;
+            totalLabel.textContent = t('adminPhotosCount', imagesDataset.length);
         }
     }
 
@@ -2593,12 +3001,12 @@
         const category = photoCategorySelect.value;
 
         if (!url) {
-            showAdminMessage('❌ URL пуст! Вставь ссылку на фото', 'info');
+            showAdminMessage(t('aiUrlEmpty'), 'info');
             return;
         }
 
         if (!url.startsWith('http')) {
-            showAdminMessage('❌ Ссылка должна начинаться с http:// или https://', 'info');
+            showAdminMessage(t('aiUrlInvalid'), 'info');
             return;
         }
 
@@ -2609,12 +3017,12 @@
             updatePhotosList();
         } catch (e) {
             imagesDataset.pop();
-            showAdminMessage(`❌ Не удалось сохранить в Firebase: ${e.message}`, 'info');
+            showAdminMessage(t('aiSaveError', e.message), 'info');
             return;
         }
 
         photoUrlInput.value = '';
-        showAdminMessage(`✅ Фото добавлено! (${category === 'boy' ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА'})`, 'success');
+        showAdminMessage(t('adminAddedSuccess', category === 'boy' ? t('boyBtn') : t('girlBtn')), 'success');
     });
 
     // Удаление фото
@@ -2624,12 +3032,12 @@
         try {
             await savePhotosToRealtimeDb();
             updatePhotosList();
-            showAdminMessage('🗑️ Фото удалено', 'info');
+            showAdminMessage(t('adminDeletedSuccess'), 'info');
         } catch (e) {
             if (removed) {
                 imagesDataset.splice(index, 0, removed);
             }
-            showAdminMessage(`❌ Не удалось удалить из Firebase: ${e.message}`, 'info');
+            showAdminMessage(t('aiDeleteError', e.message), 'info');
         }
     };
 
@@ -2643,7 +3051,7 @@
         a.download = 'photos_backup.json';
         a.click();
         URL.revokeObjectURL(url);
-        showAdminMessage('💾 JSON экспортирован', 'success');
+        showAdminMessage(t('adminExportSuccess'), 'success');
     });
 
     // Импорт JSON
@@ -2657,7 +3065,7 @@
         const jsonText = jsonInput.value.trim();
 
         if (!jsonText) {
-            showAdminMessage('❌ JSON пуст!', 'info');
+            showAdminMessage(t('aiJsonEmpty'), 'info');
             return;
         }
 
@@ -2665,12 +3073,12 @@
             const parsed = JSON.parse(jsonText);
 
             if (!Array.isArray(parsed)) {
-                showAdminMessage('❌ JSON должен быть массивом!', 'info');
+                showAdminMessage(t('aiJsonNotArray'), 'info');
                 return;
             }
 
             if (!isValidPhotosArray(parsed)) {
-                showAdminMessage('❌ Некорректный формат! Нужны поля: url (string) и gender/answer ("boy" или "girl")', 'info');
+                showAdminMessage(t('aiJsonInvalid'), 'info');
                 return;
             }
 
@@ -2684,7 +3092,7 @@
             } catch (e) {
                 imagesDataset.length = 0;
                 imagesDataset.push(...previous);
-                showAdminMessage(`❌ Импорт не сохранен в Firebase: ${e.message}`, 'info');
+                showAdminMessage(t('aiImportError', e.message), 'info');
                 return;
             }
 
@@ -2692,9 +3100,9 @@
             jsonInput.style.display = 'none';
             confirmImportBtn.style.display = 'none';
 
-            showAdminMessage(`✅ ${parsed.length} фото импортировано!`, 'success');
+            showAdminMessage(t('adminImportSuccess', parsed.length), 'success');
         } catch (e) {
-            showAdminMessage(`❌ Ошибка JSON: ${e.message}`, 'info');
+            showAdminMessage(t('aiJsonParseError', e.message), 'info');
         }
     });
 
@@ -2716,9 +3124,11 @@
     function renderAiCandidates() {
         aiCandidatesDiv.innerHTML = '';
         if (!aiCandidates.length) {
-            aiCandidatesDiv.innerHTML = '<div style="opacity:0.75;">Кандидатов пока нет</div>';
+            aiCandidatesDiv.innerHTML = '<div style="opacity:0.75;">' + t('adminNoCandidates') + '</div>';
+            aiCandidatesDiv.setAttribute('data-i18n', '');
             return;
         }
+        aiCandidatesDiv.removeAttribute('data-i18n');
         aiCandidates.forEach((item, index) => {
             const card = document.createElement('div');
             card.className = 'ai-candidate';
@@ -2964,16 +3374,16 @@
         const count = Math.max(1, Math.min(50, Number(aiCountInput.value || 10)));
 
         if (!apiKey.startsWith('sk-or-v1-')) {
-            showAdminMessage('❌ Вставь валидный OpenRouter key', 'info');
+            showAdminMessage(t('aiInvalidKey'), 'info');
             return;
         }
         if (!query) {
-            showAdminMessage('❌ Введи поисковый запрос', 'info');
+            showAdminMessage(t('aiNoQuery'), 'info');
             return;
         }
 
         aiFindBtn.disabled = true;
-        aiFindBtn.textContent = '⏳ ИЩУ...';
+        aiFindBtn.textContent = t('aiSearching');
         try {
             const verseTask = fetchCandidatesFromOpenverse(query, count).catch((err) => {
                 console.warn('Openverse', err);
@@ -2992,21 +3402,23 @@
             renderAiCandidates();
             if (!aiCandidates.length) {
                 showAdminMessage(
-                    '⚠️ Кандидатов 0: не сработали Openverse, Wikimedia Commons и AI. Частые причины: страница открыта как file:// (открой через локальный сервер, например npx serve), блокировка запросов (адблок, корпоративный фильтр) или чересчур редкий запрос. Для Commons попробуй короткий запрос латиницей (socks, portrait). Либо вставь прямую ссылку на фото.',
+                    currentLang === 'en'
+                        ? '⚠️ 0 candidates: Openverse, Wikimedia Commons and AI all failed. Common causes: page opened as file:// (use a local server like npx serve), adblock/corporate filter blocking requests, or too obscure a query. For Commons try a short Latin query (socks, portrait). Or paste a direct photo URL.'
+                        : '⚠️ Кандидатов 0: не сработали Openverse, Wikimedia Commons и AI. Частые причины: страница открыта как file:// (открой через локальный сервер, например npx serve), блокировка запросов (адблок, корпоративный фильтр) или чересчур редкий запрос. Для Commons попробуй короткий запрос латиницей (socks, portrait). Либо вставь прямую ссылку на фото.',
                     'info'
                 );
             } else {
-                const parts = [`всего ${aiCandidates.length}`];
-                if (verse.length) parts.push('есть из Openverse');
-                if (commons.length) parts.push('есть из Wikimedia Commons');
-                if (ai.length) parts.push('плюс AI с веб-поиском');
-                showAdminMessage(`✅ Найдено кандидатов (${parts.join('; ')}).`, 'success');
+                const parts = [currentLang === 'en' ? `total ${aiCandidates.length}` : `всего ${aiCandidates.length}`];
+                if (verse.length) parts.push(currentLang === 'en' ? 'from Openverse' : 'есть из Openverse');
+                if (commons.length) parts.push(currentLang === 'en' ? 'from Wikimedia Commons' : 'есть из Wikimedia Commons');
+                if (ai.length) parts.push(currentLang === 'en' ? 'plus AI with web search' : 'плюс AI с веб-поиском');
+                showAdminMessage((currentLang === 'en' ? '✅ Found candidates (' : '✅ Найдено кандидатов (') + parts.join('; ') + ').', 'success');
             }
         } catch (e) {
-            showAdminMessage(`❌ Ошибка AI-поиска: ${e.message}`, 'info');
+            showAdminMessage((currentLang === 'en' ? '❌ AI search error: ' : '❌ Ошибка AI-поиска: ') + e.message, 'info');
         } finally {
             aiFindBtn.disabled = false;
-            aiFindBtn.textContent = '🔎 НАЙТИ КАНДИДАТОВ';
+            aiFindBtn.textContent = t('adminAiFind');
         }
     });
 
@@ -3025,19 +3437,19 @@
             aiCandidates.splice(index, 1);
             renderAiCandidates();
             updatePhotosList();
-            showAdminMessage(`✅ Добавлено в базу: ${gender}`, 'success');
+            showAdminMessage(t('aiAddedGender', gender), 'success');
         } catch (e) {
             imagesDataset.pop();
-            showAdminMessage(`❌ Не удалось сохранить: ${e.message}`, 'info');
+            showAdminMessage(t('aiSaveError', e.message), 'info');
         }
     };
 
     // Открытие админ-панели по параметру URL ?admin
     function requestAdminAccess() {
-        const password = window.prompt('Введите пароль админки:');
+        const password = window.prompt(t('adminPasswordPrompt'));
         if (password === null) return false;
         if (password !== ADMIN_PASSWORD) {
-            window.alert('Неверный пароль');
+            window.alert(t('adminWrongPassword'));
             return false;
         }
         return true;
@@ -3052,7 +3464,7 @@
         await loadAdminAccountsList();
         updatePhotosList();
         showAdminMessage(
-            loaded ? '☁️ Фото загружены из Realtime Database' : 'ℹ️ База пустая или недоступна, используются 10 запасных фото из кода',
+            loaded ? '☁️ ' + (currentLang === 'en' ? 'Photos loaded from Realtime Database' : 'Фото загружены из Realtime Database') : 'ℹ️ ' + (currentLang === 'en' ? 'Database empty or unavailable, using 10 fallback photos from code' : 'База пустая или недоступна, используются 10 запасных фото из кода'),
             'info'
         );
     }
@@ -3086,9 +3498,9 @@
         card.addEventListener('click', (e) => e.stopPropagation());
         card.innerHTML = `
             <span class="birthday-emoji">🎂</span>
-            <div class="birthday-title">С днём рождения,</div>
-            <div class="birthday-name">Сеня!</div>
-            <div class="birthday-dismiss">👆 Нажми в любое место, чтобы закрыть</div>
+            <div class="birthday-title">${t('bdayTitle')}</div>
+            <div class="birthday-name">${t('bdayName')}</div>
+            <div class="birthday-dismiss">${t('bdayDismiss')}</div>
         `;
         overlay.appendChild(card);
         document.body.appendChild(overlay);
@@ -3119,6 +3531,7 @@
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
+        setLanguage(currentLang);
         initGameModule();
         touchAuthStatusBar();
         await checkAdminMode();
@@ -3165,7 +3578,7 @@
             next.updatedAt = Date.now();
             return next;
         });
-        showAdminMessage('✅ Обновлено', 'success');
+        showAdminMessage(t('adminUpdated'), 'success');
     }
 
     function getAdminUid() {
@@ -3183,21 +3596,21 @@
 
     async function loadAdminAccountsList() {
         if (!adminAccountsList) return;
-        adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Загрузка админов...</div>';
+        adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">' + t('adminLoading') + '</div>';
         if (!firebaseReady || !firebaseDb) {
-            adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Firebase не готов</div>';
+            adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">' + t('adminFirebaseNotReady') + '</div>';
             return;
         }
         try {
             const snap = await firebaseDb.ref(FIREBASE_ADMINS_PATH).get();
             if (!snap.exists()) {
-                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Список пуст</div>';
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">' + t('adminEmptyList') + '</div>';
                 return;
             }
             const obj = snap.val() || {};
             const entries = Object.entries(obj).filter(([, v]) => v === true || v === 1 || v === '1');
             if (!entries.length) {
-                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Список пуст</div>';
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">' + t('adminEmptyList') + '</div>';
                 return;
             }
             adminAccountsList.innerHTML = '';
@@ -3206,27 +3619,27 @@
                 row.className = 'admin-mini-item';
                 row.innerHTML = `
                     <span>${uid}</span>
-                    <button class="admin-item-delete" style="margin-left:0;" data-remove-admin="${uid}">Снять</button>
+                    <button class="admin-item-delete" style="margin-left:0;" data-remove-admin="${uid}">${t('adminRemoveBtn')}</button>
                 `;
                 adminAccountsList.appendChild(row);
             });
         } catch (e) {
-            adminAccountsList.innerHTML = `<div style="opacity:.75;color:var(--text-accent);font-size:.8rem;">Ошибка: ${e.message}</div>`;
+            adminAccountsList.innerHTML = `<div style="opacity:.75;color:var(--text-accent);font-size:.8rem;">${t('adminLoadError', e.message)}</div>`;
         }
     }
 
     async function setAdminUidValue(uid, value) {
-        if (!isAdminUser) throw new Error('Только для админа');
-        if (!firebaseReady || !firebaseDb) throw new Error('Firebase не готов');
+        if (!isAdminUser) throw new Error(t('adminNotAdmin'));
+        if (!firebaseReady || !firebaseDb) throw new Error(t('adminFirebaseNotReadyMsg'));
         const normalizedUid = String(uid || '').trim();
-        if (!normalizedUid) throw new Error('Введи UID');
+        if (!normalizedUid) throw new Error(t('adminNoUid'));
         if (value) {
             await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${normalizedUid}`).set(true);
         } else {
             await firebaseDb.ref(`${FIREBASE_ADMINS_PATH}/${normalizedUid}`).remove();
         }
         await loadAdminAccountsList();
-        showAdminMessage(value ? '✅ Админ добавлен в Firebase' : '✅ Админ удален из Firebase', 'success');
+        showAdminMessage(value ? t('adminAdminAdded') : t('adminAdminRemoved'), 'success');
     }
 
     if (addAdminUidBtn) addAdminUidBtn.addEventListener('click', async () => {
@@ -3261,16 +3674,16 @@
     adminLookupBtn?.addEventListener('click', async () => {
         const uid = (adminLookupUid?.value || '').trim();
         if (!uid) {
-            showAdminMessage('❌ Введи UID', 'info');
+            showAdminMessage(t('adminUidRequired'), 'info');
             return;
         }
         if (!firebaseReady || !firebaseDb) {
-            showAdminMessage('❌ Firebase не готов', 'info');
+            showAdminMessage(t('adminFirebaseNotReady'), 'info');
             return;
         }
         try {
             adminLookupBtn.disabled = true;
-            adminLookupBtn.textContent = '⏳...';
+            adminLookupBtn.textContent = t('adminLookupLoading');
             adminLookupResult.textContent = '';
 
             const [userSnap, statsSnap] = await Promise.all([
@@ -3293,17 +3706,17 @@
             if (statsData) {
                 html += `📊 runs: ${statsData.runs || 0}, best: ${statsData.bestStreak || 0}, wins: ${statsData.wins || 0}, losses: ${statsData.losses || 0}`;
             } else {
-                html += `📊 Нет статистики`;
+                html += t('adminNoStats');
             }
 
             adminLookupResult.innerHTML = html;
-            showAdminMessage('✅ Данные загружены', 'success');
+            showAdminMessage(t('adminSearchOk'), 'success');
             checkBirthday(uid);
         } catch (e) {
-            showAdminMessage(`❌ Ошибка: ${e.message}`, 'info');
+            showAdminMessage(t('adminSearchError', e.message), 'info');
         } finally {
             adminLookupBtn.disabled = false;
-            adminLookupBtn.textContent = '🔍 ПОКАЗАТЬ ДАННЫЕ';
+            adminLookupBtn.textContent = t('adminLookupBtn');
         }
     });
 </script>
