@@ -2242,9 +2242,8 @@
     }
     
     function getPlayerName(username, uid) {
-        // Если имя не задано или пустое/совпадает с началом UID
         if (!username || username.trim() === '' || username === (uid && uid.length > 8 ? uid.slice(0, 8) + '…' : uid)) {
-            return `Гость${getGuestId()}`;
+            return `Гость`;
         }
         return username;
     }
