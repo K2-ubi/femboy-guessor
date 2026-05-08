@@ -2155,244 +2155,244 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
-// ==================== ГОСТЕВОЙ ID (ИСПРАВЛЕННЫЙ) ====================
-function getGuestId() {
-    let guestId = localStorage.getItem('guestId');
-    if (!guestId) {
-        guestId = Math.floor(100000 + Math.random() * 900000).toString();
-        localStorage.setItem('guestId', guestId);
+    // ==================== ГОСТЕВОЙ ID (ИСПРАВЛЕННЫЙ) ====================
+    function getGuestId() {
+        let guestId = localStorage.getItem('guestId');
+        if (!guestId) {
+            guestId = Math.floor(100000 + Math.random() * 900000).toString();
+            localStorage.setItem('guestId', guestId);
+        }
+        return guestId;
     }
-    return guestId;
-}
-
-function getPlayerName(username, uid) {
-    // Если имя не задано или пустое/совпадает с началом UID
-    if (!username || username.trim() === '' || 
-        (uid && username === uid.slice(0, 8) + '…')) {
-        return `Гость${getGuestId()}`;
+    
+    function getPlayerName(username, uid) {
+        // Если имя не задано или пустое/совпадает с началом UID
+        if (!username || username.trim() === '' || 
+            (uid && username === uid.slice(0, 8) + '…')) {
+            return `Гость${getGuestId()}`;
+        }
+        return username;
     }
-    return username;
-}
-
-// ==================== ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ РЕЗУЛЬТАТА ====================
-async function saveRun(score) {
-    if (!firebaseReady || !firebaseDb) return;
     
-    const uid = firebaseAuth?.currentUser?.uid || null;
-    const guestId = uid ? null : getGuestId(); // Для гостей сохраняем guestId
-    const correct = Math.max(0, Number(score) || 0);
-    const incorrect = 1;
-    const win = correct >= 10;
-    
-    const runData = {
-        score,
-        createdAt: Date.now(),
-        userId: uid || null,
-        guestId: guestId, // Добавляем guestId для гостей
-        correct,
-        incorrect,
-        win
-    };
-    
-    await firebaseDb.ref(FIREBASE_STATS_PATH).push().set(runData);
-    
-    if (uid) {
-        await updateUserAggregates(uid, { score: correct, correct, incorrect, win });
-    } else {
-        // Для гостей сохраняем статистику отдельно
-        await updateGuestStats(guestId, { score: correct, correct, incorrect, win });
-    }
-}
-
-// ==================== НОВАЯ ФУНКЦИЯ ДЛЯ СТАТИСТИКИ ГОСТЕЙ ====================
-async function updateGuestStats(guestId, { score, correct, incorrect, win }) {
-    if (!firebaseReady || !firebaseDb || !guestId) return;
-    
-    const guestPath = `femboy_guessor/guestStats/${guestId}`;
-    await firebaseDb.ref(guestPath).transaction((curr) => {
-        const now = Date.now();
-        const c = curr && typeof curr === 'object' ? curr : {};
-        const scoreNum = Math.max(0, Number(score) || 0);
-        const runs = Number(c.runs || 0) + 1;
-        const totalCorrect = Number(c.totalCorrect || 0) + (Number(correct) || 0);
-        const totalIncorrect = Number(c.totalIncorrect || 0) + (Number(incorrect) || 0);
-        const wins = Number(c.wins || 0) + (win ? 1 : 0);
-        const losses = Number(c.losses || 0) + (win ? 0 : 1);
-        const bestStreak = Math.max(Number(c.bestStreak || 0), scoreNum);
-        const totalScore = Number(c.totalScore || 0) + scoreNum;
-        const avgStreak = runs > 0 ? totalScore / runs : 0;
+    // ==================== ИСПРАВЛЕННАЯ ФУНКЦИЯ СОХРАНЕНИЯ РЕЗУЛЬТАТА ====================
+    async function saveRun(score) {
+        if (!firebaseReady || !firebaseDb) return;
         
-        return {
-            guestId,
-            runs,
-            totalCorrect,
-            totalIncorrect,
-            wins,
-            losses,
-            bestStreak,
-            lastStreak: scoreNum,
-            totalScore,
-            avgStreak,
-            updatedAt: now
+        const uid = firebaseAuth?.currentUser?.uid || null;
+        const guestId = uid ? null : getGuestId(); // Для гостей сохраняем guestId
+        const correct = Math.max(0, Number(score) || 0);
+        const incorrect = 1;
+        const win = correct >= 10;
+        
+        const runData = {
+            score,
+            createdAt: Date.now(),
+            userId: uid || null,
+            guestId: guestId, // Добавляем guestId для гостей
+            correct,
+            incorrect,
+            win
         };
-    });
-}
-
-// ==================== ИСПРАВЛЕННАЯ ТАБЛИЦА ЛИДЕРОВ ====================
-async function showTopPlayers() {
-    if (!firebaseReady || !firebaseDb) {
-        window.alert('Firebase не подключён');
-        return;
+        
+        await firebaseDb.ref(FIREBASE_STATS_PATH).push().set(runData);
+        
+        if (uid) {
+            await updateUserAggregates(uid, { score: correct, correct, incorrect, win });
+        } else {
+            // Для гостей сохраняем статистику отдельно
+            await updateGuestStats(guestId, { score: correct, correct, incorrect, win });
+        }
     }
-    try {
-        // Загружаем статистику и пользователей, и гостей
-        const [usersSnap, statsSnap, guestStatsSnap] = await Promise.all([
-            firebaseDb.ref(FIREBASE_USERS_PATH).get(),
-            firebaseDb.ref(FIREBASE_USER_STATS_PATH).get(),
-            firebaseDb.ref('femboy_guessor/guestStats').get()
-        ]);
-
-        const usersData = usersSnap.exists() ? usersSnap.val() : {};
-        const statsData = statsSnap.exists() ? statsSnap.val() : {};
-        const guestData = guestStatsSnap.exists() ? guestStatsSnap.val() : {};
-
-        const currentUid = firebaseAuth?.currentUser?.uid || null;
-        const currentGuestId = currentUid ? null : getGuestId();
-
-        const players = [];
+    
+    // ==================== НОВАЯ ФУНКЦИЯ ДЛЯ СТАТИСТИКИ ГОСТЕЙ ====================
+    async function updateGuestStats(guestId, { score, correct, incorrect, win }) {
+        if (!firebaseReady || !firebaseDb || !guestId) return;
         
-        // Добавляем авторизованных пользователей
-        for (const [uid, stat] of Object.entries(statsData)) {
-            if (!stat || !Number(stat.bestStreak || 0)) continue;
-            const userInfo = usersData[uid] || {};
-            const username = userInfo.username || `User_${uid.slice(0, 6)}`;
-            players.push({
-                uid,
-                username,
-                bestStreak: Number(stat.bestStreak || 0),
-                wins: Number(stat.wins || 0),
-                runs: Number(stat.runs || 0),
-                isGuest: false
-            });
-        }
-        
-        // Добавляем гостей
-        for (const [guestId, stat] of Object.entries(guestData)) {
-            if (!stat || !Number(stat.bestStreak || 0)) continue;
-            players.push({
-                uid: guestId,
-                username: `Гость${guestId}`,
-                bestStreak: Number(stat.bestStreak || 0),
-                wins: Number(stat.wins || 0),
-                runs: Number(stat.runs || 0),
-                isGuest: true
-            });
-        }
-
-        if (!players.length) {
-            window.alert('Пока нет данных для топа. Сыграйте несколько раз.');
+        const guestPath = `femboy_guessor/guestStats/${guestId}`;
+        await firebaseDb.ref(guestPath).transaction((curr) => {
+            const now = Date.now();
+            const c = curr && typeof curr === 'object' ? curr : {};
+            const scoreNum = Math.max(0, Number(score) || 0);
+            const runs = Number(c.runs || 0) + 1;
+            const totalCorrect = Number(c.totalCorrect || 0) + (Number(correct) || 0);
+            const totalIncorrect = Number(c.totalIncorrect || 0) + (Number(incorrect) || 0);
+            const wins = Number(c.wins || 0) + (win ? 1 : 0);
+            const losses = Number(c.losses || 0) + (win ? 0 : 1);
+            const bestStreak = Math.max(Number(c.bestStreak || 0), scoreNum);
+            const totalScore = Number(c.totalScore || 0) + scoreNum;
+            const avgStreak = runs > 0 ? totalScore / runs : 0;
+            
+            return {
+                guestId,
+                runs,
+                totalCorrect,
+                totalIncorrect,
+                wins,
+                losses,
+                bestStreak,
+                lastStreak: scoreNum,
+                totalScore,
+                avgStreak,
+                updatedAt: now
+            };
+        });
+    }
+    
+    // ==================== ИСПРАВЛЕННАЯ ТАБЛИЦА ЛИДЕРОВ ====================
+    async function showTopPlayers() {
+        if (!firebaseReady || !firebaseDb) {
+            window.alert('Firebase не подключён');
             return;
         }
-
-        players.sort((a, b) => b.bestStreak - a.bestStreak || b.wins - a.wins || b.runs - a.runs);
-
-        // Находим позицию текущего игрока
-        let playerRank = null;
-        let playerName = null;
-        
-        for (let i = 0; i < players.length; i++) {
-            if (currentUid && players[i].uid === currentUid && !players[i].isGuest) {
-                playerRank = i + 1;
-                playerName = players[i].username;
-                break;
-            } else if (currentGuestId && players[i].isGuest && players[i].uid === currentGuestId) {
-                playerRank = i + 1;
-                playerName = players[i].username;
-                break;
+        try {
+            // Загружаем статистику и пользователей, и гостей
+            const [usersSnap, statsSnap, guestStatsSnap] = await Promise.all([
+                firebaseDb.ref(FIREBASE_USERS_PATH).get(),
+                firebaseDb.ref(FIREBASE_USER_STATS_PATH).get(),
+                firebaseDb.ref('femboy_guessor/guestStats').get()
+            ]);
+    
+            const usersData = usersSnap.exists() ? usersSnap.val() : {};
+            const statsData = statsSnap.exists() ? statsSnap.val() : {};
+            const guestData = guestStatsSnap.exists() ? guestStatsSnap.val() : {};
+    
+            const currentUid = firebaseAuth?.currentUser?.uid || null;
+            const currentGuestId = currentUid ? null : getGuestId();
+    
+            const players = [];
+            
+            // Добавляем авторизованных пользователей
+            for (const [uid, stat] of Object.entries(statsData)) {
+                if (!stat || !Number(stat.bestStreak || 0)) continue;
+                const userInfo = usersData[uid] || {};
+                const username = userInfo.username || `User_${uid.slice(0, 6)}`;
+                players.push({
+                    uid,
+                    username,
+                    bestStreak: Number(stat.bestStreak || 0),
+                    wins: Number(stat.wins || 0),
+                    runs: Number(stat.runs || 0),
+                    isGuest: false
+                });
             }
+            
+            // Добавляем гостей
+            for (const [guestId, stat] of Object.entries(guestData)) {
+                if (!stat || !Number(stat.bestStreak || 0)) continue;
+                players.push({
+                    uid: guestId,
+                    username: `Гость${guestId}`,
+                    bestStreak: Number(stat.bestStreak || 0),
+                    wins: Number(stat.wins || 0),
+                    runs: Number(stat.runs || 0),
+                    isGuest: true
+                });
+            }
+    
+            if (!players.length) {
+                window.alert('Пока нет данных для топа. Сыграйте несколько раз.');
+                return;
+            }
+    
+            players.sort((a, b) => b.bestStreak - a.bestStreak || b.wins - a.wins || b.runs - a.runs);
+    
+            // Находим позицию текущего игрока
+            let playerRank = null;
+            let playerName = null;
+            
+            for (let i = 0; i < players.length; i++) {
+                if (currentUid && players[i].uid === currentUid && !players[i].isGuest) {
+                    playerRank = i + 1;
+                    playerName = players[i].username;
+                    break;
+                } else if (currentGuestId && players[i].isGuest && players[i].uid === currentGuestId) {
+                    playerRank = i + 1;
+                    playerName = players[i].username;
+                    break;
+                }
+            }
+    
+            const overlay = document.createElement('div');
+            overlay.className = 'stats-recap-overlay';
+            const card = document.createElement('div');
+            card.className = 'stats-recap-card';
+            card.addEventListener('click', (e) => e.stopPropagation());
+    
+            const rankClass = (i) => {
+                if (i === 0) return 'gold';
+                if (i === 1) return 'silver';
+                if (i === 2) return 'bronze';
+                return '';
+            };
+    
+            const itemsHtml = players.slice(0, 100).map((p, i) => `
+                <div class="top-player-item${(currentUid && p.uid === currentUid && !p.isGuest) || (currentGuestId && p.isGuest && p.uid === currentGuestId) ? ' current-player' : ''}">
+                    <span class="top-player-rank ${rankClass(i)}">#${i + 1}</span>
+                    <span class="top-player-name">${escapeHtml(p.username)}</span>
+                    <span class="top-player-streak">${p.bestStreak}</span>
+                </div>
+            `).join('');
+    
+            // Плашка с местом игрока
+            const playerRankHtml = playerRank 
+                ? `<div style="background: linear-gradient(135deg, rgba(255,140,180,0.2), rgba(120,80,180,0.2)); 
+                           border: 1px solid rgba(255,200,210,0.4); 
+                           border-radius: 16px; 
+                           padding: 12px 16px; 
+                           margin-bottom: 16px; 
+                           text-align: center;">
+                    <div style="font-size: 0.75rem; color: #9a93c4; letter-spacing: 2px; font-weight: 800;">ТВОЁ МЕСТО</div>
+                    <div style="font-size: 1.6rem; font-weight: 900; 
+                                background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+                                background-clip: text; 
+                                -webkit-background-clip: text; 
+                                color: transparent; 
+                                margin-top: 4px;">
+                        #${playerRank}
+                    </div>
+                    <div style="color: #e8e4ff; font-weight: 700; margin-top: 4px;">
+                        ${escapeHtml(playerName)}
+                    </div>
+                </div>`
+                : `<div style="background: rgba(100,100,150,0.1); 
+                           border: 1px solid rgba(255,200,210,0.2); 
+                           border-radius: 16px; 
+                           padding: 12px 16px; 
+                           margin-bottom: 16px; 
+                           text-align: center;
+                           color: #9a93c4;">
+                    Сыграйте хотя бы одну игру, чтобы увидеть своё место в топе
+                </div>`;
+    
+            card.innerHTML = `
+                <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
+                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:#9a93c4;letter-spacing:1px;">топ по лучшей серии</div>
+                ${playerRankHtml}
+                <div class="top-player-list">
+                    ${itemsHtml || '<div class="top-player-empty">Нет данных</div>'}
+                </div>
+                <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
+            `;
+    
+            overlay.appendChild(card);
+            document.body.appendChild(overlay);
+            overlay.addEventListener('click', () => overlay.remove());
+        } catch (e) {
+            console.error('showTopPlayers', e);
+            window.alert('Ошибка загрузки топа: ' + e.message);
         }
-
-        const overlay = document.createElement('div');
-        overlay.className = 'stats-recap-overlay';
-        const card = document.createElement('div');
-        card.className = 'stats-recap-card';
-        card.addEventListener('click', (e) => e.stopPropagation());
-
-        const rankClass = (i) => {
-            if (i === 0) return 'gold';
-            if (i === 1) return 'silver';
-            if (i === 2) return 'bronze';
-            return '';
-        };
-
-        const itemsHtml = players.slice(0, 100).map((p, i) => `
-            <div class="top-player-item${(currentUid && p.uid === currentUid && !p.isGuest) || (currentGuestId && p.isGuest && p.uid === currentGuestId) ? ' current-player' : ''}">
-                <span class="top-player-rank ${rankClass(i)}">#${i + 1}</span>
-                <span class="top-player-name">${escapeHtml(p.username)}</span>
-                <span class="top-player-streak">${p.bestStreak}</span>
-            </div>
-        `).join('');
-
-        // Плашка с местом игрока
-        const playerRankHtml = playerRank 
-            ? `<div style="background: linear-gradient(135deg, rgba(255,140,180,0.2), rgba(120,80,180,0.2)); 
-                       border: 1px solid rgba(255,200,210,0.4); 
-                       border-radius: 16px; 
-                       padding: 12px 16px; 
-                       margin-bottom: 16px; 
-                       text-align: center;">
-                <div style="font-size: 0.75rem; color: #9a93c4; letter-spacing: 2px; font-weight: 800;">ТВОЁ МЕСТО</div>
-                <div style="font-size: 1.6rem; font-weight: 900; 
-                            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
-                            background-clip: text; 
-                            -webkit-background-clip: text; 
-                            color: transparent; 
-                            margin-top: 4px;">
-                    #${playerRank}
-                </div>
-                <div style="color: #e8e4ff; font-weight: 700; margin-top: 4px;">
-                    ${escapeHtml(playerName)}
-                </div>
-            </div>`
-            : `<div style="background: rgba(100,100,150,0.1); 
-                       border: 1px solid rgba(255,200,210,0.2); 
-                       border-radius: 16px; 
-                       padding: 12px 16px; 
-                       margin-bottom: 16px; 
-                       text-align: center;
-                       color: #9a93c4;">
-                Сыграйте хотя бы одну игру, чтобы увидеть своё место в топе
-            </div>`;
-
-        card.innerHTML = `
-            <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
-            <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:#9a93c4;letter-spacing:1px;">топ по лучшей серии</div>
-            ${playerRankHtml}
-            <div class="top-player-list">
-                ${itemsHtml || '<div class="top-player-empty">Нет данных</div>'}
-            </div>
-            <div class="stats-recap-dismiss" style="margin-top:14px;">👆 Нажми вне карточки, чтобы закрыть</div>
-        `;
-
-        overlay.appendChild(card);
-        document.body.appendChild(overlay);
-        overlay.addEventListener('click', () => overlay.remove());
-    } catch (e) {
-        console.error('showTopPlayers', e);
-        window.alert('Ошибка загрузки топа: ' + e.message);
     }
-}
-
-// Добавляем стили для подсветки текущего игрока
-const style = document.createElement('style');
-style.textContent = `
-    .current-player {
-        background: rgba(255,140,180,0.15) !important;
-        border: 1px solid rgba(255,200,210,0.3) !important;
-        box-shadow: 0 0 15px rgba(255,140,180,0.2);
-    }
-`;
-document.head.appendChild(style);
+    
+    // Добавляем стили для подсветки текущего игрока
+    const style = document.createElement('style');
+    style.textContent = `
+        .current-player {
+            background: rgba(255,140,180,0.15) !important;
+            border: 1px solid rgba(255,200,210,0.3) !important;
+            box-shadow: 0 0 15px rgba(255,140,180,0.2);
+        }
+    `;
+    document.head.appendChild(style);
     // ==================== АДМИН-ПАНЕЛЬ ====================
     const adminPanel = document.getElementById('adminPanel');
     const photoUrlInput = document.getElementById('photoUrl');
