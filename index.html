@@ -5,6 +5,109 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FEMBOY GUESSOR — Комбо-серия</title>
     <style>
+        :root {
+            --bg-body: radial-gradient(circle at 20% 30%, #0b0b14, #030308);
+            --bg-photo-stage: #0a0a12;
+            --bg-photo-frame: #000;
+            --bg-surface: rgba(10, 10, 20, 0.6);
+            --bg-surface-solid: #14141f;
+            --bg-surface-input: #1a1a28;
+            --bg-surface-low: #0a0a12;
+            --bg-surface-elevated: #0d0d16;
+            --bg-surface-card: #171728;
+            --bg-overlay: rgba(0, 0, 0, 0.95);
+            --bg-card: rgba(22, 20, 38, 0.9);
+            --bg-auth-bar: linear-gradient(180deg, rgba(8, 8, 16, .92), transparent);
+            --bg-auth-pill: rgba(20, 18, 40, .75);
+            --bg-auth-panel: rgba(16, 14, 28, .97);
+            --bg-stats-btn: rgba(40, 30, 80, .45);
+            --bg-auth-toggle: rgba(100, 60, 120, .4);
+            --bg-btn-guess: #14141fcc;
+            --bg-btn-secondary: rgba(100, 100, 150, 0.3);
+            --bg-status: #0c0c16aa;
+            --bg-fab: linear-gradient(115deg, rgba(255, 120, 170, .55), rgba(120, 80, 190, .45));
+            --bg-bug-label: #1a1a28;
+            --bg-bug-textarea: #1a1a28;
+            --bg-bug-card: rgba(22, 20, 38, .9);
+            --gradient-streak: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            --gradient-score: linear-gradient(135deg, #ffd6e8, #ff7eb3);
+            --gradient-birthday-title: linear-gradient(135deg, #FFD700, #FFA500, #FF6B9D);
+            --gradient-birthday-name: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            --gradient-bug-title: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            --text-primary: #f5efff;
+            --text-secondary: #c9c3f0;
+            --text-muted: #b9b3e6;
+            --text-status: #ffdee9;
+            --text-accent: #ffb7ca;
+            --text-label: #ffc0d5;
+            --text-footer: #5a5270;
+            --text-auth-pill: #e8e0ff;
+            --text-stats-btn: #ffe7f3;
+            --text-auth-toggle: #ffe0f0;
+            --text-diff: #e8e4ff;
+            --text-close: #9a93c4;
+            --text-ai-candidate: #d8d3f2;
+            --text-bug-status: #86efac;
+            --border-combo: rgba(255, 200, 210, 0.25);
+            --border-default: rgba(255, 200, 210, 0.2);
+            --border-strong: rgba(255, 180, 200, 0.3);
+            --border-card: rgba(255, 160, 190, .45);
+            --border-btn-guess: rgba(255, 255, 255, 0.2);
+            --border-fab: rgba(255, 180, 200, .55);
+            --border-stats-btn: rgba(255,180,200,.45);
+            --shadow-photo-stage: 0 25px 45px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.05);
+            --shadow-btn-guess: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+            --shadow-fab: 0 18px 35px rgba(0,0,0,.55);
+        }
+        [data-theme="light"] {
+            --bg-body: radial-gradient(circle at 20% 30%, #f5f0ff, #ede7f8);
+            --bg-photo-stage: #ede8f8;
+            --bg-photo-frame: #dcd4ec;
+            --bg-surface: rgba(245, 240, 255, 0.85);
+            --bg-surface-solid: #f2edfc;
+            --bg-surface-input: #f8f4ff;
+            --bg-surface-low: #f0ebf8;
+            --bg-surface-elevated: #f5f0ff;
+            --bg-surface-card: #ede8fa;
+            --bg-overlay: rgba(245, 240, 255, 0.95);
+            --bg-card: rgba(250, 247, 255, 0.95);
+            --bg-auth-bar: linear-gradient(180deg, rgba(245, 240, 255, .92), transparent);
+            --bg-auth-pill: rgba(220, 210, 250, .85);
+            --bg-auth-panel: rgba(248, 244, 255, .97);
+            --bg-stats-btn: rgba(180, 160, 230, .45);
+            --bg-auth-toggle: rgba(180, 160, 230, .45);
+            --bg-btn-guess: rgba(245, 240, 255, 0.9);
+            --bg-btn-secondary: rgba(180, 170, 210, 0.4);
+            --bg-status: rgba(245, 240, 255, 0.9);
+            --bg-fab: linear-gradient(115deg, rgba(180, 140, 255, .7), rgba(200, 160, 255, .6));
+            --bg-bug-label: #f0ebf8;
+            --bg-bug-textarea: #f8f4ff;
+            --bg-bug-card: rgba(250, 247, 255, 0.95);
+            --text-primary: #1e1a35;
+            --text-secondary: #4a4570;
+            --text-muted: #6a6580;
+            --text-status: #3a3570;
+            --text-accent: #8a4a7a;
+            --text-label: #5a3570;
+            --text-footer: #706a90;
+            --text-auth-pill: #2a2545;
+            --text-stats-btn: #2a2545;
+            --text-auth-toggle: #2a2545;
+            --text-diff: #3a3570;
+            --text-close: #6a6580;
+            --text-ai-candidate: #2a2545;
+            --text-bug-status: #2a7a4a;
+            --border-combo: rgba(100, 80, 160, 0.2);
+            --border-default: rgba(100, 80, 160, 0.2);
+            --border-strong: rgba(100, 80, 160, 0.3);
+            --border-card: rgba(100, 80, 160, 0.4);
+            --border-btn-guess: rgba(100, 80, 160, 0.2);
+            --border-fab: rgba(100, 80, 160, 0.5);
+            --border-stats-btn: rgba(100, 80, 160, 0.45);
+            --shadow-photo-stage: 0 25px 45px rgba(0,0,0,.08), inset 0 1px 0 rgba(255,255,255,.8);
+            --shadow-btn-guess: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+            --shadow-fab: 0 18px 35px rgba(0,0,0,.1);
+        }
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +118,7 @@
 
         body {
             min-height: 100vh;
-            background: radial-gradient(circle at 20% 30%, #0b0b14, #030308);
+            background: var(--bg-body);
             display: flex;
             justify-content: center;
             align-items: center;
@@ -49,12 +152,10 @@
             max-width: 520px;
             max-height: 80vh;
             margin: 0 auto;
-            background: #0a0a12;
+            background: var(--bg-photo-stage);
             border-radius: 38px;
             padding: 8px;
-            box-shadow:
-                0 25px 45px rgba(0,0,0,.6),
-                inset 0 1px 0 rgba(255,255,255,.05);
+            box-shadow: var(--shadow-photo-stage);
         }
 
         /* контейнер */
@@ -63,34 +164,31 @@
             height: 100%;
             border-radius: 30px;
             overflow: hidden;
-            background: #000;
+            background: var(--bg-photo-frame);
             display: flex;
             align-items: center;
             justify-content: center;
         }
 
-        /* САМА КАРТИНКА */
         #photo {
             width: 100%;
             height: 100%;
-            object-fit: contain;      /* не режет изображение */
+            object-fit: contain;
             object-position: center;
             display: block;
             transition: transform .2s ease;
-
-            /* качество */
             image-rendering: auto;
             backface-visibility: hidden;
             transform: translateZ(0);
         }
-                /* панель счётчика — лаконично */
+
         .combo-area {
             text-align: center;
-            background: rgba(10, 10, 20, 0.6);
+            background: var(--bg-surface);
             backdrop-filter: blur(12px);
             border-radius: 60px;
             padding: 10px 24px;
-            border: 1px solid rgba(255, 200, 210, 0.25);
+            border: 1px solid var(--border-combo);
             width: fit-content;
             margin: 0 auto;
         }
@@ -112,11 +210,10 @@
             text-transform: uppercase;
             font-weight: 600;
             letter-spacing: 2px;
-            color: #b9b3e6;
+            color: var(--text-muted);
             margin-top: 5px;
         }
 
-        /* две кнопки снизу — минимализм, крупно */
         .buttons-duo {
             display: flex;
             gap: 28px;
@@ -142,11 +239,11 @@
             justify-content: center;
             gap: 12px;
             letter-spacing: 2px;
-            background: #14141fcc;
+            background: var(--bg-btn-guess);
             backdrop-filter: blur(8px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            color: #f5efff;
-            box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-btn-guess);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-btn-guess);
         }
 
         .guess-action:active {
@@ -163,17 +260,16 @@
             border-bottom: 3px solid #ff9fcc;
         }
 
-        /* сообщение о статусе игры */
         .game-status {
-            background: #0c0c16aa;
+            background: var(--bg-status);
             backdrop-filter: blur(12px);
             border-radius: 40px;
             padding: 10px 20px;
             text-align: center;
             font-size: 1rem;
             font-weight: 500;
-            color: #ffdee9;
-            border: 1px solid rgba(255, 180, 200, 0.3);
+            color: var(--text-status);
+            border: 1px solid var(--border-strong);
             width: 100%;
             max-width: 340px;
             margin: 5px auto 0;
@@ -182,7 +278,7 @@
         .restart-trigger {
             background: none;
             border: none;
-            color: #ffb7ca;
+            color: var(--text-accent);
             font-weight: bold;
             font-size: 0.9rem;
             text-decoration: underline;
@@ -192,22 +288,21 @@
         }
 
         .restart-trigger:hover {
-            color: white;
+            color: var(--text-accent);
             text-shadow: 0 0 4px #ff99bb;
         }
 
         footer {
             font-size: 0.7rem;
             text-align: center;
-            color: #5a5270;
+            color: var(--text-footer);
             margin-top: 20px;
         }
 
-        /* скрыть стандартную кнопку рестарта, когда оверлей активен — но она не мешает */
         .restart-btn-out {
-            background: #22223b;
+            background: var(--bg-surface-solid);
             border: 1px solid #ff9ebb;
-            color: white;
+            color: var(--text-primary);
             border-radius: 40px;
             padding: 8px 20px;
             font-weight: bold;
@@ -217,6 +312,7 @@
             backdrop-filter: blur(4px);
             transition: 0.1s;
         }
+
         .restart-btn-out:active {
             transform: scale(0.96);
         }
@@ -228,7 +324,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            background: var(--bg-overlay);
             backdrop-filter: blur(8px);
             z-index: 5000;
             display: flex;
@@ -238,11 +334,10 @@
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             overflow-y: auto;
         }
-
         .admin-container {
-            background: #14141f;
+            background: var(--bg-surface-solid);
             border-radius: 16px;
-            border: 1px solid rgba(255, 180, 200, 0.3);
+            border: 1px solid var(--border-strong);
             padding: 18px;
             max-width: 980px;
             width: min(980px, 100%);
@@ -250,76 +345,65 @@
             margin-top: max(8px, env(safe-area-inset-top));
             margin-bottom: max(8px, env(safe-area-inset-bottom));
         }
-
         .admin-title {
             font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #FFDEE9, #FFB5C8);
+            background: var(--gradient-streak, linear-gradient(135deg, #FFDEE9, #FFB5C8));
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
             margin-bottom: 20px;
             text-align: center;
         }
-
-        .admin-form-group {
-            margin-bottom: 20px;
-        }
-
+        .admin-form-group { margin-bottom: 20px; }
         .admin-label {
             display: block;
-            color: #ffc0d5;
+            color: var(--text-label);
             font-weight: 600;
             margin-bottom: 8px;
             font-size: 0.95rem;
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .admin-input {
             width: 100%;
             padding: 12px 16px;
-            background: #1a1a28;
-            border: 1px solid rgba(255, 200, 210, 0.2);
+            background: var(--bg-surface-input);
+            border: 1px solid var(--border-default);
             border-radius: 12px;
-            color: #ffffff;
+            color: var(--text-primary);
             font-size: 1rem;
             font-family: monospace;
             transition: 0.2s;
             box-sizing: border-box;
         }
-
         .admin-input:focus {
             outline: none;
             border-color: #ff9fcc;
             box-shadow: 0 0 8px rgba(255, 159, 204, 0.3);
         }
-
         .admin-select {
             width: 100%;
             padding: 12px 16px;
-            background: #1a1a28;
-            border: 1px solid rgba(255, 200, 210, 0.2);
+            background: var(--bg-surface-input);
+            border: 1px solid var(--border-default);
             border-radius: 12px;
-            color: #ffffff;
+            color: var(--text-primary);
             font-size: 1rem;
             font-family: 'Inter', system-ui;
             transition: 0.2s;
             cursor: pointer;
             box-sizing: border-box;
         }
-
         .admin-select:focus {
             outline: none;
             border-color: #ff9fcc;
             box-shadow: 0 0 8px rgba(255, 159, 204, 0.3);
         }
-
         .admin-select option {
-            background: #1a1a28;
-            color: #ffffff;
+            background: var(--bg-surface-input);
+            color: var(--text-primary);
         }
-
         .admin-button {
             width: 100%;
             padding: 14px 20px;
@@ -334,46 +418,38 @@
             text-transform: uppercase;
             letter-spacing: 1px;
         }
-
         .admin-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 16px rgba(255, 159, 204, 0.4);
         }
-
-        .admin-button:active {
-            transform: scale(0.98);
-        }
-
+        .admin-button:active { transform: scale(0.98); }
         .admin-button-secondary {
-            background: rgba(100, 100, 150, 0.3);
-            border: 1px solid rgba(255, 200, 210, 0.2);
-            color: #c9c3f0;
+            background: var(--bg-btn-secondary);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
             margin-top: 10px;
         }
-
         .admin-list {
-            background: #0a0a12;
+            background: var(--bg-surface-low);
             border-radius: 12px;
             padding: 15px;
             margin-top: 20px;
             max-height: 300px;
             overflow-y: auto;
-            border: 1px solid rgba(255, 200, 210, 0.15);
+            border: 1px solid var(--border-default);
         }
-
         .admin-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 10px;
-            background: #14141f;
+            background: var(--bg-surface-solid);
             border-radius: 8px;
             margin-bottom: 8px;
             font-size: 0.85rem;
-            color: #c9c3f0;
+            color: var(--text-secondary);
             word-break: break-all;
         }
-
         .admin-item-category {
             display: inline-block;
             padding: 4px 12px;
@@ -383,19 +459,16 @@
             margin-right: 10px;
             min-width: fit-content;
         }
-
         .admin-item-category.boy {
             background: rgba(30, 41, 59, 0.6);
             color: #7dd3fc;
             border: 1px solid #0ea5e9;
         }
-
         .admin-item-category.girl {
             background: rgba(179, 65, 110, 0.4);
             color: #fbbbca;
             border: 1px solid #ff9fcc;
         }
-
         .admin-item-delete {
             background: #5a2c36;
             color: #ff7b9c;
@@ -409,15 +482,11 @@
             white-space: nowrap;
             margin-left: 10px;
         }
-
-        .admin-item-delete:hover {
-            background: #7a3c4a;
-        }
-
+        .admin-item-delete:hover { background: #7a3c4a; }
         .admin-close-btn {
-            background: rgba(100, 100, 150, 0.2);
-            border: 1px solid rgba(255, 200, 210, 0.2);
-            color: #c9c3f0;
+            background: var(--bg-btn-secondary);
+            border: 1px solid var(--border-default);
+            color: var(--text-secondary);
             padding: 10px 20px;
             border-radius: 12px;
             cursor: pointer;
@@ -427,10 +496,7 @@
             width: 100%;
             margin-top: 15px;
         }
-
-        .admin-close-btn:hover {
-            background: rgba(100, 100, 150, 0.4);
-        }
+        .admin-close-btn:hover { background: var(--bg-surface-input); }
         .admin-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -441,17 +507,15 @@
                 grid-template-columns: 1fr 1fr;
                 align-items: start;
             }
-            .admin-grid .admin-col {
-                min-width: 0;
-            }
+            .admin-grid .admin-col { min-width: 0; }
         }
         .admin-mini-list {
             margin-top: 8px;
             max-height: 170px;
             overflow-y: auto;
-            border: 1px solid rgba(255, 200, 210, 0.15);
+            border: 1px solid var(--border-default);
             border-radius: 10px;
-            background: #0d0d16;
+            background: var(--bg-surface-low);
             padding: 8px;
         }
         .admin-mini-item {
@@ -461,9 +525,9 @@
             align-items: center;
             padding: 6px 8px;
             border-radius: 8px;
-            color: #d8d3f2;
+            color: var(--text-ai-candidate);
             font-size: 0.78rem;
-            background: #161625;
+            background: var(--bg-surface-card);
             margin-bottom: 6px;
             word-break: break-all;
         }
@@ -474,12 +538,7 @@
             margin-top: 10px;
             flex-wrap: wrap;
         }
-        .admin-mini-actions .admin-button {
-            margin-top: 0;
-            flex: 1;
-            min-width: 150px;
-        }
-
+        .admin-mini-actions .admin-button { margin-top: 0; flex: 1; min-width: 150px; }
         .admin-message {
             text-align: center;
             padding: 10px;
@@ -487,37 +546,29 @@
             margin-bottom: 15px;
             font-weight: 600;
         }
-
         .admin-message.success {
             background: rgba(34, 197, 94, 0.2);
             color: #86efac;
             border: 1px solid #22c55e;
         }
-
         .admin-message.info {
             background: rgba(59, 130, 246, 0.2);
             color: #93c5fd;
             border: 1px solid #3b82f6;
         }
-
         .ai-box {
             margin-top: 14px;
             padding: 12px;
             border-radius: 12px;
-            background: #0d0d16;
-            border: 1px solid rgba(255, 200, 210, 0.15);
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-default);
         }
-
         .ai-row {
             display: flex;
             gap: 10px;
             margin-top: 10px;
         }
-
-        .ai-row .admin-input {
-            margin: 0;
-        }
-
+        .ai-row .admin-input { margin: 0; }
         .ai-candidates {
             margin-top: 12px;
             max-height: 240px;
@@ -526,22 +577,19 @@
             flex-direction: column;
             gap: 8px;
         }
-
         .ai-candidate {
-            background: #171728;
-            border: 1px solid rgba(255, 200, 210, 0.2);
+            background: var(--bg-surface-card);
+            border: 1px solid var(--border-default);
             border-radius: 10px;
             padding: 10px;
-            color: #d8d3f2;
+            color: var(--text-ai-candidate);
             font-size: 0.86rem;
         }
-
         .ai-actions {
             display: flex;
             gap: 8px;
             margin-top: 8px;
         }
-
         .ai-btn {
             border: none;
             border-radius: 8px;
@@ -551,12 +599,10 @@
             color: #fff;
             font-size: 0.75rem;
         }
-
         .ai-btn-boy { background: #1f3a5e; }
         .ai-btn-girl { background: #7b3352; }
         .ai-btn-skip { background: #3e3e58; }
 
-        /* ——— Авторизация (компактная плашка) ——— */
         .auth-bar {
             position: fixed;
             top: 0;
@@ -568,7 +614,7 @@
             justify-content: space-between;
             gap: 8px;
             padding: 8px 12px;
-            background: linear-gradient(180deg, rgba(8,8,16,.92), transparent);
+            background: var(--bg-auth-bar);
             pointer-events: none;
         }
         .auth-bar > * { pointer-events: auto; }
@@ -584,9 +630,9 @@
             gap: 8px;
         }
         .stats-btn {
-            border: 1px solid rgba(255,180,200,.45);
-            background: rgba(40,30,80,.45);
-            color: #ffe7f3;
+            border: 1px solid var(--border-stats-btn);
+            background: var(--bg-stats-btn);
+            color: var(--text-stats-btn);
             border-radius: 999px;
             padding: 6px 12px;
             font-size: 0.8rem;
@@ -597,9 +643,9 @@
         .stats-btn:active { transform: scale(0.97); }
         .auth-pill {
             font-size: 0.75rem;
-            color: #e8e0ff;
-            background: rgba(20,18,40,.75);
-            border: 1px solid rgba(255,180,200,.25);
+            color: var(--text-auth-pill);
+            background: var(--bg-auth-pill);
+            border: 1px solid var(--border-stats-btn);
             border-radius: 999px;
             padding: 6px 12px;
             backdrop-filter: blur(8px);
@@ -609,9 +655,9 @@
             text-overflow: ellipsis;
         }
         .auth-toggle {
-            border: 1px solid rgba(255,180,200,.4);
-            background: rgba(100,60,120,.4);
-            color: #ffe0f0;
+            border: 1px solid var(--border-stats-btn);
+            background: var(--bg-auth-toggle);
+            color: var(--text-auth-toggle);
             border-radius: 999px;
             padding: 6px 12px;
             font-size: 0.8rem;
@@ -627,8 +673,8 @@
             right: 8px;
             z-index: 850;
             width: min(320px, calc(100vw - 16px));
-            background: rgba(16,14,28,.97);
-            border: 1px solid rgba(255,160,190,.35);
+            background: var(--bg-auth-panel);
+            border: 1px solid var(--border-card);
             border-radius: 16px;
             padding: 14px;
             box-shadow: 0 20px 50px rgba(0,0,0,.65);
@@ -639,9 +685,9 @@
             margin-top: 8px;
             padding: 10px 12px;
             border-radius: 10px;
-            border: 1px solid rgba(255,200,210,.2);
-            background: #12121c;
-            color: #fff;
+            border: 1px solid var(--border-default);
+            background: var(--bg-surface-input);
+            color: var(--text-primary);
             font-size: 16px;
             box-sizing: border-box;
         }
@@ -655,15 +701,15 @@
             cursor: pointer;
         }
         .auth-panel .btn-in { background: linear-gradient(115deg, #5b4ad4, #8b3d7a); color: #fff; }
-        .auth-panel .btn-up { background: rgba(80,80,120,.5); color: #e0dcff; border: 1px solid rgba(255,200,210,.25); }
-        .auth-panel .hint { font-size: 0.7rem; color: #8a82a8; margin-top: 8px; line-height: 1.35; }
+        .auth-panel .btn-up { background: var(--bg-btn-secondary); color: var(--text-secondary); border: 1px solid var(--border-default); }
+        .auth-panel .hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; }
 
         /* ——— Карточка статистики (recap) ——— */
         .stats-recap-overlay {
             position: fixed;
             inset: 0;
             z-index: 1100;
-            background: rgba(0,0,0,.94);
+            background: var(--bg-overlay);
             backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
@@ -674,8 +720,8 @@
         }
         .stats-recap-card {
             width: min(420px, calc(100vw - 32px));
-            background: rgba(22,20,38,.9);
-            border: 1px solid rgba(255,160,190,.45);
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
             border-radius: 24px;
             padding: 22px 20px 18px;
             box-shadow: 0 30px 60px rgba(0,0,0,.55);
@@ -686,7 +732,7 @@
             font-size: 0.72rem;
             letter-spacing: 3px;
             font-weight: 800;
-            color: #a89fd4;
+            color: var(--text-muted);
             text-align: center;
             margin-bottom: 12px;
         }
@@ -707,7 +753,7 @@
         }
         .stats-recap-avg {
             font-size: 1rem;
-            color: #c9c3f0;
+            color: var(--text-secondary);
             text-align: right;
         }
         .stats-chart-wrap {
@@ -721,7 +767,7 @@
             justify-content: space-between;
             gap: 2px;
             height: 88px;
-            border-bottom: 1px solid rgba(255,200,220,.2);
+            border-bottom: 1px solid var(--border-combo);
         }
         .stats-chart-bar {
             flex: 1;
@@ -736,8 +782,8 @@
             bottom: 22px;
             width: 2px;
             height: calc(100% - 26px);
-            background: #fff;
-            box-shadow: 0 0 12px #ffb7d5;
+            background: var(--text-accent);
+            box-shadow: 0 0 12px var(--text-accent);
             transform: translateX(-50%);
             pointer-events: none;
         }
@@ -749,25 +795,25 @@
             font-size: 0.65rem;
             font-weight: 800;
             letter-spacing: 1px;
-            color: #ffb7ca;
+            color: var(--text-accent);
             white-space: nowrap;
         }
         .stats-diff {
             text-align: center;
             font-size: 1.05rem;
             font-weight: 600;
-            color: #e8e4ff;
+            color: var(--text-diff);
             margin-bottom: 10px;
         }
         .stats-recap-dismiss {
             text-align: center;
             font-size: 0.85rem;
-            color: #9a93c4;
+            color: var(--text-close);
         }
         .stats-recap-gameover {
             text-align: center;
             padding: 12px 0 6px;
-            border-bottom: 1px solid rgba(255,200,220,.15);
+            border-bottom: 1px solid var(--border-combo);
             margin-bottom: 14px;
         }
         .stats-recap-gameover-label {
@@ -779,7 +825,7 @@
         }
         .stats-recap-gameover-text {
             font-size: 0.95rem;
-            color: #d8d3f2;
+            color: var(--text-secondary);
             margin-top: 4px;
         }
 
@@ -866,14 +912,14 @@
             z-index: 900;
             padding: 14px 20px;
             border-radius: 999px;
-            border: 1px solid rgba(255,180,200,.55);
-            background: linear-gradient(115deg, rgba(255,120,170,.55), rgba(120,80,190,.45));
+            border: 1px solid var(--border-fab);
+            background: var(--bg-fab);
             color: #fff;
             font-weight: 900;
             letter-spacing: 2px;
             cursor: pointer;
             backdrop-filter: blur(10px);
-            box-shadow: 0 18px 35px rgba(0,0,0,.55);
+            box-shadow: var(--shadow-fab);
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
 
@@ -882,7 +928,7 @@
             position: fixed;
             inset: 0;
             z-index: 1200;
-            background: rgba(0,0,0,.94);
+            background: var(--bg-overlay);
             backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
@@ -893,8 +939,8 @@
         }
         .bug-card {
             width: min(420px, calc(100vw - 32px));
-            background: rgba(22,20,38,.9);
-            border: 1px solid rgba(255,160,190,.45);
+            background: var(--bg-bug-card);
+            border: 1px solid var(--border-card);
             border-radius: 24px;
             padding: 22px 20px 18px;
             box-shadow: 0 30px 60px rgba(0,0,0,.55);
@@ -913,10 +959,10 @@
         .bug-textarea {
             width: 100%;
             padding: 12px 16px;
-            background: #1a1a28;
-            border: 1px solid rgba(255,200,210,.2);
+            background: var(--bg-bug-textarea);
+            border: 1px solid var(--border-default);
             border-radius: 12px;
-            color: #fff;
+            color: var(--text-primary);
             font-size: 0.95rem;
             font-family: inherit;
             resize: vertical;
@@ -933,10 +979,10 @@
             display: block;
             margin-top: 12px;
             padding: 10px 16px;
-            background: #1a1a28;
-            border: 1px dashed rgba(255,200,210,.3);
+            background: var(--bg-bug-label);
+            border: 1px dashed var(--border-default);
             border-radius: 12px;
-            color: #b9b3e6;
+            color: var(--text-muted);
             font-size: 0.85rem;
             text-align: center;
             cursor: pointer;
@@ -944,7 +990,7 @@
         }
         .bug-file-label:hover {
             border-color: #ff9fcc;
-            background: #22223b;
+            background: var(--bg-surface-elevated);
         }
         .bug-file-label.has-file {
             border-color: #86efac;
@@ -973,10 +1019,10 @@
         .bug-close-btn {
             flex: 1;
             padding: 12px;
-            background: rgba(100,100,150,.2);
-            border: 1px solid rgba(255,200,210,.2);
+            background: var(--bg-btn-secondary);
+            border: 1px solid var(--border-default);
             border-radius: 12px;
-            color: #c9c3f0;
+            color: var(--text-secondary);
             font-weight: 600;
             font-size: 0.95rem;
             cursor: pointer;
@@ -988,7 +1034,7 @@
             font-size: 0.85rem;
             margin-top: 10px;
             min-height: 1.2em;
-            color: #86efac;
+            color: var(--text-bug-status);
         }
 
         /* ——— День рождения ——— */
@@ -996,7 +1042,7 @@
             position: fixed;
             inset: 0;
             z-index: 1300;
-            background: rgba(0,0,0,.94);
+            background: var(--bg-overlay);
             backdrop-filter: blur(16px);
             display: flex;
             align-items: center;
@@ -1042,7 +1088,7 @@
         }
         .birthday-sub {
             font-size: 0.9rem;
-            color: #c9b3e6;
+            color: var(--text-secondary);
             line-height: 1.6;
             opacity: .9;
         }
@@ -1054,7 +1100,7 @@
         .birthday-dismiss {
             margin-top: 20px;
             font-size: 0.8rem;
-            color: #8a82a8;
+            color: var(--text-close);
         }
 
         .top-player-list {
@@ -1069,7 +1115,7 @@
             padding: 8px 10px;
             border-radius: 10px;
             margin-bottom: 4px;
-            background: rgba(255,255,255,0.03);
+            background: var(--bg-surface-low);
             transition: background 0.15s;
         }
         .top-player-item:first-child {
@@ -1087,7 +1133,7 @@
         .top-player-rank {
             font-size: 1.05rem;
             font-weight: 900;
-            color: #ffb7ca;
+            color: var(--text-accent);
             min-width: 32px;
             text-align: center;
         }
@@ -1096,7 +1142,7 @@
         .top-player-rank.bronze { color: #cd7f32; }
         .top-player-name {
             font-weight: 700;
-            color: #e8e4ff;
+            color: var(--text-primary);
             flex: 1;
             min-width: 0;
             overflow: hidden;
@@ -1116,7 +1162,7 @@
         .top-player-empty {
             text-align: center;
             padding: 24px;
-            color: #9a93c4;
+            color: var(--text-close);
             font-size: 0.9rem;
         }
     </style>
@@ -1146,6 +1192,7 @@
         <span class="auth-pill" id="authStatus">Гость · прогресс только в этом браузере</span>
     </div>
     <div class="auth-right">
+        <button type="button" class="auth-toggle" id="themeToggleBtn" title="Сменить тему"></button>
         <button type="button" class="auth-toggle" id="bugReportBtn" title="Баг-репорт">🐛</button>
         <button type="button" class="auth-toggle" id="authToggle" aria-expanded="false">🔑</button>
     </div>
@@ -1164,7 +1211,7 @@
     </div>
 </div>
 <div class="auth-panel" id="authPanel">
-    <div style="font-size:0.8rem;color:#ffc0d5;font-weight:700;">Аккаунт</div>
+    <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;">Аккаунт</div>
     <input type="text" id="authUsername" autocomplete="username" placeholder="Логин латиницей: ivan_k" maxlength="32">
     <input type="password" id="authPassword" autocomplete="current-password" placeholder="Пароль" maxlength="64">
     <button type="button" class="row btn-in" id="authSignIn">Войти</button>
@@ -1306,7 +1353,7 @@
                         <button id="incWinsBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 WIN</button>
                         <button id="incLossesBtn" class="admin-button admin-button-secondary" style="flex:1; min-width:140px;">➕ +1 LOSS</button>
                     </div>
-                    <div style="font-size: 0.72rem; opacity: 0.8; color:#9a93c4; margin-top:8px; line-height:1.35;">
+                    <div style="font-size: 0.72rem; opacity: 0.8; color:var(--text-close); margin-top:8px; line-height:1.35;">
                         WIN/LOSS считаем по правилу: win если серия ≥ 10, иначе loss. Крутилки правят агрегаты в базе.
                     </div>
                 </div>
@@ -1315,7 +1362,7 @@
                     <label class="admin-label">🔍 Посмотреть данные пользователя по UID</label>
                     <input type="text" id="adminLookupUid" class="admin-input" placeholder="UID пользователя">
                     <button id="adminLookupBtn" class="admin-button admin-button-secondary" style="margin-top:10px;">🔍 ПОКАЗАТЬ ДАННЫЕ</button>
-                    <div id="adminLookupResult" style="font-size: 0.75rem; color:#c9c3f0; margin-top:8px; line-height:1.5;"></div>
+                    <div id="adminLookupResult" style="font-size: 0.75rem; color:var(--text-secondary); margin-top:8px; line-height:1.5;"></div>
                 </div>
             </div>
         </div>
@@ -1356,6 +1403,35 @@
     const imagesDataset = fallbackImagesDataset.map(item => ({ ...item }));
     // --------------------------------------------------------------
 
+    // ==================== ТЕМА ====================
+    function getThemePref() {
+        const saved = localStorage.getItem('femboyTheme');
+        if (saved === 'light' || saved === 'dark') return saved;
+        return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+    }
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('femboyTheme', theme);
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) btn.textContent = theme === 'light' ? '🌙' : '☀️';
+    }
+    const initialTheme = getThemePref();
+    applyTheme(initialTheme);
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+        if (!localStorage.getItem('femboyTheme')) {
+            applyTheme(e.matches ? 'light' : 'dark');
+        }
+    });
+    {
+        const btn = document.getElementById('themeToggleBtn');
+        if (btn) {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const cur = document.documentElement.getAttribute('data-theme');
+                applyTheme(cur === 'light' ? 'dark' : 'light');
+            });
+        }
+    }
     // ИГРОВОЕ СОСТОЯНИЕ
     let currentStreak = 0;          // текущая серия правильных ответов ПОДРЯД
     let gameActive = true;           // активна ли игра (false = проигрыш)
@@ -1437,7 +1513,7 @@
         
         // чистим статус
         statusDiv.innerHTML = "✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨";
-        statusDiv.style.color = "#ffdee9";
+        statusDiv.style.color = "var(--text-status)";
         
         // убираем возможные эффекты
         streakValueSpan.style.opacity = "1";
@@ -2049,12 +2125,12 @@
             <div class="stats-recap-title">SERIES RECAP</div>
             <div class="stats-recap-row">
                 <div>
-                    <div style="font-size:0.7rem;color:#9a93c4;">Score</div>
+                    <div style="font-size:0.7rem;color:var(--text-close);">Score</div>
                     <div class="stats-recap-score">${score}</div>
                 </div>
                 <div class="stats-recap-avg">
-                    <div style="font-size:0.7rem;color:#9a93c4;">${avgByPlayers === null ? 'Average' : 'Players avg'}</div>
-                    <div style="font-size:1.35rem;font-weight:800;color:#e0dcff;">${avg.toFixed(1)}</div>
+                    <div style="font-size:0.7rem;color:var(--text-close);">${avgByPlayers === null ? 'Average' : 'Players avg'}</div>
+                    <div style="font-size:1.35rem;font-weight:800;color:var(--text-secondary);">${avg.toFixed(1)}</div>
                 </div>
             </div>
             <div class="stats-chart-wrap">
@@ -2107,44 +2183,44 @@
 
         const userBlock = uid
             ? (userAgg
-                ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);">
-                     <div style="font-size:0.72rem;color:#9a93c4;letter-spacing:2px;font-weight:800;text-align:center;">YOUR STATS</div>
-                     <div style="display:flex;justify-content:space-between;margin-top:10px;color:#e8e4ff;font-weight:700;">
+                ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);">
+                     <div style="font-size:0.72rem;color:var(--text-close);letter-spacing:2px;font-weight:800;text-align:center;">YOUR STATS</div>
+                     <div style="display:flex;justify-content:space-between;margin-top:10px;color:var(--text-diff);font-weight:700;">
                        <div>Runs</div><div>${Number(userAgg.runs||0)}</div>
                      </div>
-                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
                        <div>Wins / Losses</div><div>${Number(userAgg.wins||0)} / ${Number(userAgg.losses||0)}</div>
                      </div>
-                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
                        <div>Correct / Incorrect</div><div>${Number(userAgg.totalCorrect||0)} / ${Number(userAgg.totalIncorrect||0)}</div>
                      </div>
-                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:#e8e4ff;font-weight:700;">
+                     <div style="display:flex;justify-content:space-between;margin-top:6px;color:var(--text-diff);font-weight:700;">
                        <div>Best streak</div><div>${Number(userAgg.bestStreak||0)}</div>
                      </div>
                    </div>`
-                : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);opacity:.85;color:#c9c3f0;text-align:center;">
+                : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);opacity:.85;color:var(--text-secondary);text-align:center;">
                      Нет агрегированной статистики для аккаунта (сыграй 1 раз после входа).
                    </div>`)
-            : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,200,220,.2);opacity:.85;color:#c9c3f0;text-align:center;">
+            : `<div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border-combo);opacity:.85;color:var(--text-secondary);text-align:center;">
                  Войди в аккаунт, чтобы не терять статистику на другом устройстве.
                </div>`;
 
         card.innerHTML = `
             <div class="stats-recap-title">STATISTICS</div>
             <div style="display:flex;justify-content:space-between;gap:10px;">
-              <div style="color:#9a93c4;font-size:0.75rem;font-weight:800;letter-spacing:2px;">GLOBAL</div>
-              <div style="color:#c9c3f0;font-size:0.8rem;">runs: <b style="color:#fff;">${totalRuns}</b></div>
+              <div style="color:var(--text-close);font-size:0.75rem;font-weight:800;letter-spacing:2px;">GLOBAL</div>
+              <div style="color:var(--text-secondary);font-size:0.8rem;">runs: <b style="color:#fff;">${totalRuns}</b></div>
             </div>
-            <div style="margin-top:10px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+            <div style="margin-top:10px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
               <div>${globalAvgByPlayers === null ? 'Average streak' : 'Players avg streak'}</div><div>${globalAvg.toFixed(1)}</div>
             </div>
-            <div style="margin-top:6px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+            <div style="margin-top:6px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
               <div>Wins / Losses</div><div>${globalWins} / ${globalLosses}</div>
             </div>
-            <div style="margin-top:6px;display:flex;justify-content:space-between;color:#e8e4ff;font-weight:700;">
+            <div style="margin-top:6px;display:flex;justify-content:space-between;color:var(--text-diff);font-weight:700;">
               <div>Correct / Incorrect</div><div>${globalCorrect} / ${globalIncorrect}</div>
             </div>
-            <div style="margin-top:10px;color:#9a93c4;font-size:0.72rem;line-height:1.35;opacity:.9;">
+            <div style="margin-top:10px;color:var(--text-close);font-size:0.72rem;line-height:1.35;opacity:.9;">
               WIN = серия ≥ 10. INCORRECT = последний промах (1 на серию).
             </div>
             ${userBlock}
@@ -2235,7 +2311,7 @@
     
             card.innerHTML = `
                 <div class="stats-recap-title">🏆 LEADERBOARD 🏆</div>
-                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:#9a93c4;letter-spacing:1px;">топ по лучшей серии</div>
+                <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:var(--text-close);letter-spacing:1px;">топ по лучшей серии</div>
                 <div class="top-player-list">
                     ${itemsHtml || '<div class="top-player-empty">Нет данных</div>'}
                 </div>
@@ -3108,21 +3184,21 @@
 
     async function loadAdminAccountsList() {
         if (!adminAccountsList) return;
-        adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Загрузка админов...</div>';
+        adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Загрузка админов...</div>';
         if (!firebaseReady || !firebaseDb) {
-            adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Firebase не готов</div>';
+            adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Firebase не готов</div>';
             return;
         }
         try {
             const snap = await firebaseDb.ref(FIREBASE_ADMINS_PATH).get();
             if (!snap.exists()) {
-                adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Список пуст</div>';
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Список пуст</div>';
                 return;
             }
             const obj = snap.val() || {};
             const entries = Object.entries(obj).filter(([, v]) => v === true || v === 1 || v === '1');
             if (!entries.length) {
-                adminAccountsList.innerHTML = '<div style="opacity:.75;color:#bdb7df;font-size:.8rem;">Список пуст</div>';
+                adminAccountsList.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Список пуст</div>';
                 return;
             }
             adminAccountsList.innerHTML = '';
@@ -3136,7 +3212,7 @@
                 adminAccountsList.appendChild(row);
             });
         } catch (e) {
-            adminAccountsList.innerHTML = `<div style="opacity:.75;color:#ff9ebc;font-size:.8rem;">Ошибка: ${e.message}</div>`;
+            adminAccountsList.innerHTML = `<div style="opacity:.75;color:var(--text-accent);font-size:.8rem;">Ошибка: ${e.message}</div>`;
         }
     }
 
