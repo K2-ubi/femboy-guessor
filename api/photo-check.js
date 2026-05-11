@@ -211,9 +211,11 @@ async function runFullCheck() {
         timestamp: Date.now()
       }).catch(() => {});
 
+      const categoryLabel = (item.answer === 'boy' || item.gender === 'boy') ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА';
       const text = '❌ Проблемное фото (авто-проверка) #' + problemCount +
         '\n\n📷 ' + item.url +
-        '\n\nСервер: ❌ не открывается';
+        '\n\nКатегория: ' + categoryLabel +
+        '\nСервер: ❌ не открывается';
 
       const inlineKeyboard = {
         inline_keyboard: [[

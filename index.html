@@ -3836,9 +3836,11 @@
                     problematic.push({ ...item, index: i, clientOk, serverOk, serverIp });
                     const clientStatus = clientOk ? '✅ открывается' : '❌ не открывается';
                     const serverStatus = serverOk ? '✅ открывается' : '❌ не открывается';
+                    const categoryLabel = (item.answer === 'boy' || item.gender === 'boy') ? '👨 ПАРЕНЬ' : '👩 ДЕВУШКА';
                     const text = '❌ Проблемное фото #' + problematic.length +
                         '\n\n📷 ' + item.url +
-                        '\n\nКлиент: ' + clientStatus +
+                        '\n\nКатегория: ' + categoryLabel +
+                        '\nКлиент: ' + clientStatus +
                         '\nСервер: ' + serverStatus +
                         '\nIP сервера: ' + serverIp;
                     await sendPhotoCheckToTelegram(text, item.url, i);
