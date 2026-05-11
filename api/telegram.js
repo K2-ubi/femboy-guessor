@@ -120,7 +120,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
-  const { method, chat_id, text, photo, caption } = req.body || {};
+  const { method, chat_id, text, photo, caption, reply_markup } = req.body || {};
 
   if (!method || !chat_id) {
     return res.status(400).json({ error: 'method and chat_id required' });
@@ -139,6 +139,7 @@ export default async function handler(req, res) {
 
   try {
     const params = { chat_id };
+    if (reply_markup) params.reply_markup = reply_markup;
     if (method === 'sendMessage') {
       params.text = text;
     } else if (method === 'sendPhoto') {

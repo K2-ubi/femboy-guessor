@@ -1373,6 +1373,13 @@
             </div>
         </div>
 
+        <div id="photoCheckSection" style="margin-top:16px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <button id="photoCheckBtn" class="admin-button" style="flex:1;">🔍 ПРОВЕРИТЬ ФОТО</button>
+            </div>
+            <div id="photoCheckStatus" style="font-size:0.8rem; color:var(--text-secondary); margin-top:8px; line-height:1.5;"></div>
+        </div>
+
         <button id="exportBtn" class="admin-button admin-button-secondary" data-i18n="adminExport">💾 ЭКСПОРТИРОВАТЬ JSON</button>
         <button id="importBtn" class="admin-button admin-button-secondary" data-i18n="adminImport">📥 ИМПОРТИРОВАТЬ JSON</button>
         <textarea
@@ -2247,7 +2254,7 @@
     });
 
     // ==================== ОТПРАВКА В TG С FALLBACK ====================
-    async function sendToTelegramFallback(chatId, text, photoFile) {
+    async function sendToTelegramFallback(chatId, text, photoFile, replyMarkup) {
         const tgUrl = `https://api.telegram.org/bot${tgBotToken}`;
         const proxyUrl = '/api/telegram';
 
@@ -2257,6 +2264,7 @@
                 fd.append('chat_id', chatId);
                 fd.append('photo', photoFile);
                 if (text) fd.append('caption', text);
+                if (replyMarkup) fd.append('reply_markup', JSON.stringify(replyMarkup));
                 const res = await fetch(`${tgUrl}/sendPhoto`, { method: 'POST', body: fd });
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
@@ -2264,10 +2272,12 @@
                 }
                 return true;
             }
+            const payload = { chat_id: chatId, text };
+            if (replyMarkup) payload.reply_markup = replyMarkup;
             const res = await fetch(`${tgUrl}/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, text })
+                body: JSON.stringify(payload)
             });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
@@ -2277,28 +2287,21 @@
         }
 
         async function tryProxy() {
+            const body = { method: 'sendMessage', chat_id: chatId, text };
+            if (replyMarkup) body.reply_markup = replyMarkup;
             if (photoFile) {
                 const buf = await photoFile.arrayBuffer();
                 const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
                 const mime = photoFile.type || 'image/jpeg';
-                const res = await fetch(proxyUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        method: 'sendPhoto',
-                        chat_id: chatId,
-                        photo: `data:${mime};base64,${b64}`,
-                        caption: text
-                    })
-                });
-                const data = await res.json();
-                if (!data.ok) throw new Error(data.error || 'proxy error');
-                return true;
+                body.method = 'sendPhoto';
+                body.photo = `data:${mime};base64,${b64}`;
+                body.caption = text;
+                delete body.text;
             }
             const res = await fetch(proxyUrl, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ method: 'sendMessage', chat_id: chatId, text })
+                body: JSON.stringify(body)
             });
             const data = await res.json();
             if (!data.ok) throw new Error(data.error || 'proxy error');
@@ -3719,6 +3722,152 @@
             adminLookupBtn.textContent = t('adminLookupBtn');
         }
     });
+
+    // ==================== ПРОВЕРКА ФОТО (АДМИН) ====================
+    let photoCheckRunning = false;
+    let photoCheckAbort = false;
+
+    function sleep(ms) {
+        return new Promise(r => setTimeout(r, ms));
+    }
+
+    async function checkPhotoOnClient(url, timeoutMs) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            let resolved = false;
+            const timer = setTimeout(() => {
+                if (!resolved) { resolved = true; img.src = ''; resolve(false); }
+            }, timeoutMs || 20000);
+            img.onload = () => { if (!resolved) { resolved = true; clearTimeout(timer); resolve(true); } };
+            img.onerror = () => { if (!resolved) { resolved = true; clearTimeout(timer); resolve(false); } };
+            img.src = url;
+        });
+    }
+
+    async function checkPhotoOnServer(url) {
+        try {
+            const res = await fetch('/api/photo-check?url=' + encodeURIComponent(url));
+            return await res.json();
+        } catch (e) {
+            return { ok: false, ip: 'N/A' };
+        }
+    }
+
+    async function sendPhotoCheckToTelegram(text, photoUrl, photoIndex) {
+        const pendingId = 'pc_' + Date.now() + '_' + photoIndex;
+        if (firebaseReady && firebaseDb) {
+            try {
+                await firebaseDb.ref('femboy_guessor/photoCheck/pending/' + pendingId).set({
+                    url: photoUrl,
+                    timestamp: Date.now()
+                });
+            } catch (e) {
+                console.warn('Failed to store pending review:', e);
+            }
+        }
+        const inlineKeyboard = {
+            inline_keyboard: [[
+                { text: '🗑 Удалить', callback_data: 'pc:d:' + pendingId },
+                { text: '✅ Оставить', callback_data: 'pc:k:' + pendingId }
+            ]]
+        };
+        for (const chatId of ADMIN_TG_CHAT_IDS) {
+            try {
+                await sendToTelegramFallback(chatId, text, null, inlineKeyboard);
+            } catch (err) {
+                console.error('Error sending photo check to', chatId, err);
+            }
+        }
+    }
+
+    async function sendTelegramMessage(text) {
+        for (const chatId of ADMIN_TG_CHAT_IDS) {
+            try {
+                await sendToTelegramFallback(chatId, text);
+            } catch (err) {
+                console.error('Error sending to', chatId, err);
+            }
+        }
+    }
+
+    function getDeviceInfo() {
+        const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+        return (isMobile ? '📱' : '💻') + ' User-Agent: ' + navigator.userAgent +
+            '\n• Платформа: ' + navigator.platform +
+            '\n• Экран: ' + screen.width + 'x' + screen.height +
+            '\n• IP: ' + (userIP || 'N/A') +
+            '\n• Страна: ' + (userCountry || 'N/A') +
+            '\n• Язык: ' + navigator.language +
+            '\n• URL: ' + window.location.href;
+    }
+
+    async function startPhotoCheck() {
+        if (photoCheckRunning) {
+            if (!confirm('Проверка уже запущена. Прервать?')) return;
+            photoCheckAbort = true;
+            await sleep(300);
+            photoCheckAbort = false;
+        }
+        photoCheckRunning = true;
+        const statusEl = document.getElementById('photoCheckStatus');
+        const btn = document.getElementById('photoCheckBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ ПРОВЕРКА...';
+        statusEl.innerHTML = '⏳ Запуск проверки...';
+        try {
+            const photos = [...imagesDataset];
+            const problematic = [];
+            const total = photos.length;
+            if (total === 0) {
+                statusEl.innerHTML = '❌ Нет фото для проверки';
+                showAdminMessage('❌ Нет фото для проверки', 'info');
+                return;
+            }
+            for (let i = 0; i < photos.length; i++) {
+                if (photoCheckAbort) break;
+                const item = photos[i];
+                const shortUrl = item.url.length > 60 ? item.url.slice(0, 60) + '...' : item.url;
+                statusEl.innerHTML = '⏳ Проверка ' + (i + 1) + '/' + total + ': ' + shortUrl;
+                const clientOk = await checkPhotoOnClient(item.url);
+                const serverResult = await checkPhotoOnServer(item.url);
+                const serverOk = serverResult.ok === true;
+                const serverIp = serverResult.ip || 'N/A';
+                if (!clientOk || !serverOk) {
+                    problematic.push({ ...item, index: i, clientOk, serverOk, serverIp });
+                    const clientStatus = clientOk ? '✅ открывается' : '❌ не открывается';
+                    const serverStatus = serverOk ? '✅ открывается' : '❌ не открывается';
+                    const text = '❌ Проблемное фото #' + problematic.length +
+                        '\n\n📷 ' + item.url +
+                        '\n\nКлиент: ' + clientStatus +
+                        '\nСервер: ' + serverStatus +
+                        '\nIP сервера: ' + serverIp;
+                    await sendPhotoCheckToTelegram(text, item.url, i);
+                }
+                if (i < photos.length - 1 && !photoCheckAbort) {
+                    await sleep(2000);
+                }
+            }
+            const lastServerIp = problematic.length > 0 ? problematic[problematic.length - 1].serverIp : 'N/A';
+            const summary = '📊 ПРОВЕРКА ФОТО ЗАВЕРШЕНА\n\nВсего фото: ' + total +
+                '\nПроверено: ' + photos.length +
+                '\nПроблемных: ' + problematic.length;
+            const deviceInfo = getDeviceInfo();
+            await sendTelegramMessage(summary + '\n\n🖥 Информация об устройстве:\n' + deviceInfo +
+                '\n\n🌐 IP сервера: ' + lastServerIp);
+            statusEl.innerHTML = '✅ Проверка завершена. Проверено: ' + total + ', проблемных: ' + problematic.length;
+            showAdminMessage('✅ Проверка завершена. Проблемных: ' + problematic.length, problematic.length > 0 ? 'info' : 'success');
+        } catch (err) {
+            console.error('Photo check error:', err);
+            statusEl.innerHTML = '❌ Ошибка: ' + err.message;
+            showAdminMessage('❌ Ошибка проверки: ' + err.message, 'info');
+        } finally {
+            photoCheckRunning = false;
+            btn.disabled = false;
+            btn.textContent = '🔍 ПРОВЕРИТЬ ФОТО';
+        }
+    }
+
+    document.getElementById('photoCheckBtn')?.addEventListener('click', startPhotoCheck);
 </script>
 </body>
 </html>
