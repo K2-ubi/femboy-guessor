@@ -2327,12 +2327,32 @@
     // ==================== АВТО-ОТПРАВКА ОШИБОК ====================
     let errorTimer = null;
     let pendingErrors = [];
+    let lastOnerror = null;
+    let onerrorCount = 0;
+
+    function getBrowserInfo() {
+        const ua = navigator.userAgent;
+        let engine = 'unknown';
+        if (ua.includes('Chrome/')) engine = 'Blink';
+        else if (ua.includes('Firefox/')) engine = 'Gecko';
+        else if (ua.includes('Safari/') && !ua.includes('Chrome/')) engine = 'WebKit';
+        const mobile = /Mobi|Android|iPhone|iPad|iPod/i.test(ua) ? '📱' : '💻';
+        return `${mobile} ${engine} · ${navigator.platform}`;
+    }
+
+    function getInlineContext(linesBefore, linesAfter) {
+        const stack = new Error().stack;
+        if (!stack) return '';
+        const line = (stack.split('\n')[2] || '').trim();
+        const match = line.match(/[?&]v=([^:)]+)/) || line.match(/\/api\/[^:]+/);
+        return match ? match[0] : '';
+    }
 
     function flushErrors() {
         errorTimer = null;
         if (!pendingErrors.length || !tgBotToken) return;
         const batch = pendingErrors.splice(0);
-        let body = batch.join('\n\n---\n\n');
+        let body = batch.join('\n\n———\n\n');
         if (body.length > 4000) body = body.slice(0, 3997) + '...';
         for (const chatId of ADMIN_TG_CHAT_IDS) {
             sendToTelegramFallback(chatId, body).catch(() => {});
@@ -2346,17 +2366,46 @@
         }
     }
 
+    function enrichError(source, lineno, colno, error) {
+        let details = '';
+        if (error) {
+            details += `\n🧩 Имя: ${error.name || 'N/A'}`;
+            if (error.message) details += `\n💬 Сообщение: ${error.message}`;
+            if (error.stack) details += `\n📚 Стек (полный):\n${error.stack}`;
+        }
+        const browserInfo = getBrowserInfo();
+        const now = new Date();
+        const timeStr = now.toLocaleString('ru-RU', { timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone }) +
+            ` (${Intl.DateTimeFormat().resolvedOptions().timeZone})`;
+        return `❌ ОШИБКА НА САЙТЕ\n\n📄 Файл: ${source || 'unknown'}\n📍 Строка: ${lineno || '?'}, колонка: ${colno || '?'}\n🕐 ${now.toISOString()}\n⏰ ${timeStr}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🖥 ${browserInfo}\n🌍 ${navigator.language} (${navigator.languages?.join(',') || 'N/A'})\n🔗 ${window.location.href}${details}`;
+    }
+
     window.onerror = function(message, source, lineno, colno, error) {
-        const stack = error?.stack || '';
-        const text = `❌ ОШИБКА НА САЙТЕ\n\n${message}\n📍 ${source || 'unknown'}:${lineno || '?'}:${colno || '?'}\n🕐 ${new Date().toISOString()}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🔗 ${window.location.href}${stack ? '\n\n' + stack.slice(0, 600) : ''}`;
+        const now = Date.now();
+        if (lastOnerror && now - lastOnerror < 2000) {
+            onerrorCount++;
+            if (onerrorCount > 5) {
+                queueError(`⚠️ Подавлено ${onerrorCount} повторяющихся ошибок (последняя: ${String(message).slice(0, 100)})`);
+                lastOnerror = now;
+                return false;
+            }
+        } else {
+            onerrorCount = 0;
+        }
+        lastOnerror = now;
+        const text = enrichError(source, lineno, colno, error);
         queueError(text);
         return false;
     };
 
     window.addEventListener('unhandledrejection', function(e) {
-        const reason = e.reason?.message || String(e.reason || '');
-        const stack = e.reason?.stack || '';
-        const text = `❌ UNHANDLED PROMISE\n\n${reason}\n🕐 ${new Date().toISOString()}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🔗 ${window.location.href}${stack ? '\n\n' + stack.slice(0, 600) : ''}`;
+        const error = e.reason;
+        const name = error?.name || 'PromiseError';
+        const message = error?.message || String(error || 'unknown');
+        const source = error?.fileName || error?.sourceURL || 'promise';
+        const lineno = error?.lineNumber || '?';
+        const colno = error?.columnNumber || '?';
+        const text = `❌ UNHANDLED PROMISE REJECTION\n\n📄 Файл: ${source}\n📍 Строка: ${lineno}, колонка: ${colno}\n🧩 Тип: ${name}\n💬 Сообщение: ${message}\n🕐 ${new Date().toISOString()}\n👤 ${firebaseAuth?.currentUser?.displayName || 'гость'}\n🌐 IP: ${userIP || 'N/A'}\n🖥 ${getBrowserInfo()}\n🔗 ${window.location.href}${error?.stack ? '\n\n📚 Стек:\n' + error.stack : ''}`;
         queueError(text);
     });
 
