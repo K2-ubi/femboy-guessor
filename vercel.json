@@ -1,0 +1,13 @@
+{
+  "functions": {
+    "api/photo-check.js": {
+      "maxDuration": 300
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/photo-check",
+      "schedule": "0 */5 * * *"
+    }
+  ]
+}
