@@ -2096,6 +2096,9 @@
         '2gjkOATnmleOXudIcmFHHdkc4xr2'
     ]);
     const FIREBASE_TG_TOKEN_PATH = 'femboy_guessor/apitg';
+    const FIREBASE_IPTRACKER_PATH = 'femboy_guessor/iptracker';
+    const IPTRACKER_API_KEY = 'm4ght08e7s4i21ne';
+    const IPTRACKER_MONTHLY_LIMIT = 9432;
     const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
     let tgBotToken = null;
     let userIP = null;
@@ -3559,6 +3562,33 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
+    async function fetchGeoData() {
+        let remaining = null;
+        if (firebaseReady && firebaseDb) {
+            try {
+                const snap = await firebaseDb.ref(`${FIREBASE_IPTRACKER_PATH}/2ipru`).get();
+                remaining = snap.exists() ? Number(snap.val()) : IPTRACKER_MONTHLY_LIMIT;
+            } catch (e) {
+                console.warn('fetchGeoData: Firebase read error', e);
+            }
+        }
+        if (remaining !== null && remaining <= 0) {
+            console.warn('fetchGeoData: лимит 2ip.io исчерпан');
+            return;
+        }
+        try {
+            const res = await fetch(`https://api.2ip.io?token=${IPTRACKER_API_KEY}`);
+            const data = await res.json();
+            userIP = data.ip || null;
+            userCountry = data.code || null;
+            if (firebaseReady && firebaseDb && remaining !== null) {
+                await firebaseDb.ref(`${FIREBASE_IPTRACKER_PATH}/2ipru`).set(remaining - 1);
+            }
+        } catch (e) {
+            console.warn('fetchGeoData: запрос к 2ip.io не удался', e);
+        }
+    }
+
     // Проверяем при загрузке
     async function startApp() {
         initFirebase();
@@ -3578,8 +3608,7 @@
                 console.warn('Не удалось прочитать TG токен:', e);
             }
         }
-        fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => { userIP = d.ip; }).catch(() => {});
-        fetch('https://ip-api.com/json/?fields=countryCode').then(r => r.json()).then(d => { if (d.countryCode) userCountry = d.countryCode; }).catch(() => {});
+        fetchGeoData();
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
