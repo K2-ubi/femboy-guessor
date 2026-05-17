@@ -3009,9 +3009,23 @@
 
                 const regIp = userIP || 'N/A';
                 const regCountry = userCountry || 'N/A';
-                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}`;
-                for (const chatId of ADMIN_TG_CHAT_IDS) {
-                    sendToTelegramFallback(chatId, regMsg).catch(() => {});
+                let sameIpInfo = '';
+                if (firebaseReady && firebaseDb && regIp !== 'N/A') {
+                    try {
+                        const logsSnap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).get();
+                        if (logsSnap.exists()) {
+                            const allLogs = [];
+                            logsSnap.forEach(child => allLogs.push(child.val()));
+                            const sameIpEntries = allLogs.filter(e => e && e.ip === regIp);
+                            const uniqueNames = [...new Set(sameIpEntries.map(e => e.username || '?'))];
+                            sameIpInfo = `\n\n📊 Аккаунтов с этим IP: ${sameIpEntries.length + 1}`;
+                            if (uniqueNames.length) {
+                                sameIpInfo += `\nНики: ${uniqueNames.join(', ')}`;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('sameIp query', e);
+                    }
                 }
                 if (firebaseReady && firebaseDb) {
                     firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
@@ -3021,6 +3035,10 @@
                         country: regCountry,
                         timestamp: Date.now()
                     }).catch(() => {});
+                }
+                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}${sameIpInfo}`;
+                for (const chatId of ADMIN_TG_CHAT_IDS) {
+                    sendToTelegramFallback(chatId, regMsg).catch(() => {});
                 }
             } catch (err) {
                 window.alert(err.message || String(err));
@@ -4386,15 +4404,16 @@
         const el = document.getElementById('regLogsList');
         if (!el || !firebaseReady || !firebaseDb) return;
         try {
-            const snap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).orderByChild('timestamp').limitToLast(50).get();
+            const snap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).get();
             if (!snap.exists()) {
                 el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Нет записей</div>';
                 return;
             }
             const entries = [];
             snap.forEach(child => entries.push({ id: child.key, ...child.val() }));
-            entries.reverse();
-            el.innerHTML = entries.map(e => {
+            entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            const last50 = entries.slice(0, 50);
+            el.innerHTML = last50.map(e => {
                 const time = e.timestamp ? new Date(e.timestamp).toLocaleString() : '?';
                 return `<div class="admin-mini-item"><span>${escapeHtml(e.username || '?')}</span><span style="font-size:0.7rem;opacity:.7;">${escapeHtml(e.ip || '')} ${time}</span></div>`;
             }).join('');

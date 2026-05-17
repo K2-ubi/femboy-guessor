@@ -35,11 +35,18 @@ async function deleteUserDataFromDb(uid) {
   const promises = [];
   promises.push(db.ref('femboy_guessor/users/' + uid).remove());
   promises.push(db.ref('femboy_guessor/userStats/' + uid).remove());
-  const statsSnap = await db.ref('femboy_guessor/stats').orderByChild('userId').equalTo(uid).get();
+  const statsSnap = await db.ref('femboy_guessor/stats').get();
   if (statsSnap.exists()) {
     const updates = {};
-    statsSnap.forEach(child => { updates[child.key] = null; });
-    promises.push(db.ref('femboy_guessor/stats').update(updates));
+    statsSnap.forEach(child => {
+      const val = child.val();
+      if (val && val.userId === uid) {
+        updates[child.key] = null;
+      }
+    });
+    if (Object.keys(updates).length) {
+      promises.push(db.ref('femboy_guessor/stats').update(updates));
+    }
   }
   await Promise.all(promises);
 }
