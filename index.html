@@ -1423,6 +1423,38 @@
             <div id="bannedNicksList" class="admin-mini-list"></div>
         </div>
 
+        <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <label class="admin-label">🔒 Регистрация</label>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <span id="regStatusLabel" style="color:var(--text-secondary); font-size:0.85rem;">Загрузка...</span>
+                <button id="toggleRegBtn" class="admin-button admin-button-secondary" style="flex:1;">🔄 ПЕРЕКЛЮЧИТЬ</button>
+            </div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <label class="admin-label">🗑️ Удаление пользователя</label>
+            <input type="text" id="deleteUserUid" class="admin-input" placeholder="UID пользователя для удаления">
+            <div class="admin-mini-actions">
+                <button id="deleteUserBtn" class="admin-button admin-button-secondary" style="background:#5a2c36;color:#ff7b9c;">🗑️ УДАЛИТЬ ПОЛЬЗОВАТЕЛЯ</button>
+            </div>
+            <div id="deleteUserResult" style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px;"></div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top:18px;">
+            <label class="admin-label">🗑️ Массовое удаление по нику</label>
+            <input type="text" id="deleteByNickPattern" class="admin-input" placeholder="Слово в нике для удаления">
+            <div class="admin-mini-actions">
+                <button id="deleteByNickBtn" class="admin-button admin-button-secondary" style="background:#5a2c36;color:#ff7b9c;">🔍 НАЙТИ И УДАЛИТЬ</button>
+            </div>
+            <div id="bulkDeleteResult" style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px; max-height:150px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <label class="admin-label">📋 Логи регистраций</label>
+            <div id="regLogsList" class="admin-mini-list" style="max-height:200px;"></div>
+            <button id="refreshRegLogsBtn" class="admin-button admin-button-secondary" style="margin-top:8px;">🔄 ОБНОВИТЬ ЛОГИ</button>
+        </div>
+
         <button id="closeAdminBtn" class="admin-close-btn" data-i18n="adminClose">❌ ЗАКРЫТЬ</button>
     </div>
 </div>
@@ -2938,9 +2970,30 @@
 
         authSignUp.addEventListener('click', async () => {
             try {
+                const name = String(authUsername.value || '').trim().slice(0, 32);
+
+                if (firebaseReady && firebaseDb) {
+                    const settingsSnap = await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).get();
+                    const regEnabled = settingsSnap.exists() ? settingsSnap.val() !== false : true;
+                    if (!regEnabled) {
+                        window.alert('Регистрация временно отключена администратором');
+                        return;
+                    }
+                }
+
+                await loadBannedNicks();
+                const nameLower = name.toLowerCase();
+                const bannedForCheck = new Set(bannedNicks);
+                for (const banned of HARDCODED_BANNED_NICKS) bannedForCheck.add(banned);
+                for (const banned of bannedForCheck) {
+                    if (banned && nameLower.includes(banned.toLowerCase())) {
+                        window.alert('Это имя содержит запрещённое слово и не может быть использовано');
+                        return;
+                    }
+                }
+
                 const email = usernameToEmail(authUsername.value);
                 const cred = await firebaseAuth.createUserWithEmailAndPassword(email, authPassword.value);
-                const name = String(authUsername.value || '').trim().slice(0, 32);
                 await cred.user.updateProfile({ displayName: name });
                 if (firebaseDb) {
                     await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${cred.user.uid}`).update({
@@ -2953,6 +3006,22 @@
                 await syncRunsPlayedToCloud();
                 touchAuthStatusBar();
                 authPanel.classList.remove('open');
+
+                const regIp = userIP || 'N/A';
+                const regCountry = userCountry || 'N/A';
+                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}`;
+                for (const chatId of ADMIN_TG_CHAT_IDS) {
+                    sendToTelegramFallback(chatId, regMsg).catch(() => {});
+                }
+                if (firebaseReady && firebaseDb) {
+                    firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
+                        username: name,
+                        uid: cred.user.uid,
+                        ip: regIp,
+                        country: regCountry,
+                        timestamp: Date.now()
+                    }).catch(() => {});
+                }
             } catch (err) {
                 window.alert(err.message || String(err));
             }
@@ -3168,6 +3237,8 @@
     };
 
 
+    const FIREBASE_SETTINGS_PATH = 'femboy_guessor/settings';
+    const FIREBASE_REG_LOGS_PATH = 'femboy_guessor/registrationLogs';
     const FIREBASE_BANNED_IPS_PATH = 'femboy_guessor/banned/ips';
     const FIREBASE_BANNED_NICKS_PATH = 'femboy_guessor/banned/nicks';
     let bannedIps = new Set();
@@ -3791,6 +3862,8 @@
         await loadAdminAccountsList();
         await loadBannedIps();
         await loadBannedNicks();
+        await loadRegistrationSettings();
+        await loadRegLogs();
         updatePhotosList();
         updateBannedIpsList();
         updateBannedNicksList();
@@ -3882,6 +3955,8 @@
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
+        await loadBannedNicks();
+        await loadBannedIps();
 
         await checkBanOnStart();
         setLanguage(currentLang);
@@ -4182,6 +4257,153 @@
         }
     });
 
+
+    const deleteUserUidInput = document.getElementById('deleteUserUid');
+    const deleteUserBtn = document.getElementById('deleteUserBtn');
+    const deleteUserResult = document.getElementById('deleteUserResult');
+    const deleteByNickPattern = document.getElementById('deleteByNickPattern');
+    const deleteByNickBtn = document.getElementById('deleteByNickBtn');
+    const bulkDeleteResult = document.getElementById('bulkDeleteResult');
+    const toggleRegBtn = document.getElementById('toggleRegBtn');
+    const regStatusLabel = document.getElementById('regStatusLabel');
+
+    async function loadRegistrationSettings() {
+        if (!firebaseReady || !firebaseDb) return;
+        try {
+            const snap = await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).get();
+            const enabled = snap.exists() ? snap.val() !== false : true;
+            if (regStatusLabel) regStatusLabel.textContent = enabled ? '✅ Регистрация включена' : '❌ Регистрация отключена';
+            return enabled;
+        } catch (e) {
+            return true;
+        }
+    }
+
+    if (toggleRegBtn) toggleRegBtn.addEventListener('click', async () => {
+        if (!isAdminUser) return;
+        try {
+            const snap = await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).get();
+            const current = snap.exists() ? snap.val() !== false : true;
+            await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).set(!current);
+            await loadRegistrationSettings();
+            showAdminMessage(current ? '❌ Регистрация отключена' : '✅ Регистрация включена', 'success');
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                (current ? '❌ Регистрация отключена' : '✅ Регистрация включена') +
+                ' администратором ' + (firebaseAuth?.currentUser?.displayName || 'N/A')
+            ).catch(() => {});
+        } catch (e) {
+            showAdminMessage('❌ Ошибка: ' + e.message, 'info');
+        }
+    });
+
+    async function deleteUserByUid(uid) {
+        if (!isAdminUser) throw new Error('Не админ');
+        if (!uid) throw new Error('Введите UID');
+        const currentUserUid = firebaseAuth?.currentUser?.uid;
+        const res = await fetch('/api/delete-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ adminUid: currentUserUid, targetUid: uid })
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'Ошибка удаления');
+        return data;
+    }
+
+    if (deleteUserBtn) deleteUserBtn.addEventListener('click', async () => {
+        const uid = (deleteUserUidInput?.value || '').trim();
+        if (!uid) {
+            showAdminMessage('Введите UID пользователя', 'info');
+            return;
+        }
+        if (!confirm(`Вы уверены, что хотите полностью удалить пользователя ${uid}? Это действие необратимо.`)) return;
+        if (!confirm(`Ещё раз подтвердите: удалить ${uid}?`)) return;
+        try {
+            deleteUserBtn.disabled = true;
+            deleteUserBtn.textContent = '⏳ УДАЛЕНИЕ...';
+            const result = await deleteUserByUid(uid);
+            if (deleteUserResult) {
+                deleteUserResult.innerHTML = `✅ Пользователь ${uid} удалён (Auth: ${result.authDeleted})`;
+            }
+            showAdminMessage(`✅ Пользователь ${uid} удалён`, 'success');
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                `🗑️ Админ удалил пользователя\nUID: ${uid}\nAuth deleted: ${result.authDeleted}`
+            ).catch(() => {});
+        } catch (e) {
+            showAdminMessage('❌ ' + e.message, 'info');
+            if (deleteUserResult) deleteUserResult.innerHTML = '❌ ' + e.message;
+        } finally {
+            deleteUserBtn.disabled = false;
+            deleteUserBtn.textContent = '🗑️ УДАЛИТЬ ПОЛЬЗОВАТЕЛЯ';
+        }
+    });
+
+    if (deleteByNickBtn) deleteByNickBtn.addEventListener('click', async () => {
+        const pattern = (deleteByNickPattern?.value || '').trim();
+        if (!pattern) {
+            showAdminMessage('Введите слово для поиска в нике', 'info');
+            return;
+        }
+        if (!confirm(`Найти и удалить всех пользователей, в нике которых есть "${pattern}"? Это необратимо.`)) return;
+        if (!confirm(`Ещё раз подтвердите массовое удаление по слову "${pattern}"?`)) return;
+        const currentUserUid = firebaseAuth?.currentUser?.uid;
+        try {
+            deleteByNickBtn.disabled = true;
+            deleteByNickBtn.textContent = '⏳ УДАЛЕНИЕ...';
+            if (bulkDeleteResult) bulkDeleteResult.innerHTML = '⏳ Удаление...';
+            const res = await fetch('/api/delete-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminUid: currentUserUid, nickPattern: pattern })
+            });
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'Ошибка');
+            if (bulkDeleteResult) {
+                let html = `✅ Найдено: ${data.total}, удалено: ${data.deleted}`;
+                if (data.results) {
+                    html += '<br>' + data.results.map(r =>
+                        r.error
+                            ? `❌ ${r.uid}: ${r.error}`
+                            : `✅ ${r.uid}: удалён`
+                    ).join('<br>');
+                }
+                bulkDeleteResult.innerHTML = html;
+            }
+            showAdminMessage(`✅ Удалено ${data.deleted} из ${data.total} пользователей`, 'success');
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                `🗑️ Массовое удаление по нику\nСлово: "${pattern}"\nНайдено: ${data.total}\nУдалено: ${data.deleted}`
+            ).catch(() => {});
+        } catch (e) {
+            showAdminMessage('❌ ' + e.message, 'info');
+            if (bulkDeleteResult) bulkDeleteResult.innerHTML = '❌ ' + e.message;
+        } finally {
+            deleteByNickBtn.disabled = false;
+            deleteByNickBtn.textContent = '🔍 НАЙТИ И УДАЛИТЬ';
+        }
+    });
+
+    async function loadRegLogs() {
+        const el = document.getElementById('regLogsList');
+        if (!el || !firebaseReady || !firebaseDb) return;
+        try {
+            const snap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).orderByChild('timestamp').limitToLast(50).get();
+            if (!snap.exists()) {
+                el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Нет записей</div>';
+                return;
+            }
+            const entries = [];
+            snap.forEach(child => entries.push({ id: child.key, ...child.val() }));
+            entries.reverse();
+            el.innerHTML = entries.map(e => {
+                const time = e.timestamp ? new Date(e.timestamp).toLocaleString() : '?';
+                return `<div class="admin-mini-item"><span>${escapeHtml(e.username || '?')}</span><span style="font-size:0.7rem;opacity:.7;">${escapeHtml(e.ip || '')} ${time}</span></div>`;
+            }).join('');
+        } catch (e) {
+            console.warn('loadRegLogs', e);
+        }
+    }
+
+    document.getElementById('refreshRegLogsBtn')?.addEventListener('click', loadRegLogs);
 
     let photoCheckRunning = false;
     let photoCheckAbort = false;
