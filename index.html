@@ -1380,16 +1380,24 @@
             <div id="photoCheckStatus" style="font-size:0.8rem; color:var(--text-secondary); margin-top:8px; line-height:1.5;"></div>
         </div>
 
-        <button id="exportBtn" class="admin-button admin-button-secondary" data-i18n="adminExport">💾 ЭКСПОРТИРОВАТЬ JSON</button>
-        <button id="importBtn" class="admin-button admin-button-secondary" data-i18n="adminImport">📥 ИМПОРТИРОВАТЬ JSON</button>
-        <textarea
-            id="jsonInput"
-            class="admin-input"
-            data-i18n-placeholder="adminImportPlaceholder"
-            placeholder="Вставь сюда JSON для импорта..."
-            style="display: none; margin-top: 10px; min-height: 100px; font-size: 0.85rem;"
-        ></textarea>
-        <button id="confirmImportBtn" class="admin-button admin-button-secondary" style="display: none; margin-top: 10px;" data-i18n="adminConfirmImport">✅ ПОДТВЕРДИТЬ ИМПОРТ</button>
+        <div class="admin-form-group">
+            <label class="admin-label">🚫 Бан по IP</label>
+            <input type="text" id="banIpInput" class="admin-input" placeholder="IP адрес для бана">
+            <div class="admin-mini-actions">
+                <button id="banIpBtn" class="admin-button admin-button-secondary">✅ ЗАБАНИТЬ IP</button>
+                <button id="unbanIpBtn" class="admin-button admin-button-secondary">❌ РАЗБАНИТЬ IP</button>
+            </div>
+            <div id="bannedIpsList" class="admin-mini-list"></div>
+        </div>
+        <div class="admin-form-group" style="margin-top:18px;">
+            <label class="admin-label">🚫 Бан по нику</label>
+            <input type="text" id="banNickInput" class="admin-input" placeholder="Ник для бана">
+            <div class="admin-mini-actions">
+                <button id="banNickBtn" class="admin-button admin-button-secondary">✅ ЗАБАНИТЬ НИК</button>
+                <button id="unbanNickBtn" class="admin-button admin-button-secondary">❌ РАЗБАНИТЬ НИК</button>
+            </div>
+            <div id="bannedNicksList" class="admin-mini-list"></div>
+        </div>
 
         <button id="closeAdminBtn" class="admin-close-btn" data-i18n="adminClose">❌ ЗАКРЫТЬ</button>
     </div>
@@ -1617,6 +1625,27 @@
             'statsGameOverLineText': '{0} {1} подряд',
             'adminPasswordPrompt': 'Введите пароль админки:',
             'adminWrongPassword': 'Неверный пароль',
+            'banIpLabel': '🚫 Бан по IP',
+            'banIpPlaceholder': 'IP адрес для бана',
+            'banIpBtn': '✅ ЗАБАНИТЬ IP',
+            'unbanIpBtn': '❌ РАЗБАНИТЬ IP',
+            'banNickLabel': '🚫 Бан по нику',
+            'banNickPlaceholder': 'Ник для бана',
+            'banNickBtn': '✅ ЗАБАНИТЬ НИК',
+            'unbanNickBtn': '❌ РАЗБАНИТЬ НИК',
+            'bannedIpsEmpty': 'Нет забаненных IP',
+            'bannedNicksEmpty': 'Нет забаненных ников',
+            'banIpSuccess': '✅ IP {0} забанен',
+            'unbanIpSuccess': '✅ IP {0} разбанен',
+            'banNickSuccess': '✅ Ник {0} забанен',
+            'unbanNickSuccess': '✅ Ник {0} разбанен',
+            'banIpEmpty': 'Введите IP',
+            'banNickEmpty': 'Введите ник',
+            'suspicionWarningTitle': '⚠️ Пожалуйста, не пытайтесь зайти в админ-панель',
+            'suspicionWarningText': 'Доступ только для авторизованных администраторов.',
+            'suspicionWarningDismiss': '👆 Нажмите в любое место, чтобы закрыть',
+            'bannedOverlayTitle': '🚫 Вы были забанены',
+            'bannedOverlaySubtitle': 'Доступ к сайту запрещен.',
             'adminRemoveBtn': 'Снять',
             'aiSearching': '⏳ ИЩУ...',
             'aiFindBtnText': '🔎 НАЙТИ КАНДИДАТОВ',
@@ -1776,6 +1805,27 @@
             'statsGameOverLineText': '{0} {1} in a row',
             'adminPasswordPrompt': 'Enter admin password:',
             'adminWrongPassword': 'Wrong password',
+            'banIpLabel': '🚫 IP Ban',
+            'banIpPlaceholder': 'IP address to ban',
+            'banIpBtn': '✅ BAN IP',
+            'unbanIpBtn': '❌ UNBAN IP',
+            'banNickLabel': '🚫 Nickname Ban',
+            'banNickPlaceholder': 'Nickname to ban',
+            'banNickBtn': '✅ BAN NICK',
+            'unbanNickBtn': '❌ UNBAN NICK',
+            'bannedIpsEmpty': 'No banned IPs',
+            'bannedNicksEmpty': 'No banned nicknames',
+            'banIpSuccess': '✅ IP {0} banned',
+            'unbanIpSuccess': '✅ IP {0} unbanned',
+            'banNickSuccess': '✅ Nick {0} banned',
+            'unbanNickSuccess': '✅ Nick {0} unbanned',
+            'banIpEmpty': 'Enter IP',
+            'banNickEmpty': 'Enter nick',
+            'suspicionWarningTitle': '⚠️ Please do not try to access the admin panel',
+            'suspicionWarningText': 'Access is restricted to authorized administrators only.',
+            'suspicionWarningDismiss': '👆 Tap anywhere to close',
+            'bannedOverlayTitle': '🚫 You have been banned',
+            'bannedOverlaySubtitle': 'Access to this site is denied.',
             'adminRemoveBtn': 'Remove',
             'aiSearching': '⏳ SEARCHING...',
             'aiFindBtnText': '🔎 FIND CANDIDATES',
@@ -2827,6 +2877,14 @@
                     console.warn('loadUserAggregates(bestStreak)', e);
                     bestStreakCloud = null;
                 }
+                // Проверка бана по нику
+                const label = user.displayName || (user.email || '').split('@')[0] || '';
+                if (label) {
+                    const nickBanned = await checkBannedNick(label);
+                    if (nickBanned) {
+                        showBannedOverlay();
+                    }
+                }
                 refreshAuthUi(user);
                 checkBirthday(user.uid);
             } else {
@@ -2948,10 +3006,6 @@
     const photosList = document.getElementById('photosList');
     const adminMessage = document.getElementById('adminMessage');
     const closeAdminBtn = document.getElementById('closeAdminBtn');
-    const exportBtn = document.getElementById('exportBtn');
-    const importBtn = document.getElementById('importBtn');
-    const jsonInput = document.getElementById('jsonInput');
-    const confirmImportBtn = document.getElementById('confirmImportBtn');
     const openRouterKeyInput = document.getElementById('openRouterKey');
     const aiQueryInput = document.getElementById('aiQuery');
     const aiCountInput = document.getElementById('aiCount');
@@ -3096,74 +3150,196 @@
         }
     };
 
-    // Экспорт в JSON
-    exportBtn.addEventListener('click', () => {
-        const json = JSON.stringify(imagesDataset, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'photos_backup.json';
-        a.click();
-        URL.revokeObjectURL(url);
-        showAdminMessage(t('adminExportSuccess'), 'success');
-    });
+    // ==================== БАН ПО IP И НИКУ ====================
+    const FIREBASE_BANNED_IPS_PATH = 'femboy_guessor/banned/ips';
+    const FIREBASE_BANNED_NICKS_PATH = 'femboy_guessor/banned/nicks';
+    let bannedIps = new Set();
+    let bannedNicks = new Set();
 
-    // Импорт JSON
-    importBtn.addEventListener('click', () => {
-        jsonInput.style.display = jsonInput.style.display === 'none' ? 'block' : 'none';
-        confirmImportBtn.style.display = confirmImportBtn.style.display === 'none' ? 'block' : 'none';
-    });
+    async function loadBannedIps() {
+        if (!firebaseReady || !firebaseDb) return;
+        try {
+            const snap = await firebaseDb.ref(FIREBASE_BANNED_IPS_PATH).get();
+            bannedIps = new Set();
+            if (snap.exists()) {
+                const data = snap.val();
+                if (Array.isArray(data)) {
+                    data.forEach(ip => { if (ip) bannedIps.add(String(ip).trim()); });
+                } else if (typeof data === 'object' && data !== null) {
+                    Object.values(data).forEach(ip => { if (ip) bannedIps.add(String(ip).trim()); });
+                }
+            }
+        } catch (e) {
+            console.warn('loadBannedIps', e);
+        }
+    }
 
-    // Подтверждение импорта
-    confirmImportBtn.addEventListener('click', async () => {
-        const jsonText = jsonInput.value.trim();
+    async function loadBannedNicks() {
+        if (!firebaseReady || !firebaseDb) return;
+        try {
+            const snap = await firebaseDb.ref(FIREBASE_BANNED_NICKS_PATH).get();
+            bannedNicks = new Set();
+            if (snap.exists()) {
+                const data = snap.val();
+                if (Array.isArray(data)) {
+                    data.forEach(nick => { if (nick) bannedNicks.add(String(nick).trim().toLowerCase()); });
+                } else if (typeof data === 'object' && data !== null) {
+                    Object.values(data).forEach(nick => { if (nick) bannedNicks.add(String(nick).trim().toLowerCase()); });
+                }
+            }
+        } catch (e) {
+            console.warn('loadBannedNicks', e);
+        }
+    }
 
-        if (!jsonText) {
-            showAdminMessage(t('aiJsonEmpty'), 'info');
+    async function saveBannedIps() {
+        if (!firebaseReady || !firebaseDb) return;
+        await firebaseDb.ref(FIREBASE_BANNED_IPS_PATH).set([...bannedIps]);
+    }
+
+    async function saveBannedNicks() {
+        if (!firebaseReady || !firebaseDb) return;
+        await firebaseDb.ref(FIREBASE_BANNED_NICKS_PATH).set([...bannedNicks]);
+    }
+
+    async function checkBannedIp(ip) {
+        await loadBannedIps();
+        return bannedIps.has(String(ip || '').trim());
+    }
+
+    async function checkBannedNick(nick) {
+        await loadBannedNicks();
+        return bannedNicks.has(String(nick || '').trim().toLowerCase());
+    }
+
+    function showBannedOverlay() {
+        if (document.getElementById('bannedOverlay')) return;
+        const overlay = document.createElement('div');
+        overlay.id = 'bannedOverlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:20px;';
+        overlay.innerHTML = `
+            <div style="font-size:3rem;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">🚫</div>
+            <div style="font-size:2rem;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>
+            <div style="font-size:1rem;color:#888;text-align:center;">Доступ к сайту запрещен.</div>
+        `;
+        document.body.appendChild(overlay);
+        document.body.style.overflow = 'hidden';
+    }
+
+    function showSuspicionWarning() {
+        const overlay = document.createElement('div');
+        overlay.className = 'stats-recap-overlay';
+        overlay.style.cursor = 'pointer';
+        const card = document.createElement('div');
+        card.className = 'stats-recap-card';
+        card.style.textAlign = 'center';
+        card.addEventListener('click', (e) => e.stopPropagation());
+        card.innerHTML = `
+            <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+            <div style="font-size:1.3rem;font-weight:800;color:var(--text-accent);margin-bottom:10px;">Пожалуйста, не пытайтесь зайти в админ-панель</div>
+            <div style="font-size:1rem;color:var(--text-secondary);margin-bottom:16px;">Доступ только для авторизованных администраторов.</div>
+            <div style="font-size:0.8rem;color:var(--text-close);">👆 Нажмите в любое место, чтобы закрыть</div>
+        `;
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', () => overlay.remove());
+    }
+
+    // Бан/разбан IP
+    window.banIp = async function(ip) {
+        ip = String(ip || '').trim();
+        if (!ip) { showAdminMessage('Введите IP', 'info'); return; }
+        bannedIps.add(ip);
+        await saveBannedIps();
+        updateBannedIpsList();
+        showAdminMessage('✅ IP ' + ip + ' забанен', 'success');
+    };
+
+    window.unbanIp = async function(ip) {
+        ip = String(ip || '').trim();
+        bannedIps.delete(ip);
+        await saveBannedIps();
+        updateBannedIpsList();
+        showAdminMessage('✅ IP ' + ip + ' разбанен', 'success');
+    };
+
+    window.banNick = async function(nick) {
+        nick = String(nick || '').trim();
+        if (!nick) { showAdminMessage('Введите ник', 'info'); return; }
+        bannedNicks.add(nick.toLowerCase());
+        await saveBannedNicks();
+        updateBannedNicksList();
+        showAdminMessage('✅ Ник ' + nick + ' забанен', 'success');
+    };
+
+    window.unbanNick = async function(nick) {
+        nick = String(nick || '').trim().toLowerCase();
+        bannedNicks.delete(nick);
+        await saveBannedNicks();
+        updateBannedNicksList();
+        showAdminMessage('✅ Ник ' + nick + ' разбанен', 'success');
+    };
+
+    function updateBannedIpsList() {
+        const el = document.getElementById('bannedIpsList');
+        if (!el) return;
+        if (!bannedIps.size) {
+            el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Нет забаненных IP</div>';
             return;
         }
+        el.innerHTML = '';
+        bannedIps.forEach(ip => {
+            const row = document.createElement('div');
+            row.className = 'admin-mini-item';
+            row.innerHTML = `<span>${escapeHtml(ip)}</span><button class="admin-item-delete" onclick="unbanIp('${escapeHtml(ip)}')">Разбанить</button>`;
+            el.appendChild(row);
+        });
+    }
 
-        try {
-            const parsed = JSON.parse(jsonText);
-
-            if (!Array.isArray(parsed)) {
-                showAdminMessage(t('aiJsonNotArray'), 'info');
-                return;
-            }
-
-            if (!isValidPhotosArray(parsed)) {
-                showAdminMessage(t('aiJsonInvalid'), 'info');
-                return;
-            }
-
-            const previous = imagesDataset.map(item => ({ ...item }));
-            try {
-                const normalized = parsed.map(normalizePhotoItem).filter(Boolean);
-                imagesDataset.length = 0;
-                imagesDataset.push(...normalized);
-                await savePhotosToRealtimeDb();
-                updatePhotosList();
-            } catch (e) {
-                imagesDataset.length = 0;
-                imagesDataset.push(...previous);
-                showAdminMessage(t('aiImportError', e.message), 'info');
-                return;
-            }
-
-            jsonInput.value = '';
-            jsonInput.style.display = 'none';
-            confirmImportBtn.style.display = 'none';
-
-            showAdminMessage(t('adminImportSuccess', parsed.length), 'success');
-        } catch (e) {
-            showAdminMessage(t('aiJsonParseError', e.message), 'info');
+    function updateBannedNicksList() {
+        const el = document.getElementById('bannedNicksList');
+        if (!el) return;
+        if (!bannedNicks.size) {
+            el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Нет забаненных ников</div>';
+            return;
         }
+        el.innerHTML = '';
+        bannedNicks.forEach(nick => {
+            const row = document.createElement('div');
+            row.className = 'admin-mini-item';
+            row.innerHTML = `<span>${escapeHtml(nick)}</span><button class="admin-item-delete" onclick="unbanNick('${escapeHtml(nick)}')">Разбанить</button>`;
+            el.appendChild(row);
+        });
+    }
+
+    // Кнопки бана IP
+    document.getElementById('banIpBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('banIpInput');
+        banIp(input ? input.value : '');
+        if (input) input.value = '';
+    });
+    document.getElementById('unbanIpBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('banIpInput');
+        unbanIp(input ? input.value : '');
+        if (input) input.value = '';
+    });
+
+    // Кнопки бана ника
+    document.getElementById('banNickBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('banNickInput');
+        banNick(input ? input.value : '');
+        if (input) input.value = '';
+    });
+    document.getElementById('unbanNickBtn')?.addEventListener('click', () => {
+        const input = document.getElementById('banNickInput');
+        unbanNick(input ? input.value : '');
+        if (input) input.value = '';
     });
 
     // Закрытие админ-панели
     closeAdminBtn.addEventListener('click', () => {
         adminPanel.style.display = 'none';
+        stopAdminCheckInterval();
         initGameModule(); // Перезагружаем игру с новыми фото
     });
 
@@ -3500,14 +3676,63 @@
     };
 
     // Открытие админ-панели по параметру URL ?admin
+    let adminAccessAttempts = 0;
+
     function requestAdminAccess() {
-        const password = window.prompt(t('adminPasswordPrompt'));
-        if (password === null) return false;
-        if (password !== ADMIN_PASSWORD) {
-            window.alert(t('adminWrongPassword'));
-            return false;
+        if (!isAdminUser) {
+            adminAccessAttempts++;
+            if (adminAccessAttempts >= 2) {
+                showSuspicionWarning();
+                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                    '⚠️ Подозрение на взлом админ-панели!\n\nIP: ' + (userIP || 'N/A') +
+                    '\nСтрана: ' + (userCountry || 'N/A') +
+                    '\nПопытка #' + adminAccessAttempts +
+                    '\nUser-Agent: ' + navigator.userAgent
+                ).catch(() => {});
+                return false;
+            }
+            const password = window.prompt(t('adminPasswordPrompt'));
+            if (password === null) return false;
+            if (password !== ADMIN_PASSWORD) {
+                window.alert(t('adminWrongPassword'));
+                return false;
+            }
         }
         return true;
+    }
+
+    let adminCheckInterval = null;
+
+    function startAdminCheckInterval() {
+        stopAdminCheckInterval();
+        adminCheckInterval = setInterval(async () => {
+            if (adminPanel.style.display === 'flex') {
+                const wasAdmin = isAdminUser;
+                if (firebaseAuth && firebaseAuth.currentUser) {
+                    await checkAdminFlag();
+                } else {
+                    isAdminUser = false;
+                }
+                refreshAdminFab();
+                if (isAdminUser !== wasAdmin && !isAdminUser) {
+                    adminPanel.style.display = 'none';
+                    if (document.getElementById('bannedOverlay')) {
+                        // allow access
+                    } else {
+                        showSuspicionWarning();
+                    }
+                }
+            } else {
+                stopAdminCheckInterval();
+            }
+        }, 2000);
+    }
+
+    function stopAdminCheckInterval() {
+        if (adminCheckInterval) {
+            clearInterval(adminCheckInterval);
+            adminCheckInterval = null;
+        }
     }
 
     async function openAdminPanel() {
@@ -3517,7 +3742,12 @@
         adminPanel.style.display = 'flex';
         const loaded = await loadPhotosFromRealtimeDb();
         await loadAdminAccountsList();
+        await loadBannedIps();
+        await loadBannedNicks();
         updatePhotosList();
+        updateBannedIpsList();
+        updateBannedNicksList();
+        startAdminCheckInterval();
         showAdminMessage(
             loaded ? '☁️ ' + (currentLang === 'en' ? 'Photos loaded from Realtime Database' : 'Фото загружены из Realtime Database') : 'ℹ️ ' + (currentLang === 'en' ? 'Database empty or unavailable, using 10 fallback photos from code' : 'База пустая или недоступна, используются 10 запасных фото из кода'),
             'info'
@@ -3527,6 +3757,15 @@
     async function checkAdminMode() {
         const params = new URLSearchParams(window.location.search);
         if (params.has('admin')) {
+            if (!isAdminUser) {
+                showSuspicionWarning();
+                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                    '⚠️ Попытка зайти в админку через ?admin\n\nIP: ' + (userIP || 'N/A') +
+                    '\nСтрана: ' + (userCountry || 'N/A') +
+                    '\nUser-Agent: ' + navigator.userAgent
+                ).catch(() => {});
+                return;
+            }
             await openAdminPanel();
         }
     }
@@ -3612,11 +3851,32 @@
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
+        // Проверка бана по IP
+        await checkBanOnStart();
         setLanguage(currentLang);
         initGameModule();
         touchAuthStatusBar();
         await checkAdminMode();
         await checkStatisticMode();
+    }
+
+    async function checkBanOnStart() {
+        if (userIP) {
+            const banned = await checkBannedIp(userIP);
+            if (banned) {
+                showBannedOverlay();
+                return;
+            }
+        }
+        // Если IP еще не получен, ждем и проверяем снова
+        if (!userIP) {
+            setTimeout(async () => {
+                if (userIP) {
+                    const banned = await checkBannedIp(userIP);
+                    if (banned) showBannedOverlay();
+                }
+            }, 5000);
+        }
     }
     startApp();
 
@@ -3624,11 +3884,23 @@
     document.addEventListener('keydown', async (e) => {
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
             e.preventDefault();
+            if (!isAdminUser) {
+                showSuspicionWarning();
+                adminAccessAttempts++;
+                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                    '⚠️ Подозрение на взлом админки (Ctrl+Shift+A)\n\nIP: ' + (userIP || 'N/A') +
+                    '\nСтрана: ' + (userCountry || 'N/A') +
+                    '\nПопытка #' + adminAccessAttempts +
+                    '\nUser-Agent: ' + navigator.userAgent
+                ).catch(() => {});
+                return;
+            }
             const isClosed = adminPanel.style.display === 'none' || adminPanel.style.display === '';
             if (isClosed) {
                 await openAdminPanel();
             } else {
                 adminPanel.style.display = 'none';
+                stopAdminCheckInterval();
                 initGameModule();
             }
         }
