@@ -1,11 +1,11 @@
-/**
- * Vercel Serverless Function — проверка фото
- *
- * Использует Firebase Admin SDK (ключ из FIREBASE_SERVICE_ACCOUNT).
- *
- * GET /api/photo-check?url=... — проверить одно фото (вызывается с клиента)
- * GET /api/photo-check         — полная проверка всех фото (крон/вручную)
- */
+
+
+
+
+
+
+
+
 
 const admin = require('firebase-admin');
 
@@ -103,13 +103,13 @@ export default async function handler(req, res) {
 
   const { url } = req.query || {};
 
-  // Режим 1: проверка одного URL (с клиента)
+
   if (url) {
     const ok = await checkUrl(url);
     return res.json({ ok, ip: getServerIp(req) });
   }
 
-  // Режим 2: полная проверка (крон)
+
   res.json({ ok: true, message: 'Photo check started' });
 
   try {
@@ -135,7 +135,7 @@ export default async function handler(req, res) {
 async function runFullCheck() {
   const database = db();
 
-  // Читаем курсор
+
   const cursorSnap = await database.ref('femboy_guessor/photoCheck/cursor').get().catch(() => null);
   const cursorData = cursorSnap ? cursorSnap.val() : null;
   let startIdx = (cursorData && typeof cursorData === 'object' && cursorData.lastIndex != null)
@@ -143,7 +143,7 @@ async function runFullCheck() {
   let isFirstRun = cursorData === null || cursorData === undefined ||
     (typeof cursorData === 'object' && cursorData.lastIndex == null);
 
-  // Читаем фото
+
   const photosSnap = await database.ref('femboy_guessor/photos').get();
   let photos = photosSnap.val();
   if (!Array.isArray(photos) || !photos.length) {
@@ -151,7 +151,7 @@ async function runFullCheck() {
     return;
   }
 
-  // Если проверка завершена (дошли до конца) — сбрасываем и выходим
+
   if (startIdx >= photos.length) {
     const token = await getToken();
     const allCheckedSnap = await database.ref('femboy_guessor/photoCheck/results').get().catch(() => null);
@@ -180,13 +180,13 @@ async function runFullCheck() {
     return;
   }
 
-  // Первый запуск — очищаем старые pending
+
   if (isFirstRun) {
     await database.ref('femboy_guessor/photoCheck/pending').remove();
     await database.ref('femboy_guessor/photoCheck/results').remove();
   }
 
-  // Обрабатываем batch
+
   const batch = photos.slice(startIdx, startIdx + BATCH_SIZE);
   let problemCount = 0;
 
@@ -234,7 +234,7 @@ async function runFullCheck() {
     }
   }
 
-  // Обновляем курсор и результаты
+
   const newLastIdx = startIdx + batch.length - 1;
   await database.ref('femboy_guessor/photoCheck/cursor').set({
     lastIndex: newLastIdx,

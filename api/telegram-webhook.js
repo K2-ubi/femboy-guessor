@@ -1,8 +1,8 @@
-/**
- * Vercel Serverless Function — Webhook для Telegram бота
- *
- * Использует Firebase Admin SDK (ключ из FIREBASE_SERVICE_ACCOUNT).
- */
+
+
+
+
+
 
 const admin = require('firebase-admin');
 
@@ -66,7 +66,7 @@ export default async function handler(req, res) {
     return res.status(403).json({ error: 'Banned' });
   }
 
-  // Режим установки webhook
+
   if (req.method === 'GET' && req.query?.setup === '1') {
     try {
       const token = await getToken();
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // Проверка статуса webhook
+
   if (req.method === 'GET' && req.query?.status === '1') {
     try {
       const token = await getToken();
@@ -93,7 +93,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // Простой GET — информация
+
   if (req.method === 'GET') {
     return res.status(200).json({
       ok: true,
@@ -106,7 +106,7 @@ export default async function handler(req, res) {
   const update = req.body;
   if (!update) return res.status(200).json({ ok: true });
 
-  // Обработка callback_query
+
   if (update.callback_query) {
     const cq = update.callback_query;
     const callbackId = cq.id;

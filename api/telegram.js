@@ -1,14 +1,14 @@
-/**
- * Vercel Serverless Function — прокси для Telegram Bot API
- *
- * Использует Firebase Admin SDK. Ключ сервис-аккаунта берётся
- * из переменной окружения FIREBASE_SERVICE_ACCOUNT (base64).
- *
- * Безопасность:
- *   - Только разрешённые методы (sendMessage, sendPhoto)
- *   - Только разрешённые chat_id (ADMIN_TG_CHAT_IDS)
- *   - IP из хардкод-списка блокируются на уровне сервера
- */
+
+
+
+
+
+
+
+
+
+
+
 
 const admin = require('firebase-admin');
 
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
-  // IP-бан на уровне сервера
+
   const remoteIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
   if (remoteIp && BANNED_IPS.has(remoteIp.split(',')[0].trim())) {
     return res.status(403).json({ error: 'Banned' });

@@ -126,10 +126,10 @@
             padding: 16px;
             padding-top: 52px;
             position: relative;
-            cursor: pointer; /* намек что кликабельно */
+            cursor: pointer; 
         }
 
-        /* главный контейнер — идеально центрирует содержимое */
+        
         .game-container {
             max-width: 700px;
             width: 100%;
@@ -144,11 +144,11 @@
             pointer-events: auto;
         }
 
-        /* ФОТО-БЛОК — масштабируется, дышит в центре */
-/* ФОТО-БЛОК — теперь прямоугольный */
+        
+
         .photo-stage {
             width: 100%;
-            aspect-ratio: 3 / 4;       /* вместо квадрата */
+            aspect-ratio: 3 / 4;       
             max-width: 520px;
             max-height: 80vh;
             margin: 0 auto;
@@ -158,7 +158,7 @@
             box-shadow: var(--shadow-photo-stage);
         }
 
-        /* контейнер */
+        
         .photo-frame {
             width: 100%;
             height: 100%;
@@ -317,7 +317,7 @@
             transform: scale(0.96);
         }
 
-        /* АДМИН-ПАНЕЛЬ */
+        
         .admin-panel {
             position: fixed;
             top: 0;
@@ -704,7 +704,7 @@
         .auth-panel .btn-up { background: var(--bg-btn-secondary); color: var(--text-secondary); border: 1px solid var(--border-default); }
         .auth-panel .hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; }
 
-        /* ——— Карточка статистики (recap) ——— */
+        
         .stats-recap-overlay {
             position: fixed;
             inset: 0;
@@ -862,7 +862,7 @@
             }
         }
 
-        /* ——— Мобильный режим: тап по половинам фото ——— */
+        
         .photo-stage {
             position: relative;
         }
@@ -923,7 +923,7 @@
         }
         .admin-fab:active { transform: translateX(-50%) scale(0.98); }
 
-        /* ——— Баг-репорт модалка ——— */
+        
         .bug-overlay {
             position: fixed;
             inset: 0;
@@ -1037,7 +1037,7 @@
             color: var(--text-bug-status);
         }
 
-        /* ——— День рождения ——— */
+        
         .birthday-overlay {
             position: fixed;
             inset: 0;
@@ -1166,15 +1166,15 @@
             font-size: 0.9rem;
         }
     </style>
-<!-- Vercel Analytics + Speed Insights -->
+
 <script src="https://cdn.vercel-insights.com/v1/script.js" defer></script>
 <script src="https://cdn.vercel-insights.com/v1/speed-insights.js" defer></script>
 <script>
-  // Analytics
+
   window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
   window.va('before', { projectId: 'YOUR_PROJECT_ID' });
-  
-  // Speed Insights
+
+
   window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
   window.si('before', {
     projectId: 'YOUR_PROJECT_ID',
@@ -1183,7 +1183,7 @@
   });
 </script>
 <script>
-    // Мгновенная проверка бана ДО отрисовки страницы
+
     (function(){
         var BANNED_IPS = new Set(['94.181.18.114']);
         try {
@@ -1246,7 +1246,7 @@
 </div>
 
 <div class="game-container" id="gameContainer">
-    <!-- центр: фото масштабируется идеально -->
+    
     <div class="photo-stage" id="photoStage">
         <div class="photo-frame">
             <img id="photo" alt="Угадай: парень или девушка?" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%232d2a4a'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23ffbfd5' text-anchor='middle' dy='.3em'%3ELOAD%3C/text%3E%3C/svg%3E">
@@ -1257,19 +1257,19 @@
         </div>
     </div>
 
-    <!-- счётчик комбо (серия правильных ответов) -->
+    
     <div class="combo-area" id="comboArea">
         <div class="current-streak" id="streakValue">0</div>
         <div class="streak-label" data-i18n="streakLabel">⚡ ПОДРЯД ⚡</div>
     </div>
 
-    <!-- только две кнопки: ПАРЕНЬ / ДЕВУШКА -->
+    
     <div class="buttons-duo">
         <button class="guess-action boy-guess" id="boyBtn" data-i18n="boyBtn">👨 ПАРЕНЬ</button>
         <button class="guess-action girl-guess" id="girlBtn" data-i18n="girlBtn">👩 ДЕВУШКА</button>
     </div>
 
-    <!-- статус игры и рестарт -->
+    
     <div class="game-status" id="statusMsg" data-i18n="statusDefault">
         🎴 Нажми на кнопку, чтобы угадать
     </div>
@@ -1281,7 +1281,7 @@
 
 <button type="button" class="admin-fab" id="adminFab">⚙️ ADMIN</button>
 
-<!-- АДМИН-ПАНЕЛЬ -->
+
 <div id="adminPanel" class="admin-panel" style="display: none;">
     <div class="admin-container">
         <div class="admin-title" data-i18n="adminTitle">⚙️ АДМИН ПАНЕЛЬ ⚙️</div>
@@ -1431,7 +1431,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
-    // ==================== ЖЕСТКИЙ БАН (срабатывает до всего) ====================
+
     const HARDCODED_BANNED_IPS = new Set([
         '94.181.18.114',
     ]);
@@ -1456,7 +1456,7 @@
         throw new Error('BANNED');
     }
 
-    // Мгновенная проверка IP через ipify (чистый JS, без зависимостей)
+
     (function earlyBanCheck() {
         try {
             var xhr = new XMLHttpRequest();
@@ -1472,9 +1472,9 @@
         } catch(e) {}
     })();
 
-    // --------------------------------------------------------------
-    //  ДАННЫЕ ДЛЯ ИГРЫ (ДОБАВЛЯЙ СВОИ ФОТО ТУТ ↓↓↓)
-    // --------------------------------------------------------------
+
+
+
     const fallbackImagesDataset = [
         { url: "https://ir.ozone.ru/s3/rp-photo-15/wc800/8da51805-8422-4ad6-ad60-68ee2d5d5492.jpeg", answer: "boy" },
         { url: "https://ir.ozone.ru/s3/rp-photo-13/wc800/f692c195-86c6-4619-a4b8-5dcbf95f3ec2.jpeg", answer: "boy" },
@@ -1488,9 +1488,9 @@
         { url: "https://ir.ozone.ru/s3/rp-photo-13/wc1600/993a1b1c-7fdc-4578-8b9d-71e017e2c1f4.jpeg", answer: "girl" },
     ];
     const imagesDataset = fallbackImagesDataset.map(item => ({ ...item }));
-    // --------------------------------------------------------------
 
-    // ==================== ТЕМА ====================
+
+
     function getThemePref() {
         const saved = localStorage.getItem('femboyTheme');
         if (saved === 'light' || saved === 'dark') return saved;
@@ -1519,11 +1519,11 @@
             });
         }
     }
-    // ==================== I18N ====================
+
     let currentLang = localStorage.getItem('femboyLang') || 'ru';
     const LANGUAGES = {
         ru: {
-            // Game UI static
+
             'title': 'FEMBOY GUESSOR — Комбо-серия',
             'streakLabel': '⚡ ПОДРЯД ⚡',
             'boyBtn': '👨 ПАРЕНЬ',
@@ -1534,7 +1534,7 @@
             'statsBtn': '📊 STATS',
             'topBtn': '🏆 ТОП',
             'adminFab': '⚙️ ADMIN',
-            // Status messages
+
             'statusNewGame': '✨ НОВАЯ ИГРА! Угадывай и строй серию! ✨',
             'statusLose': '💔 ПОРАЖЕНИЕ! Твоя серия: {0}. Нажми на экран, чтобы начать заново.',
             'statusAsk': '🤍 Кто это? ПАРЕНЬ или ДЕВУШКА? Набери серию! 🤍',
@@ -1543,15 +1543,15 @@
             'statusCorrect': '✅ ПРАВИЛЬНО! +1 к серии! Комбо: {0} 🔥',
             'statusWrong': '❌ ОШИБКА! На фото был(а) — {0}. Твоя серия прервана на {1}.',
             'statusStart': '🎭 Кто на фото? Нажми кнопку, каждый правильный ответ продлевает серию!',
-            // Photo placeholders
+
             'photoAdd': 'Добавь фото',
             'photoLoad': 'Загрузи фото',
             'photoError': 'Ошибка фото',
             'photoAlt': 'Парень или девушка?',
-            // Answer
+
             'answerBoy': 'ПАРЕНЬ',
             'answerGirl': 'ДЕВУШКА',
-            // Auth
+
             'authGuestStatus': 'Гость · рекорд: {0} (локально)',
             'authLoggedInStatus': '✓ {0} · рекорд: {1}',
             'authGuestBar': 'Гость · прогресс только в этом браузере',
@@ -1562,11 +1562,11 @@
             'authSignUp': 'Создать аккаунт',
             'authSignOut': 'Выйти',
             'authHint': 'Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.',
-            // Streak plural (Russian)
+
             'streakFew': 'правильных ответа',
             'streakMany': 'правильных ответов',
             'streakOne': 'правильный ответ',
-            // Stats card
+
             'statsTitle': 'SERIES RECAP',
             'statsScore': 'Score',
             'statsAverage': 'Average',
@@ -1581,7 +1581,7 @@
             'statsDismissRestart': '👆 Нажми вне карточки, чтобы начать заново',
             'statsDismissClose': '👆 Нажми вне карточки, чтобы закрыть',
             'statsNoData': 'Пока нет данных в базе для сравнения. Сыграй ещё несколько раз или проверь Firebase.',
-            // Stats hub
+
             'hubTitle': 'STATISTICS',
             'hubGlobal': 'GLOBAL',
             'hubRuns': 'runs: <b style="color:#fff;">{0}</b>',
@@ -1595,13 +1595,13 @@
             'hubYourStats': 'YOUR STATS',
             'hubRunsLabel': 'Runs',
             'hubBestStreak': 'Best streak',
-            // Leaderboard
+
             'lbTitle': '🏆 LEADERBOARD 🏆',
             'lbSubtitle': 'топ по лучшей серии',
             'lbEmpty': 'Нет данных',
             'lbNoData': 'Пока нет данных для топа. Сыграйте несколько раз.',
             'lbError': 'Ошибка загрузки топа: {0}',
-            // Bug report
+
             'bugTitle': '🐛 БАГ-РЕПОРТ',
             'bugPlaceholder': 'Опишите проблему (обязательно)...',
             'bugFileLabel': '📎 Прикрепить скриншот (необязательно)',
@@ -1611,11 +1611,11 @@
             'bugSending': '⏳ ОТПРАВКА...',
             'bugSent': '✅ Отправлено!',
             'bugError': '❌ Ошибка отправки. Проверь консоль.',
-            // Birthday
+
             'bdayTitle': 'С днём рождения,',
             'bdayName': 'Сеня!',
             'bdayDismiss': '👆 Нажми в любое место, чтобы закрыть',
-            // Admin panel hints
+
             'adminTitle': '⚙️ АДМИН ПАНЕЛЬ ⚙️',
             'adminPhotoUrl': '📷 URL фото',
             'adminPhotoUrlPlaceholder': 'Вставь полную ссылку на фото (https://...)',
@@ -1664,10 +1664,10 @@
             'adminNotAdmin': 'Не админ',
             'adminFirebaseInitError': 'Firebase не инициализирован',
             'adminFirebaseNotReadyMsg': 'Firebase не готов',
-            // Search admin
+
             'adminSearchOk': '✅ Данные загружены',
             'adminSearchError': '❌ Ошибка: {0}',
-            // AI messages
+
             'aiUrlEmpty': '❌ URL пуст! Вставь ссылку на фото',
             'aiUrlInvalid': '❌ Ссылка должна начинаться с http:// или https://',
             'aiSaveError': '❌ Не удалось сохранить в Firebase: {0}',
@@ -1680,7 +1680,7 @@
             'aiJsonInvalid': '❌ Некорректный формат! Нужны поля: url (string) и gender/answer ("boy" или "girl")',
             'aiJsonParseError': '❌ Ошибка JSON: {0}',
             'aiAddedGender': '✅ Добавлено в базу: {0}',
-            // lang toggle
+
             'langToggle': '🇬🇧',
             'themeToggleTitle': 'Сменить тему',
             'bugReportTitle': 'Баг-репорт',
@@ -1957,19 +1957,19 @@
         if (photoEl) photoEl.alt = t('photoAlt');
         updateStreakUI();
     }
-    // ==================== END I18N ====================
 
-    // ИГРОВОЕ СОСТОЯНИЕ
-    let currentStreak = 0;          // текущая серия правильных ответов ПОДРЯД
-    let gameActive = true;           // активна ли игра (false = проигрыш)
-    let currentItem = null;          // текущий объект {url, answer}
-    let canGuess = true;             // блокировка повторного клика на том же фото
 
-    // Очередь изображений
+
+    let currentStreak = 0;
+    let gameActive = true;
+    let currentItem = null;
+    let canGuess = true;
+
+
     let imageQueue = [];
     let currentIndex = 0;
 
-    // DOM элементы
+
     const photoEl = document.getElementById('photo');
     const streakValueSpan = document.getElementById('streakValue');
     const boyBtn = document.getElementById('boyBtn');
@@ -1977,7 +1977,7 @@
     const statusDiv = document.getElementById('statusMsg');
     const comboAreaDiv = document.getElementById('comboArea');
 
-    // Функции утилиты
+
     function shuffleArray(arr) {
         for (let i = arr.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
@@ -2005,8 +2005,8 @@
         }
     }
 
-    // ПОЛНОЭКРАННЫЙ ОВЕРЛЕЙ ПРИ ПРОИГРЫШЕ
-    // ПОЛНЫЙ СБРОС ИГРЫ (без оверлея)
+
+
     function getStreakWord(n) {
         if (currentLang === 'en') return t('streakMany');
         const abs = Math.abs(n) % 100;
@@ -2023,7 +2023,7 @@
         gameActive = true;
         canGuess = true;
         photoEl.style.filter = "";
-        
+
         imageQueue = buildFreshQueue();
         currentIndex = 0;
         if (imageQueue.length === 0) {
@@ -2031,27 +2031,27 @@
         }
         currentItem = imageQueue[0];
         photoEl.src = currentItem.url;
-        
+
         updateStreakUI();
-        
+
         boyBtn.disabled = false;
         girlBtn.disabled = false;
-        
+
         statusDiv.innerHTML = t('statusNewGame');
         statusDiv.style.color = "var(--text-status)";
-        
+
         streakValueSpan.style.opacity = "1";
         canGuess = true;
-        
+
         photoEl.style.filter = "";
     }
-    
-    // Классический рестарт (вызываемый при проигрыше или по клику с оверлея)
+
+
     function resetGame() {
         fullResetGame();
     }
-    
-    // Завершение игры с ошибкой (показываем полноэкранный счёт)
+
+
     function endGameWithLose() {
         if (!gameActive) return;
         gameActive = false;
@@ -2080,11 +2080,11 @@
             showStatsCard(finalStreak, { gameOver: true });
         })();
     }
-    
-    // Загрузка следующего фото после правильного ответа
+
+
     function loadNextPhotoAfterCorrect() {
         if (!gameActive) return;
-        
+
         currentIndex++;
         if (!imageQueue.length || currentIndex >= imageQueue.length) {
             imageQueue = buildFreshQueue();
@@ -2102,12 +2102,12 @@
         if (gameActive) {
             statusDiv.innerHTML = t('statusAsk');
         }
-        // активируем кнопки (если игра активна)
+
         boyBtn.disabled = !gameActive;
         girlBtn.disabled = !gameActive;
     }
-    
-    // Обработка выбора
+
+
     function makeGuess(guess) {
         if (IS_BANNED) { showBannedOverlay(); return; }
         if (!gameActive) {
@@ -2122,16 +2122,16 @@
             fullResetGame();
             return;
         }
-        
+
         const isCorrect = (guess === currentItem.answer);
-        
+
         if (isCorrect) {
             currentStreak++;
             updateStreakUI();
-            
+
             streakValueSpan.style.transform = "scale(1.1)";
             setTimeout(() => { if(streakValueSpan) streakValueSpan.style.transform = ""; }, 150);
-            
+
             statusDiv.innerHTML = t('statusCorrect', currentStreak);
             canGuess = false;
             loadNextPhotoAfterCorrect();
@@ -2141,8 +2141,8 @@
             endGameWithLose();
         }
     }
-    
-    // Инициализация новой игры (при старте)
+
+
     function initGameModule() {
         if (IS_BANNED) { showBannedOverlay(); return; }
         imageQueue = buildFreshQueue();
@@ -2161,8 +2161,8 @@
         statusDiv.innerHTML = t('statusStart');
         photoEl.style.filter = "";
     }
-    
-    // добавляем глобальный слушатель клика на body, чтобы рестартовать по клику в любом месте
+
+
     document.body.addEventListener('click', (e) => {
         if (IS_BANNED) { showBannedOverlay(); return; }
         if (document.querySelector('.stats-recap-overlay')) return;
@@ -2171,8 +2171,8 @@
             fullResetGame();
         }
     });
-    
-    // отдельно навешиваем события на кнопки
+
+
     boyBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         makeGuess('boy');
@@ -2181,15 +2181,15 @@
         e.stopPropagation();
         makeGuess('girl');
     });
-    
-    // ошибка загрузки картинки
+
+
     photoEl.onerror = function() {
         if (currentItem) {
             this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%233d2b46'/%3E%3Ctext x='50%25' y='50%25' fill='%23ffb3c6' text-anchor='middle'%3E" + encodeURIComponent(t('photoError')) + "%3C/text%3E%3C/svg%3E";
         }
     };
-    
-    // ==================== FIREBASE + НАСТРОЙКИ ====================
+
+
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
         authDomain: "project-3861147147890788156.firebaseapp.com",
@@ -2200,13 +2200,13 @@
         appId: "1:321657389257:web:68e8310bc34343848b4d18"
     };
     const FIREBASE_PHOTOS_PATH = 'femboy_guessor/photos';
-    /** Записи: push({ score, createdAt, userId }). В консоли Firebase: Authentication → Email/Password (вкл), RTDB rules — разрешить read/write для femboy_guessor/stats (и users/$uid для владельца). */
+
     const FIREBASE_STATS_PATH = 'femboy_guessor/stats';
     const FIREBASE_USERS_PATH = 'femboy_guessor/users';
     const FIREBASE_ADMINS_PATH = 'femboy_guessor/admins';
     const FIREBASE_USER_STATS_PATH = 'femboy_guessor/userStats';
-    // Bootstrap админы (на случай если не умеешь добавить в RTDB руками).
-    // Лучше хранить админов в RTDB: femboy_guessor/admins/{uid} = true
+
+
     const BOOTSTRAP_ADMIN_UIDS = new Set([
         '2gjkOATnmleOXudIcmFHHdkc4xr2'
     ]);
@@ -2276,7 +2276,7 @@
         fab.style.display = isAdminUser ? 'inline-flex' : 'none';
     }
 
-    // ==================== БАГ-РЕПОРТ В TELEGRAM ====================
+
     const bugOverlay = document.getElementById('bugOverlay');
     const bugText = document.getElementById('bugText');
     const bugFileInput = document.getElementById('bugFileInput');
@@ -2368,7 +2368,7 @@
         }
     });
 
-    // ==================== ОТПРАВКА В TG (только через прокси) ====================
+
     async function sendToTelegramFallback(chatId, text, photoFile, replyMarkup) {
         const body = { action: 'sendMessage', chat_id: chatId, text };
         if (replyMarkup) body.reply_markup = replyMarkup;
@@ -2391,7 +2391,7 @@
         return true;
     }
 
-    // ==================== АВТО-ОТПРАВКА ОШИБОК ====================
+
     let errorTimer = null;
     let pendingErrors = [];
     let lastOnerror = null;
@@ -2749,7 +2749,7 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
-       // ==================== ГОСТЕВОЙ ID ====================
+
     function getGuestId() {
         let guestId = localStorage.getItem('guestId');
         if (!guestId) {
@@ -2758,15 +2758,15 @@
         }
         return guestId;
     }
-    
+
     function getPlayerName(username, uid) {
         if (!username || username.trim() === '' || username === (uid && uid.length > 8 ? uid.slice(0, 8) + '…' : uid)) {
             return `Гость`;
         }
         return username;
     }
-    
-    // ==================== ИСПРАВЛЕННАЯ ТАБЛИЦА ЛИДЕРОВ ====================
+
+
     async function showTopPlayers() {
         if (!firebaseReady || !firebaseDb) {
             window.alert(currentLang === 'en' ? 'Firebase not connected' : 'Firebase не подключён');
@@ -2777,16 +2777,16 @@
                 firebaseDb.ref(FIREBASE_USERS_PATH).get(),
                 firebaseDb.ref(FIREBASE_USER_STATS_PATH).get()
             ]);
-    
+
             const usersData = usersSnap.exists() ? usersSnap.val() : {};
             const statsData = statsSnap.exists() ? statsSnap.val() : {};
-    
+
             const players = [];
             for (const [uid, stat] of Object.entries(statsData)) {
                 if (!stat || !Number(stat.bestStreak || 0)) continue;
                 const userInfo = usersData[uid] || {};
                 const rawUsername = userInfo.username || (uid.length > 8 ? uid.slice(0, 8) + '…' : uid);
-                // Используем getPlayerName для определения имени
+
                 const username = getPlayerName(rawUsername, uid);
                 players.push({
                     username,
@@ -2797,27 +2797,27 @@
                     totalIncorrect: Number(stat.totalIncorrect || 0)
                 });
             }
-    
+
             if (!players.length) {
                 window.alert(t('lbNoData'));
                 return;
             }
-    
+
             players.sort((a, b) => b.bestStreak - a.bestStreak || b.wins - a.wins || b.runs - a.runs);
-    
+
             const overlay = document.createElement('div');
             overlay.className = 'stats-recap-overlay';
             const card = document.createElement('div');
             card.className = 'stats-recap-card';
             card.addEventListener('click', (e) => e.stopPropagation());
-    
+
             const rankClass = (i) => {
                 if (i === 0) return 'gold';
                 if (i === 1) return 'silver';
                 if (i === 2) return 'bronze';
                 return '';
             };
-    
+
             const itemsHtml = players.slice(0, 100).map((p, i) => `
                 <div class="top-player-item">
                     <span class="top-player-rank ${rankClass(i)}">#${i + 1}</span>
@@ -2825,7 +2825,7 @@
                     <span class="top-player-streak">${p.bestStreak}</span>
                 </div>
             `).join('');
-    
+
             card.innerHTML = `
                 <div class="stats-recap-title">${t('lbTitle')}</div>
                 <div style="margin-bottom:8px;text-align:center;font-size:0.75rem;color:var(--text-close);letter-spacing:1px;">${t('lbSubtitle')}</div>
@@ -2834,7 +2834,7 @@
                 </div>
                 <div class="stats-recap-dismiss" style="margin-top:14px;">${t('statsDismissClose')}</div>
             `;
-    
+
             overlay.appendChild(card);
             document.body.appendChild(overlay);
             overlay.addEventListener('click', () => overlay.remove());
@@ -2891,7 +2891,7 @@
                     console.warn('loadUserAggregates(bestStreak)', e);
                     bestStreakCloud = null;
                 }
-                // Проверка бана по нику (мгновенно по хардкоду + Firebase)
+
                 const label = (user.displayName || (user.email || '').split('@')[0] || '').toLowerCase().trim();
                 if (label) {
                     if (HARDCODED_BANNED_NICKS.has(label)) {
@@ -2969,7 +2969,7 @@
         });
     }
 
-    // Language toggle
+
     const langToggle = document.getElementById('langToggle');
     if (langToggle) {
         langToggle.addEventListener('click', (e) => {
@@ -2988,7 +2988,7 @@
         });
     }
 
-    // Stats button / URL hook
+
     const statsBtn = document.getElementById('statsBtn');
     if (statsBtn) {
         statsBtn.addEventListener('click', async (e) => {
@@ -2997,7 +2997,7 @@
         });
     }
 
-    // Top players button
+
     const topBtn = document.getElementById('topBtn');
     if (topBtn) {
         topBtn.addEventListener('click', async (e) => {
@@ -3006,7 +3006,7 @@
         });
     }
 
-    // Admin FAB (только для админов из Firebase)
+
     const adminFab = document.getElementById('adminFab');
     if (adminFab) {
         adminFab.addEventListener('click', async (e) => {
@@ -3015,7 +3015,7 @@
         });
     }
 
-    // ==================== АДМИН-ПАНЕЛЬ ====================
+
     const adminPanel = document.getElementById('adminPanel');
     const photoUrlInput = document.getElementById('photoUrl');
     const photoCategorySelect = document.getElementById('photoCategory');
@@ -3054,7 +3054,7 @@
         }));
     }
 
-    // Загрузка фото из Firebase Realtime Database
+
     async function loadPhotosFromRealtimeDb() {
         if (!firebaseReady || !firebaseDb) {
             return false;
@@ -3077,7 +3077,7 @@
         }
     }
 
-    // Сохранение фото в Firebase Realtime Database
+
     async function savePhotosToRealtimeDb() {
         if (!firebaseReady || !firebaseDb) {
             throw new Error('Firebase не инициализирован');
@@ -3085,7 +3085,7 @@
         await firebaseDb.ref(FIREBASE_PHOTOS_PATH).set(toRealtimePayload(imagesDataset));
     }
 
-    // Показ сообщения в админ-панели
+
     function showAdminMessage(text, type = 'info') {
         adminMessage.innerHTML = `<div class="admin-message ${type}">${text}</div>`;
         setTimeout(() => {
@@ -3093,7 +3093,7 @@
         }, 3000);
     }
 
-    // Обновление списка фото в админ-панели
+
     function updatePhotosList() {
         photosList.innerHTML = '';
         imagesDataset.forEach((item, index) => {
@@ -3114,14 +3114,14 @@
             photosList.appendChild(photoItem);
         });
 
-        // Обновляем количество
+
         const totalLabel = document.getElementById('photosCountLabel');
         if (totalLabel) {
             totalLabel.textContent = t('adminPhotosCount', imagesDataset.length);
         }
     }
 
-    // Добавление фото
+
     addPhotoBtn.addEventListener('click', async () => {
         const url = photoUrlInput.value.trim();
         const category = photoCategorySelect.value;
@@ -3151,7 +3151,7 @@
         showAdminMessage(t('adminAddedSuccess', category === 'boy' ? t('boyBtn') : t('girlBtn')), 'success');
     });
 
-    // Удаление фото
+
     window.deletePhoto = async function(index) {
         const removed = imagesDataset[index];
         imagesDataset.splice(index, 1);
@@ -3167,7 +3167,7 @@
         }
     };
 
-    // ==================== БАН ПО IP И НИКУ ====================
+
     const FIREBASE_BANNED_IPS_PATH = 'femboy_guessor/banned/ips';
     const FIREBASE_BANNED_NICKS_PATH = 'femboy_guessor/banned/nicks';
     let bannedIps = new Set();
@@ -3233,7 +3233,7 @@
         if (IS_BANNED) return;
         IS_BANNED = true;
 
-        // Уничтожить всё содержимое
+
         document.body.innerHTML = '';
         document.title = 'Забанен';
         document.body.style.cssText = 'margin:0;padding:0;background:#000!important;overflow:hidden!important;height:100vh!important;width:100vw!important;';
@@ -3248,7 +3248,7 @@
             '<div style="font-size:12px;color:#444;text-align:center;margin-top:20px;">IP заблокирован</div>';
         document.body.appendChild(block);
 
-        // Защита: MutationObserver не даст удалить баннер
+
         var _mo = new MutationObserver(function() {
             if (!document.getElementById('bannedOverlay') || document.body.innerHTML.indexOf('bannedOverlay') === -1) {
                 document.body.innerHTML =
@@ -3261,7 +3261,7 @@
         });
         _mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
 
-        // Перехват всех событий
+
         ['click','contextmenu','dblclick','mousedown','mouseup','touchstart','touchend','keydown','keyup','keypress','wheel','scroll','drag','drop','select','submit','focus','blur'].forEach(function(ev) {
             document.addEventListener(ev, function(e) {
                 e.stopImmediatePropagation();
@@ -3270,7 +3270,7 @@
             }, true);
         });
 
-        // Интервал перепроверки
+
         setInterval(function() {
             if (!document.getElementById('bannedOverlay')) {
                 document.body.innerHTML = '';
@@ -3289,7 +3289,7 @@
             }
         }, 100);
 
-        // Блокировка history.back и прочего
+
         window.onbeforeunload = function() { return 'Доступ запрещен'; };
 
         throw new Error('BANNED');
@@ -3314,7 +3314,7 @@
         overlay.addEventListener('click', () => overlay.remove());
     }
 
-    // Бан/разбан IP
+
     window.banIp = async function(ip) {
         ip = String(ip || '').trim();
         if (!ip) { showAdminMessage('Введите IP', 'info'); return; }
@@ -3381,7 +3381,7 @@
         });
     }
 
-    // Кнопки бана IP
+
     document.getElementById('banIpBtn')?.addEventListener('click', () => {
         const input = document.getElementById('banIpInput');
         banIp(input ? input.value : '');
@@ -3393,7 +3393,7 @@
         if (input) input.value = '';
     });
 
-    // Кнопки бана ника
+
     document.getElementById('banNickBtn')?.addEventListener('click', () => {
         const input = document.getElementById('banNickInput');
         banNick(input ? input.value : '');
@@ -3405,11 +3405,11 @@
         if (input) input.value = '';
     });
 
-    // Закрытие админ-панели
+
     closeAdminBtn.addEventListener('click', () => {
         adminPanel.style.display = 'none';
         stopAdminCheckInterval();
-        initGameModule(); // Перезагружаем игру с новыми фото
+        initGameModule();
     });
 
     function escapeHtml(value) {
@@ -3449,7 +3449,7 @@
         });
     }
 
-    /** Из ответа модели достаём массив объектов-кандидатов (не только корневой JSON-массив). */
+
     function unwrapAiCandidatesPayload(parsed) {
         if (Array.isArray(parsed)) return parsed;
         if (parsed && typeof parsed === 'object') {
@@ -3464,7 +3464,7 @@
         return [];
     }
 
-    /** Парсинг JSON из ответа чата с зачисткой markdown и захватом массива/объекта в тексте. */
+
     function parseAiCandidatesJson(content) {
         let trimmed = (content || '').trim();
         const tryParse = (s) => {
@@ -3484,7 +3484,7 @@
                     try {
                         return tryParse(trimmed.slice(arrStart, arrEnd + 1));
                     } catch (third) {
-                        /* fall through */
+
                     }
                 }
                 const objStart = trimmed.indexOf('{');
@@ -3493,7 +3493,7 @@
                     try {
                         return tryParse(trimmed.slice(objStart, objEnd + 1));
                     } catch (fourth) {
-                        /* fall through */
+
                     }
                 }
                 throw second;
@@ -3501,7 +3501,7 @@
         }
     }
 
-    /** Распространённый формат от моделей: //cdn… → https://… */
+
     function normalizeHttpsImageUrl(s) {
         if (typeof s !== 'string') return '';
         let u = s.trim();
@@ -3528,7 +3528,7 @@
             .filter(Boolean);
     }
 
-    /** Openverse: два хоста (иногда один недоступен из сети / блокировок). */
+
     async function fetchCandidatesFromOpenverse(query, count) {
         const pageSize = Math.min(20, Math.max(1, count));
         const bases = ['https://api.openverse.org', 'https://api.openverse.engineering'];
@@ -3558,7 +3558,7 @@
         return [];
     }
 
-    /** Wikimedia Commons — почти всегда отдаёт картинки по латинице и по многим запросам; CORS origin=*. */
+
     async function fetchCandidatesFromWikimediaCommons(query, count) {
         const lim = Math.min(50, Math.max(3, count));
         const api = new URL('https://commons.wikimedia.org/w/api.php');
@@ -3824,7 +3824,7 @@
         }
     }
 
-    // ——— День рождения ———
+
     const BIRTHDAY_UID = 'fDPqDln1HRd0w6atLTSMfVwHj0I3';
 
     function checkBirthday(uid) {
@@ -3875,14 +3875,14 @@
         }
     }
 
-    // Проверяем при загрузке
+
     async function startApp() {
         initFirebase();
         fetchGeoData();
         initAuthUi();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
-        // Проверка бана по IP
+
         await checkBanOnStart();
         setLanguage(currentLang);
         initGameModule();
@@ -3891,7 +3891,7 @@
         await checkStatisticMode();
     }
 
-    // Непрерывная проверка бана (каждые 10 секунд)
+
     setInterval(async function continuousBanCheck() {
         if (IS_BANNED) return;
         if (userIP) {
@@ -3916,15 +3916,15 @@
     }, 10000);
 
     async function checkBanOnStart() {
-        // Тройная проверка с разных источников
+
         async function tryCheckIp(ip) {
             if (!ip) return false;
-            // Проверка по хардкоду
+
             if (HARDCODED_BANNED_IPS.has(String(ip).trim())) {
                 showBannedOverlay();
                 return true;
             }
-            // Проверка по Firebase
+
             const banned = await checkBannedIp(ip);
             if (banned) {
                 showBannedOverlay();
@@ -3933,12 +3933,12 @@
             return false;
         }
 
-        // Если IP уже есть — проверяем сразу
+
         if (userIP) {
             if (await tryCheckIp(userIP)) return;
         }
 
-        // Параллельные запросы IP из разных источников
+
         const ipPromises = [
             fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip).catch(() => null),
             fetch('https://api.myip.com').then(r => r.json()).then(d => d.ip).catch(() => null),
@@ -3952,7 +3952,7 @@
             }
         }
 
-        // Если всё ещё не получили IP — агрессивный поллинг
+
         let pollCount = 0;
         const pollInterval = setInterval(async () => {
             pollCount++;
@@ -3972,10 +3972,10 @@
                     }
                 } catch(e) {}
             }
-            if (pollCount > 30) clearInterval(pollInterval); // макс 30 попыток
+            if (pollCount > 30) clearInterval(pollInterval);
         }, 2000);
 
-        // Дополнительно: перехватываем IP из fetchGeoData
+
         const origFetchGeo = fetchGeoData;
         fetchGeoData = async function() {
             await origFetchGeo.call(this);
@@ -3991,7 +3991,7 @@
     }
     startApp();
 
-    // Подстраховка: также проверяем нажатие Ctrl+Shift+A
+
     document.addEventListener('keydown', async (e) => {
         if (e.ctrlKey && e.shiftKey && e.key === 'A') {
             e.preventDefault();
@@ -4015,7 +4015,7 @@
         }
     });
 
-    // Админ-крутилки статистики по UID
+
     const adminUserUidInput = document.getElementById('adminUserUid');
     const incRunsBtn = document.getElementById('incRunsBtn');
     const decRunsBtn = document.getElementById('decRunsBtn');
@@ -4128,7 +4128,7 @@
         }
     });
 
-    // ——— Поиск пользователя по UID (админ-панель) ———
+
     const adminLookupUid = document.getElementById('adminLookupUid');
     const adminLookupBtn = document.getElementById('adminLookupBtn');
     const adminLookupResult = document.getElementById('adminLookupResult');
@@ -4182,7 +4182,7 @@
         }
     });
 
-    // ==================== ПРОВЕРКА ФОТО (АДМИН) ====================
+
     let photoCheckRunning = false;
     let photoCheckAbort = false;
 
