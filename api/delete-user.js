@@ -51,6 +51,20 @@ async function deleteUserDataFromDb(uid) {
       promises.push(db.ref('femboy_guessor/stats').update(updates));
     }
   }
+  const usedTgSnap = await db.ref('femboy_guessor/usedTelegramIds').get();
+  if (usedTgSnap.exists()) {
+    const tgUpdates = {};
+    usedTgSnap.forEach(child => {
+      const val = child.val();
+      if (val && val.uid === uid) {
+        tgUpdates['femboy_guessor/usedTelegramIds/' + child.key + '/deleted'] = true;
+        tgUpdates['femboy_guessor/usedTelegramIds/' + child.key + '/deletedAt'] = Date.now();
+      }
+    });
+    if (Object.keys(tgUpdates).length) {
+      promises.push(db.ref().update(tgUpdates));
+    }
+  }
   await Promise.all(promises);
 }
 

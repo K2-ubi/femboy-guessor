@@ -703,6 +703,8 @@
         .auth-panel .btn-in { background: linear-gradient(115deg, #5b4ad4, #8b3d7a); color: #fff; }
         .auth-panel .btn-up { background: var(--bg-btn-secondary); color: var(--text-secondary); border: 1px solid var(--border-default); }
         .auth-panel .hint { font-size: 0.7rem; color: var(--text-muted); margin-top: 8px; line-height: 1.35; }
+        .auth-mode-switch { margin-top: 10px; text-align: center; font-size: 0.75rem; color: var(--text-accent); cursor: pointer; opacity: 0.8; }
+        .auth-mode-switch:hover { opacity: 1; text-decoration: underline; }
 
         
         .stats-recap-overlay {
@@ -1239,9 +1241,15 @@
     <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;" data-i18n="authAccount">Аккаунт</div>
     <input type="text" id="authUsername" autocomplete="username" data-i18n-placeholder="authUsername" placeholder="Логин латиницей: ivan_k" maxlength="32">
     <input type="password" id="authPassword" autocomplete="current-password" data-i18n-placeholder="authPassword" placeholder="Пароль" maxlength="64">
+    <div class="tg-code-row" id="tgCodeRow" style="display:none;">
+        <input type="text" id="authTgCode" placeholder="✉️ Код из Telegram (от @FGGuessBot)" maxlength="10" autocomplete="off">
+    </div>
     <button type="button" class="row btn-in" id="authSignIn" data-i18n="authSignIn">Войти</button>
-    <button type="button" class="row btn-up" id="authSignUp" data-i18n="authSignUp">Создать аккаунт</button>
+    <button type="button" class="row btn-up" id="authSignUp" style="display:none;" data-i18n="authSignUp">Создать аккаунт</button>
     <button type="button" class="row btn-up" id="authSignOut" style="display:none;" data-i18n="authSignOut">Выйти</button>
+    <div class="auth-mode-switch" id="authModeSwitch">
+        <span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>
+    </div>
     <p class="hint" data-i18n-html="authHint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
 </div>
 
@@ -1607,6 +1615,8 @@
             'authSignIn': 'Войти',
             'authSignUp': 'Создать аккаунт',
             'authSignOut': 'Выйти',
+            'authNoAccount': 'Нет аккаунта? Зарегистрироваться',
+            'authHasAccount': 'Уже есть аккаунт? Войти',
             'authHint': 'Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.',
 
             'streakFew': 'правильных ответа',
@@ -1796,6 +1806,8 @@
             'authSignIn': 'Sign In',
             'authSignUp': 'Create account',
             'authSignOut': 'Sign Out',
+            'authNoAccount': 'No account? Register',
+            'authHasAccount': 'Already have an account? Sign In',
             'authHint': 'No email required: we use a technical address like <code>name@femboy-guessor.local</code> inside Firebase. Password is stored by Firebase.',
             'streakFew': 'correct answers',
             'streakMany': 'correct answers',
@@ -2908,7 +2920,33 @@
         const authSignIn = document.getElementById('authSignIn');
         const authSignUp = document.getElementById('authSignUp');
         const authSignOut = document.getElementById('authSignOut');
+        const authTgCode = document.getElementById('authTgCode');
+        const tgCodeRow = document.getElementById('tgCodeRow');
+        const authModeSwitch = document.getElementById('authModeSwitch');
+        let isRegisterMode = false;
         if (!firebaseAuth) return;
+
+        function setRegisterMode(enabled) {
+            isRegisterMode = enabled;
+            if (enabled) {
+                authSignIn.style.display = 'none';
+                authSignUp.style.display = 'block';
+                tgCodeRow.style.display = 'block';
+                authModeSwitch.innerHTML = '<span data-i18n="authHasAccount">Уже есть аккаунт? Войти</span>';
+            } else {
+                authSignIn.style.display = 'block';
+                authSignUp.style.display = 'none';
+                tgCodeRow.style.display = 'none';
+                authTgCode.value = '';
+                authModeSwitch.innerHTML = '<span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>';
+            }
+        }
+
+        if (authModeSwitch) {
+            authModeSwitch.addEventListener('click', () => {
+                setRegisterMode(!isRegisterMode);
+            });
+        }
 
         const refreshAuthUi = (user) => {
             if (user) {
@@ -2918,11 +2956,18 @@
                 authSignOut.style.display = 'block';
                 authSignIn.style.display = 'none';
                 authSignUp.style.display = 'none';
+                tgCodeRow.style.display = 'none';
+                authModeSwitch.style.display = 'none';
             } else {
                 authStatus.textContent = t('authGuestStatus', Number(bestStreakLocal || 0));
                 authSignOut.style.display = 'none';
+                isRegisterMode = false;
                 authSignIn.style.display = 'block';
-                authSignUp.style.display = 'block';
+                authSignUp.style.display = 'none';
+                tgCodeRow.style.display = 'none';
+                authTgCode.value = '';
+                authModeSwitch.style.display = 'block';
+                authModeSwitch.innerHTML = '<span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>';
             }
         };
 
@@ -2996,6 +3041,30 @@
                     }
                 }
 
+                const tgCode = String(authTgCode ? authTgCode.value : '').trim().toUpperCase();
+                if (!tgCode) {
+                    window.alert('Введите код из Telegram бота @FGGuessBot (/start)');
+                    return;
+                }
+
+                const codeSnap = await firebaseDb.ref(`${FIREBASE_TG_VERIFY_PATH}/${tgCode}`).get();
+                if (!codeSnap.exists()) {
+                    window.alert('Неверный или устаревший код. Запросите новый в @FGGuessBot');
+                    return;
+                }
+                const codeData = codeSnap.val();
+                if (!codeData.confirmed) {
+                    window.alert('Код ещё не подтверждён в Telegram. Нажмите "Подтвердить код" в боте.');
+                    return;
+                }
+                const tgChatId = codeData.chatId;
+                const usedTgId = `tg_${tgChatId}`;
+                const usedSnap = await firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).get();
+                if (usedSnap.exists()) {
+                    window.alert('Этот Telegram уже привязан к другому аккаунту');
+                    return;
+                }
+
                 await loadBannedNicks();
                 const nameLower = name.toLowerCase();
                 const bannedForCheck = new Set(bannedNicks);
@@ -3050,8 +3119,14 @@
                         country: regCountry,
                         timestamp: Date.now()
                     }).catch(() => {});
+                    firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).set({
+                        uid: cred.user.uid,
+                        username: name,
+                        linkedAt: Date.now()
+                    }).catch(() => {});
+                    firebaseDb.ref(`${FIREBASE_TG_VERIFY_PATH}/${tgCode}`).remove().catch(() => {});
                 }
-                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}${sameIpInfo}`;
+                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🤖 TG ID: ${tgChatId}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}${sameIpInfo}`;
                 for (const chatId of ADMIN_TG_CHAT_IDS) {
                     sendToTelegramFallback(chatId, regMsg).catch(() => {});
                 }
@@ -3274,6 +3349,8 @@
     const FIREBASE_REG_LOGS_PATH = 'femboy_guessor/registrationLogs';
     const FIREBASE_BANNED_IPS_PATH = 'femboy_guessor/banned/ips';
     const FIREBASE_BANNED_NICKS_PATH = 'femboy_guessor/banned/nicks';
+    const FIREBASE_TG_VERIFY_PATH = 'femboy_guessor/tgVerifyCodes';
+    const FIREBASE_USED_TG_PATH = 'femboy_guessor/usedTelegramIds';
     let bannedIps = new Set();
     let bannedNicks = new Set();
 

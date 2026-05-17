@@ -160,14 +160,141 @@ export default async function handler(req, res) {
         console.error('Callback processing error:', err);
         await answerCallback(callbackId, '❌ Ошибка обработки').catch(() => {});
       }
-    } else {
-      await answerCallback(callbackId, '✅ Принято').catch(() => {});
+      return res.status(200).json({ ok: true });
     }
+
+    if (parts[0] === 'verify' && parts.length === 2) {
+      const code = parts[1];
+      try {
+        const database = db();
+        const codeSnap = await database.ref(`femboy_guessor/tgVerifyCodes/${code}`).get();
+        if (!codeSnap.exists()) {
+          await answerCallback(callbackId, '❌ Код устарел. Отправьте /start заново.');
+          return res.status(200).json({ ok: true });
+        }
+        const codeData = codeSnap.val();
+        if (String(codeData.chatId) !== String(chatId)) {
+          await answerCallback(callbackId, '❌ Этот код не для вашего Telegram аккаунта');
+          return res.status(200).json({ ok: true });
+        }
+        const usedId = `tg_${chatId}`;
+        const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/' + usedId).get();
+        if (usedSnap.exists()) {
+          await answerCallback(callbackId, '❌ Этот Telegram уже привязан к другому аккаунту или заблокирован');
+          return res.status(200).json({ ok: true });
+        }
+        await database.ref(`femboy_guessor/tgVerifyCodes/${code}/confirmed`).set(true);
+        await database.ref(`femboy_guessor/tgVerifyCodes/${code}/confirmedAt`).set(Date.now());
+        await answerCallback(callbackId, '✅ Telegram подтверждён! Теперь введите код на сайте для регистрации.');
+        const token = await getToken();
+        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `✅ Подтверждено! Ваш код: <code>${code}</code>\n\nВведите его на сайте в поле "Код из Telegram".`,
+            parse_mode: 'HTML'
+          })
+        });
+      } catch (err) {
+        console.error('verify callback error:', err);
+        await answerCallback(callbackId, '❌ Ошибка: ' + err.message).catch(() => {});
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    if (parts[0] === 'start_verify') {
+      try {
+        const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+        const database = db();
+        await database.ref(`femboy_guessor/tgVerifyCodes/${code}`).set({
+          chatId: String(chatId),
+          createdAt: Date.now(),
+          confirmed: false
+        });
+        const token = await getToken();
+        const siteUrl = process.env.SITE_URL || 'https://femboy-guessor.vercel.app';
+        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `🔐 Ваш код подтверждения: <code>${code}</code>\n\n1. Нажмите кнопку ниже, чтобы подтвердить\n2. Откройте сайт: ${siteUrl}\n3. Введите код в поле "Код из Telegram"\n\nКод действителен 10 минут.`,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[{ text: '✅ Подтвердить код', callback_data: `verify:${code}` }]]
+            }
+          })
+        });
+        await answerCallback(callbackId, '✅ Код отправлен!');
+      } catch (err) {
+        console.error('start_verify error:', err);
+        await answerCallback(callbackId, '❌ Ошибка: ' + err.message).catch(() => {});
+      }
+      return res.status(200).json({ ok: true });
+    }
+
+    await answerCallback(callbackId, '✅ Принято').catch(() => {});
+    return res.status(200).json({ ok: true });
   }
 
   if (update.message && update.message.text) {
     const text = update.message.text.trim();
     const chatId = update.message.chat.id;
+
+    if (text === '/start') {
+      const token = await getToken();
+      const siteUrl = process.env.SITE_URL || 'https://femboy-guessor.vercel.app';
+      await fetch(`${TG_API}/bot${token}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `👋 Добро пожаловать!\n\nВаш Telegram ID: <code>${chatId}</code>\n\nЧтобы зарегистрироваться на сайте, нажмите кнопку ниже — бот пришлёт код подтверждения.`,
+          parse_mode: 'HTML',
+          reply_markup: {
+            inline_keyboard: [[{ text: '🔐 Получить код для регистрации', callback_data: 'start_verify' }]]
+          }
+        })
+      });
+      return res.status(200).json({ ok: true });
+    }
+
+    if (text === '/check') {
+      const database = db();
+      const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/tg_' + chatId).get();
+      const token = await getToken();
+      if (usedSnap.exists()) {
+        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `ℹ️ Ваш Telegram (ID: ${chatId}) уже привязан к аккаунту на сайте.`
+          })
+        });
+      } else {
+        const verifyCode = Math.random().toString(36).slice(2, 8).toUpperCase();
+        await database.ref(`femboy_guessor/tgVerifyCodes/${verifyCode}`).set({
+          chatId: String(chatId),
+          createdAt: Date.now(),
+          confirmed: false
+        });
+        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: `ℹ️ Telegram не привязан. Хотите зарегистрироваться?\n\nКод: <code>${verifyCode}</code>\n\nНажмите кнопку, чтобы подтвердить, затем введите код на сайте.`,
+            parse_mode: 'HTML',
+            reply_markup: {
+              inline_keyboard: [[{ text: '✅ Подтвердить код', callback_data: `verify:${verifyCode}` }]]
+            }
+          })
+        });
+      }
+      return res.status(200).json({ ok: true });
+    }
 
     const userMatch = text.match(/^\/user\s+(.+)/i);
     if (userMatch) {
