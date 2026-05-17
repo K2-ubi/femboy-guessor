@@ -1,61 +1,44 @@
 /**
  * Vercel Serverless Function — Webhook для Telegram бота
  *
- * Обрабатывает callback_query от inline-кнопок (удалить/оставить фото).
- *
- * Настройка webhook (выполнить один раз):
- *   curl -F "url=https://ТВОЙ_ДОМЕН.vercel.app/api/telegram-webhook" \
- *        https://api.telegram.org/bot<ТОКЕН>/setWebhook
- *
- * Удобный эндпоинт для настройки:
- *   Открой в браузере: https://ТВОЙ_ДОМЕН.vercel.app/api/telegram-webhook?setup=1
+ * Использует Firebase Admin SDK (ключ из FIREBASE_SERVICE_ACCOUNT).
  */
 
+const admin = require('firebase-admin');
+
 const TG_API = 'https://api.telegram.org';
-const FB_DB_URL = 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app';
-const FB_TOKEN_PATH = 'femboy_guessor/apitg';
-const FB_PHOTOS_PATH = 'femboy_guessor/photos';
-const FB_CHECK_PATH = 'femboy_guessor/photoCheck';
 
-let cachedToken = null;
-let tokenFetchPromise = null;
+const BANNED_IPS = new Set([
+  '94.181.18.114',
+]);
 
-async function getToken() {
-  if (cachedToken) return cachedToken;
-  if (tokenFetchPromise) return tokenFetchPromise;
-  tokenFetchPromise = (async () => {
-    const url = `${FB_DB_URL}/${FB_TOKEN_PATH}.json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Firebase HTTP ${res.status}`);
-    const v = await res.json();
-    if (typeof v === 'string') {
-      cachedToken = v.trim();
-    } else if (typeof v === 'object' && v !== null) {
-      const vals = Object.values(v).filter(x => typeof x === 'string');
-      cachedToken = vals.length ? vals[0].trim() : null;
-    }
-    if (!cachedToken) throw new Error('Токен не найден в Firebase');
-    return cachedToken;
-  })();
-  return tokenFetchPromise;
-}
-
-async function fbGet(path) {
-  const res = await fetch(`${FB_DB_URL}/${path}.json`);
-  if (!res.ok) return null;
-  return res.json();
-}
-
-async function fbSet(path, data) {
-  await fetch(`${FB_DB_URL}/${path}.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
+function initAdmin() {
+  if (admin.apps.length) return;
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!b64) throw new Error('FIREBASE_SERVICE_ACCOUNT not set');
+  const json = Buffer.from(b64, 'base64').toString('utf-8');
+  const serviceAccount = JSON.parse(json);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: serviceAccount.databaseURL || 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app'
   });
 }
 
-async function fbRemove(path) {
-  await fetch(`${FB_DB_URL}/${path}.json`, { method: 'DELETE' });
+function db() {
+  initAdmin();
+  return admin.database();
+}
+
+async function getToken() {
+  initAdmin();
+  const snap = await admin.database().ref('femboy_guessor/apitg').get();
+  const v = snap.val();
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'object' && v !== null) {
+    const vals = Object.values(v).filter(x => typeof x === 'string');
+    if (vals.length) return vals[0].trim();
+  }
+  throw new Error('Токен не найден в Firebase');
 }
 
 async function answerCallback(callbackQueryId, text) {
@@ -72,12 +55,16 @@ async function answerCallback(callbackQueryId, text) {
 }
 
 export default async function handler(req, res) {
-  // CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+
+  const remoteIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+  if (remoteIp && BANNED_IPS.has(remoteIp.split(',')[0].trim())) {
+    return res.status(403).json({ error: 'Banned' });
+  }
 
   // Режим установки webhook
   if (req.method === 'GET' && req.query?.setup === '1') {
@@ -114,7 +101,6 @@ export default async function handler(req, res) {
     });
   }
 
-  // POST — обработка обновлений от Telegram
   if (req.method !== 'POST') return res.status(405).end();
 
   const update = req.body;
@@ -127,38 +113,34 @@ export default async function handler(req, res) {
     const data = cq.data || '';
     const chatId = cq.message?.chat?.id;
 
-    // Формат: pc:{action}:{pendingId}
-    // action: d (delete), k (keep)
     const parts = data.split(':');
     if (parts[0] === 'pc' && parts.length === 3) {
       const action = parts[1];
       const pendingId = parts.slice(2).join(':');
 
       try {
-        // Читаем pending запись
-        const pendingData = await fbGet(`${FB_CHECK_PATH}/pending/${pendingId}`);
+        const database = db();
+        const pendingSnap = await database.ref(`femboy_guessor/photoCheck/pending/${pendingId}`).get();
+        const pendingData = pendingSnap.val();
 
         if (pendingData && pendingData.url) {
           if (action === 'd') {
-            // Удаляем фото из Firebase
-            const photos = await fbGet(FB_PHOTOS_PATH);
+            const photosSnap = await database.ref('femboy_guessor/photos').get();
+            const photos = photosSnap.val();
             if (Array.isArray(photos)) {
-              const idx = photos.findIndex(p => p.url === pendingData.url || p.url === pendingData.url);
+              const idx = photos.findIndex(p => p.url === pendingData.url);
               if (idx !== -1) {
                 photos.splice(idx, 1);
-                await fbSet(FB_PHOTOS_PATH, photos);
+                await database.ref('femboy_guessor/photos').set(photos);
               }
             }
-            // Удаляем pending
-            await fbRemove(`${FB_CHECK_PATH}/pending/${pendingId}`);
+            await database.ref(`femboy_guessor/photoCheck/pending/${pendingId}`).remove();
             await answerCallback(callbackId, '🗑 Фото удалено из базы');
           } else if (action === 'k') {
-            // Просто удаляем pending
-            await fbRemove(`${FB_CHECK_PATH}/pending/${pendingId}`);
+            await database.ref(`femboy_guessor/photoCheck/pending/${pendingId}`).remove();
             await answerCallback(callbackId, '✅ Фото оставлено');
           }
         } else {
-          // Pending не найден (возможно уже обработан)
           await answerCallback(callbackId, '⏳ Запись устарела или уже обработана');
         }
       } catch (err) {
@@ -166,7 +148,6 @@ export default async function handler(req, res) {
         await answerCallback(callbackId, '❌ Ошибка обработки').catch(() => {});
       }
     } else {
-      // Неизвестный callback_data
       await answerCallback(callbackId, '✅ Принято').catch(() => {});
     }
   }

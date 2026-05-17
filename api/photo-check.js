@@ -1,60 +1,50 @@
 /**
  * Vercel Serverless Function — проверка фото
  *
+ * Использует Firebase Admin SDK (ключ из FIREBASE_SERVICE_ACCOUNT).
+ *
  * GET /api/photo-check?url=... — проверить одно фото (вызывается с клиента)
  * GET /api/photo-check         — полная проверка всех фото (крон/вручную)
  */
 
+const admin = require('firebase-admin');
+
 const TG_API = 'https://api.telegram.org';
-const FB_DB_URL = 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app';
-const FB_TOKEN_PATH = 'femboy_guessor/apitg';
-const FB_PHOTOS_PATH = 'femboy_guessor/photos';
-const FB_CHECK_PATH = 'femboy_guessor/photoCheck';
 const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
 const CHECK_DELAY_MS = 10000;
 const BATCH_SIZE = 3;
 
-let cachedToken = null;
-let tokenFetchPromise = null;
+const BANNED_IPS = new Set([
+  '94.181.18.114',
+]);
+
+function initAdmin() {
+  if (admin.apps.length) return;
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!b64) throw new Error('FIREBASE_SERVICE_ACCOUNT not set');
+  const json = Buffer.from(b64, 'base64').toString('utf-8');
+  const serviceAccount = JSON.parse(json);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: serviceAccount.databaseURL || 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app'
+  });
+}
+
+function db() {
+  initAdmin();
+  return admin.database();
+}
 
 async function getToken() {
-  if (cachedToken) return cachedToken;
-  if (tokenFetchPromise) return tokenFetchPromise;
-  tokenFetchPromise = (async () => {
-    const url = `${FB_DB_URL}/${FB_TOKEN_PATH}.json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Firebase HTTP ${res.status}`);
-    const v = await res.json();
-    if (typeof v === 'string') {
-      cachedToken = v.trim();
-    } else if (typeof v === 'object' && v !== null) {
-      const vals = Object.values(v).filter(x => typeof x === 'string');
-      cachedToken = vals.length ? vals[0].trim() : null;
-    }
-    if (!cachedToken) throw new Error('Токен не найден в Firebase');
-    return cachedToken;
-  })();
-  return tokenFetchPromise;
-}
-
-async function fbGet(path) {
-  const res = await fetch(`${FB_DB_URL}/${path}.json`);
-  if (!res.ok) throw new Error(`FB GET ${path} HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fbSet(path, data) {
-  const res = await fetch(`${FB_DB_URL}/${path}.json`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if (!res.ok) throw new Error(`FB PUT ${path} HTTP ${res.status}`);
-  return res.json();
-}
-
-async function fbRemove(path) {
-  await fetch(`${FB_DB_URL}/${path}.json`, { method: 'DELETE' });
+  initAdmin();
+  const snap = await admin.database().ref('femboy_guessor/apitg').get();
+  const v = snap.val();
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'object' && v !== null) {
+    const vals = Object.values(v).filter(x => typeof x === 'string');
+    if (vals.length) return vals[0].trim();
+  }
+  throw new Error('Токен не найден в Firebase');
 }
 
 async function sleep(ms) {
@@ -106,6 +96,11 @@ export default async function handler(req, res) {
 
   if (req.method === 'OPTIONS') return res.status(200).end();
 
+  const remoteIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+  if (remoteIp && BANNED_IPS.has(remoteIp.split(',')[0].trim())) {
+    return res.status(403).json({ error: 'Banned' });
+  }
+
   const { url } = req.query || {};
 
   // Режим 1: проверка одного URL (с клиента)
@@ -138,25 +133,29 @@ export default async function handler(req, res) {
 }
 
 async function runFullCheck() {
+  const database = db();
+
   // Читаем курсор
-  const cursorData = await fbGet(`${FB_CHECK_PATH}/cursor`).catch(() => null);
+  const cursorSnap = await database.ref('femboy_guessor/photoCheck/cursor').get().catch(() => null);
+  const cursorData = cursorSnap ? cursorSnap.val() : null;
   let startIdx = (cursorData && typeof cursorData === 'object' && cursorData.lastIndex != null)
     ? Number(cursorData.lastIndex) + 1 : 0;
   let isFirstRun = cursorData === null || cursorData === undefined ||
     (typeof cursorData === 'object' && cursorData.lastIndex == null);
 
   // Читаем фото
-  let photos = await fbGet(FB_PHOTOS_PATH);
+  const photosSnap = await database.ref('femboy_guessor/photos').get();
+  let photos = photosSnap.val();
   if (!Array.isArray(photos) || !photos.length) {
-    // Сброс — нечего проверять
-    await fbRemove(`${FB_CHECK_PATH}/cursor`);
+    await database.ref('femboy_guessor/photoCheck/cursor').remove();
     return;
   }
 
   // Если проверка завершена (дошли до конца) — сбрасываем и выходим
   if (startIdx >= photos.length) {
     const token = await getToken();
-    const allChecked = await fbGet(`${FB_CHECK_PATH}/results`).catch(() => null);
+    const allCheckedSnap = await database.ref('femboy_guessor/photoCheck/results').get().catch(() => null);
+    const allChecked = allCheckedSnap ? allCheckedSnap.val() : null;
     const totalChecked = allChecked ? (allChecked.total || photos.length) : photos.length;
     const problemCount = allChecked ? (allChecked.problematic || 0) : 0;
     const msg = '📊 АВТО-ПРОВЕРКА ФОТО ЗАВЕРШЕНА' +
@@ -176,23 +175,23 @@ async function runFullCheck() {
       await tgSendMessage(chatId, fullMsg).catch(() => {});
     }
 
-    // Сбрасываем курсор
-    await fbRemove(`${FB_CHECK_PATH}/cursor`);
-    await fbRemove(`${FB_CHECK_PATH}/results`);
+    await database.ref('femboy_guessor/photoCheck/cursor').remove();
+    await database.ref('femboy_guessor/photoCheck/results').remove();
     return;
   }
 
   // Первый запуск — очищаем старые pending
   if (isFirstRun) {
-    await fbRemove(`${FB_CHECK_PATH}/pending`);
-    await fbRemove(`${FB_CHECK_PATH}/results`);
+    await database.ref('femboy_guessor/photoCheck/pending').remove();
+    await database.ref('femboy_guessor/photoCheck/results').remove();
   }
 
   // Обрабатываем batch
   const batch = photos.slice(startIdx, startIdx + BATCH_SIZE);
   let problemCount = 0;
 
-  const prevResults = await fbGet(`${FB_CHECK_PATH}/results`).catch(() => null);
+  const prevResultsSnap = await database.ref('femboy_guessor/photoCheck/results').get().catch(() => null);
+  const prevResults = prevResultsSnap ? prevResultsSnap.val() : null;
   const prevProblematic = (prevResults && prevResults.problematic) || 0;
 
   for (let i = 0; i < batch.length; i++) {
@@ -206,7 +205,7 @@ async function runFullCheck() {
     if (!ok) {
       problemCount++;
       const pendingId = 'pc_cron_' + Date.now() + '_' + idx;
-      await fbSet(`${FB_CHECK_PATH}/pending/${pendingId}`, {
+      await database.ref(`femboy_guessor/photoCheck/pending/${pendingId}`).set({
         url: item.url,
         timestamp: Date.now()
       }).catch(() => {});
@@ -230,7 +229,6 @@ async function runFullCheck() {
       }
     }
 
-    // Задержка между проверками
     if (i < batch.length - 1) {
       await sleep(CHECK_DELAY_MS);
     }
@@ -238,12 +236,12 @@ async function runFullCheck() {
 
   // Обновляем курсор и результаты
   const newLastIdx = startIdx + batch.length - 1;
-  await fbSet(`${FB_CHECK_PATH}/cursor`, {
+  await database.ref('femboy_guessor/photoCheck/cursor').set({
     lastIndex: newLastIdx,
     updatedAt: Date.now()
   });
 
-  await fbSet(`${FB_CHECK_PATH}/results`, {
+  await database.ref('femboy_guessor/photoCheck/results').set({
     total: photos.length,
     problematic: prevProblematic + problemCount,
     checked: Math.min(newLastIdx + 1, photos.length),

@@ -1,71 +1,53 @@
 /**
  * Vercel Serverless Function — прокси для Telegram Bot API
  *
- * Зачем: браузер не может отправлять запросы напрямую к api.telegram.org
- * из-за CORS (политики одного источника). Этот файл работает как посредник:
+ * Использует Firebase Admin SDK. Ключ сервис-аккаунта берётся
+ * из переменной окружения FIREBASE_SERVICE_ACCOUNT (base64).
  *
- *   Браузер → (своего же origin) /api/telegram → Vercel → api.telegram.org
- *
- * Vercel хостится в облаке (EU/US) — Telegram там не заблокирован.
- *
- * Токен бота читается из Firebase Realtime Database (femboy_guessor/apitg),
- * а не из переменных окружения — единый источник правды.
- *
- * ---------------------------------------------------------------
- *  Использование из браузера (JS):
- *
- *   fetch('/api/telegram', {
- *     method: 'POST',
- *     headers: { 'Content-Type': 'application/json' },
- *     body: JSON.stringify({
- *       method: 'sendMessage',
- *       chat_id: '12345',
- *       text: 'hello'
- *     })
- *   })
- *
- *   // с фото (base64):
- *   fetch('/api/telegram', {
- *     method: 'POST',
- *     headers: { 'Content-Type': 'application/json' },
- *     body: JSON.stringify({
- *       method: 'sendPhoto',
- *       chat_id: '12345',
- *       photo: 'data:image/jpeg;base64,...',
- *       caption: 'текст'
- *     })
- *   })
- *
+ * Безопасность:
+ *   - Только разрешённые методы (sendMessage, sendPhoto)
+ *   - Только разрешённые chat_id (ADMIN_TG_CHAT_IDS)
+ *   - IP из хардкод-списка блокируются на уровне сервера
  */
 
-const TG_API = 'https://api.telegram.org';
-const FB_DB_URL = 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app';
-const FB_TOKEN_PATH = 'femboy_guessor/apitg';
+const admin = require('firebase-admin');
 
-// Кеш на время жизни функции (Vercel может переиспользовать инстанс)
-let cachedToken = null;
-let tokenFetchPromise = null;
+const TG_API = 'https://api.telegram.org';
+
+const BANNED_IPS = new Set([
+  '94.181.18.114',
+]);
+
+const ALLOWED_CHAT_IDS = new Set([
+  '1212294771',
+  '8240197891',
+]);
+
+const ALLOWED_METHODS = new Set(['sendMessage', 'sendPhoto']);
+
+function initAdmin() {
+  if (admin.apps.length) return;
+  const b64 = process.env.FIREBASE_SERVICE_ACCOUNT;
+  if (!b64) throw new Error('FIREBASE_SERVICE_ACCOUNT not set');
+  const json = Buffer.from(b64, 'base64').toString('utf-8');
+  const serviceAccount = JSON.parse(json);
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: serviceAccount.databaseURL || 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app'
+  });
+}
 
 async function getToken() {
-  if (cachedToken) return cachedToken;
-  if (tokenFetchPromise) return tokenFetchPromise;
-
-  tokenFetchPromise = (async () => {
-    const url = `${FB_DB_URL}/${FB_TOKEN_PATH}.json`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`Firebase HTTP ${res.status}`);
-    const v = await res.json();
-    if (typeof v === 'string') {
-      cachedToken = v.trim();
-    } else if (typeof v === 'object' && v !== null) {
-      const vals = Object.values(v).filter(x => typeof x === 'string');
-      cachedToken = vals.length ? vals[0].trim() : null;
-    }
-    if (!cachedToken) throw new Error('Токен не найден в Firebase');
-    return cachedToken;
-  })();
-
-  return tokenFetchPromise;
+  initAdmin();
+  const db = admin.database();
+  const snap = await db.ref('femboy_guessor/apitg').get();
+  const v = snap.val();
+  if (typeof v === 'string') return v.trim();
+  if (typeof v === 'object' && v !== null) {
+    const vals = Object.values(v).filter(x => typeof x === 'string');
+    if (vals.length) return vals[0].trim();
+  }
+  throw new Error('Токен не найден в Firebase');
 }
 
 async function sendToTelegram(method, params) {
@@ -112,44 +94,38 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
+
+  // IP-бан на уровне сервера
+  const remoteIp = req.headers['x-forwarded-for'] || req.headers['x-real-ip'] || req.socket?.remoteAddress || '';
+  if (remoteIp && BANNED_IPS.has(remoteIp.split(',')[0].trim())) {
+    return res.status(403).json({ error: 'Banned' });
   }
 
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
+  const { action, chat_id, text, photo, caption, reply_markup } = req.body || {};
+
+  if (!action) return res.status(400).json({ error: 'action required' });
+  if (!ALLOWED_METHODS.has(action)) return res.status(400).json({ error: `Method '${action}' is not allowed` });
+
+  const targetChatId = String(chat_id || '').trim();
+  if (!targetChatId || !ALLOWED_CHAT_IDS.has(targetChatId)) {
+    return res.status(403).json({ error: 'chat_id is not allowed' });
   }
 
-  const { method, chat_id, text, photo, caption, reply_markup } = req.body || {};
-
-  if (!method || !chat_id) {
-    return res.status(400).json({ error: 'method and chat_id required' });
-  }
-
-  if (method === 'sendMessage' && !text) {
-    return res.status(400).json({ error: 'text required for sendMessage' });
-  }
+  if (action === 'sendMessage' && !text) return res.status(400).json({ error: 'text required' });
 
   try {
-    // Проверяем доступность токена при первом обращении
-    await getToken();
-  } catch (e) {
-    return res.status(500).json({ ok: false, error: `Token error: ${e.message}` });
-  }
-
-  try {
-    const params = { chat_id };
+    const params = { chat_id: targetChatId };
     if (reply_markup) params.reply_markup = reply_markup;
-    if (method === 'sendMessage') {
+    if (action === 'sendMessage') {
       params.text = text;
-    } else if (method === 'sendPhoto') {
+    } else if (action === 'sendPhoto') {
       if (photo) params.photo = photo;
       if (caption) params.caption = caption;
-    } else {
-      return res.status(400).json({ error: `Unsupported method: ${method}` });
     }
 
-    const result = await sendToTelegram(method, params);
+    const result = await sendToTelegram(action, params);
     return res.status(200).json({ ok: true, result });
   } catch (err) {
     return res.status(502).json({ ok: false, error: err.message });

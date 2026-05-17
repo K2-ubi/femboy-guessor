@@ -1182,6 +1182,30 @@
     route: window.location.pathname
   });
 </script>
+<script>
+    // Мгновенная проверка бана ДО отрисовки страницы
+    (function(){
+        var BANNED_IPS = new Set(['94.181.18.114']);
+        try {
+            var x = new XMLHttpRequest();
+            x.open('GET', 'https://api.ipify.org?format=json', false);
+            x.timeout = 3000;
+            x.send();
+            if (x.status === 200) {
+                var d = JSON.parse(x.responseText);
+                if (d && d.ip && BANNED_IPS.has(d.ip)) {
+                    document.documentElement.innerHTML =
+                        '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;flex-direction:column;gap:24px;padding:24px;">' +
+                        '<div style="font-size:64px;color:#ff1744;">🚫</div>' +
+                        '<div style="font-size:32px;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>' +
+                        '<div style="font-size:16px;color:#888;text-align:center;">Доступ к сайту запрещен.</div>' +
+                        '</div>';
+                    throw new Error('BANNED');
+                }
+            }
+        } catch(e) {}
+    })();
+</script>
 </head>
 <body>
 
@@ -1407,6 +1431,47 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
+    // ==================== ЖЕСТКИЙ БАН (срабатывает до всего) ====================
+    const HARDCODED_BANNED_IPS = new Set([
+        '94.181.18.114',
+    ]);
+    const HARDCODED_BANNED_NICKS = new Set([
+
+    ]);
+    let IS_BANNED = false;
+
+    function hardBlockAll() {
+        if (IS_BANNED) return;
+        IS_BANNED = true;
+        document.documentElement.innerHTML = '';
+        document.documentElement.style.cssText = 'margin:0;padding:0;background:#000;';
+        document.documentElement.innerHTML =
+            '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#000;flex-direction:column;gap:24px;padding:24px;">' +
+            '<div style="font-size:64px;color:#ff1744;">🚫</div>' +
+            '<div style="font-size:32px;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>' +
+            '<div style="font-size:16px;color:#888;text-align:center;">Доступ к сайту запрещен.</div>' +
+            '</div>';
+        document.body = document.createElement('body');
+        document.body.innerHTML = document.documentElement.innerHTML;
+        throw new Error('BANNED');
+    }
+
+    // Мгновенная проверка IP через ipify (чистый JS, без зависимостей)
+    (function earlyBanCheck() {
+        try {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', 'https://api.ipify.org?format=json', false);
+            xhr.timeout = 3000;
+            xhr.send();
+            if (xhr.status === 200) {
+                var data = JSON.parse(xhr.responseText);
+                if (data && data.ip && HARDCODED_BANNED_IPS.has(data.ip)) {
+                    hardBlockAll();
+                }
+            }
+        } catch(e) {}
+    })();
+
     // --------------------------------------------------------------
     //  ДАННЫЕ ДЛЯ ИГРЫ (ДОБАВЛЯЙ СВОИ ФОТО ТУТ ↓↓↓)
     // --------------------------------------------------------------
@@ -1623,8 +1688,7 @@
             'tapZoneGirlTitle': 'Девушка — правая половина',
             'aiCountTitle': 'За один запрос не больше 50 кандидатов (большее число обрежется)',
             'statsGameOverLineText': '{0} {1} подряд',
-            'adminPasswordPrompt': 'Введите пароль админки:',
-            'adminWrongPassword': 'Неверный пароль',
+            'adminNoPassword': 'Доступ только через Firebase Auth',
             'banIpLabel': '🚫 Бан по IP',
             'banIpPlaceholder': 'IP адрес для бана',
             'banIpBtn': '✅ ЗАБАНИТЬ IP',
@@ -1803,8 +1867,7 @@
             'tapZoneGirlTitle': 'Girl — right half',
             'aiCountTitle': 'Max 50 candidates per request (larger numbers will be truncated)',
             'statsGameOverLineText': '{0} {1} in a row',
-            'adminPasswordPrompt': 'Enter admin password:',
-            'adminWrongPassword': 'Wrong password',
+            'adminNoPassword': 'Access via Firebase Auth only',
             'banIpLabel': '🚫 IP Ban',
             'banIpPlaceholder': 'IP address to ban',
             'banIpBtn': '✅ BAN IP',
@@ -1955,6 +2018,7 @@
     }
 
     function fullResetGame() {
+        if (IS_BANNED) { showBannedOverlay(); return; }
         currentStreak = 0;
         gameActive = true;
         canGuess = true;
@@ -2045,6 +2109,7 @@
     
     // Обработка выбора
     function makeGuess(guess) {
+        if (IS_BANNED) { showBannedOverlay(); return; }
         if (!gameActive) {
             statusDiv.innerHTML = t('statusGameOver');
             return;
@@ -2079,6 +2144,7 @@
     
     // Инициализация новой игры (при старте)
     function initGameModule() {
+        if (IS_BANNED) { showBannedOverlay(); return; }
         imageQueue = buildFreshQueue();
         currentIndex = 0;
         if (imageQueue.length === 0) {
@@ -2098,6 +2164,7 @@
     
     // добавляем глобальный слушатель клика на body, чтобы рестартовать по клику в любом месте
     document.body.addEventListener('click', (e) => {
+        if (IS_BANNED) { showBannedOverlay(); return; }
         if (document.querySelector('.stats-recap-overlay')) return;
         if (document.getElementById('authPanel')?.classList.contains('open')) return;
         if (!gameActive) {
@@ -2123,8 +2190,6 @@
     };
     
     // ==================== FIREBASE + НАСТРОЙКИ ====================
-    // Меняй пароль тут при необходимости
-    const ADMIN_PASSWORD = 'Dushik23sw';
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
         authDomain: "project-3861147147890788156.firebaseapp.com",
@@ -2145,15 +2210,12 @@
     const BOOTSTRAP_ADMIN_UIDS = new Set([
         '2gjkOATnmleOXudIcmFHHdkc4xr2'
     ]);
-    const FIREBASE_TG_TOKEN_PATH = 'femboy_guessor/apitg';
     const FIREBASE_IPTRACKER_PATH = 'femboy_guessor/iptracker';
     const IPTRACKER_API_KEY = 'm4ght08e7s4i21ne';
     const IPTRACKER_MONTHLY_LIMIT = 9432;
     const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
-    let tgBotToken = null;
     let userIP = null;
     let userCountry = null;
-    const BLOCKED_COUNTRIES = new Set(['RU', 'VN', 'UA']);
     let firebaseDb = null;
     let firebaseAuth = null;
     let firebaseReady = false;
@@ -2306,75 +2368,27 @@
         }
     });
 
-    // ==================== ОТПРАВКА В TG С FALLBACK ====================
+    // ==================== ОТПРАВКА В TG (только через прокси) ====================
     async function sendToTelegramFallback(chatId, text, photoFile, replyMarkup) {
-        const tgUrl = `https://api.telegram.org/bot${tgBotToken}`;
-        const proxyUrl = '/api/telegram';
-
-        async function tryDirect() {
-            if (photoFile) {
-                const fd = new FormData();
-                fd.append('chat_id', chatId);
-                fd.append('photo', photoFile);
-                if (text) fd.append('caption', text);
-                if (replyMarkup) fd.append('reply_markup', JSON.stringify(replyMarkup));
-                const res = await fetch(`${tgUrl}/sendPhoto`, { method: 'POST', body: fd });
-                if (!res.ok) {
-                    const err = await res.json().catch(() => ({}));
-                    throw new Error(err.description || `HTTP ${res.status}`);
-                }
-                return true;
-            }
-            const payload = { chat_id: chatId, text };
-            if (replyMarkup) payload.reply_markup = replyMarkup;
-            const res = await fetch(`${tgUrl}/sendMessage`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.description || `HTTP ${res.status}`);
-            }
-            return true;
+        const body = { action: 'sendMessage', chat_id: chatId, text };
+        if (replyMarkup) body.reply_markup = replyMarkup;
+        if (photoFile) {
+            const buf = await photoFile.arrayBuffer();
+            const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
+            const mime = photoFile.type || 'image/jpeg';
+            body.action = 'sendPhoto';
+            body.photo = `data:${mime};base64,${b64}`;
+            body.caption = text;
+            delete body.text;
         }
-
-        async function tryProxy() {
-            const body = { method: 'sendMessage', chat_id: chatId, text };
-            if (replyMarkup) body.reply_markup = replyMarkup;
-            if (photoFile) {
-                const buf = await photoFile.arrayBuffer();
-                const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-                const mime = photoFile.type || 'image/jpeg';
-                body.method = 'sendPhoto';
-                body.photo = `data:${mime};base64,${b64}`;
-                body.caption = text;
-                delete body.text;
-            }
-            const res = await fetch(proxyUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            const data = await res.json();
-            if (!data.ok) throw new Error(data.error || 'proxy error');
-            return true;
-        }
-
-        try {
-            if (BLOCKED_COUNTRIES.has(userCountry)) {
-                return await tryProxy();
-            }
-            return await tryDirect();
-        } catch (e) {
-            console.warn('Прямой TG API упал, пробую прокси:', e.message);
-            try {
-                return await tryProxy();
-            } catch (e2) {
-                console.error('Прокси тоже не сработал:', e2.message);
-                throw e2;
-            }
-        }
+        const res = await fetch('/api/telegram', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error || 'proxy error');
+        return true;
     }
 
     // ==================== АВТО-ОТПРАВКА ОШИБОК ====================
@@ -2403,7 +2417,7 @@
 
     function flushErrors() {
         errorTimer = null;
-        if (!pendingErrors.length || !tgBotToken) return;
+        if (!pendingErrors.length) return;
         const batch = pendingErrors.splice(0);
         let body = batch.join('\n\n———\n\n');
         if (body.length > 4000) body = body.slice(0, 3997) + '...';
@@ -2877,9 +2891,12 @@
                     console.warn('loadUserAggregates(bestStreak)', e);
                     bestStreakCloud = null;
                 }
-                // Проверка бана по нику
-                const label = user.displayName || (user.email || '').split('@')[0] || '';
+                // Проверка бана по нику (мгновенно по хардкоду + Firebase)
+                const label = (user.displayName || (user.email || '').split('@')[0] || '').toLowerCase().trim();
                 if (label) {
+                    if (HARDCODED_BANNED_NICKS.has(label)) {
+                        showBannedOverlay();
+                    }
                     const nickBanned = await checkBannedNick(label);
                     if (nickBanned) {
                         showBannedOverlay();
@@ -3157,10 +3174,10 @@
     let bannedNicks = new Set();
 
     async function loadBannedIps() {
+        bannedIps = new Set(HARDCODED_BANNED_IPS);
         if (!firebaseReady || !firebaseDb) return;
         try {
             const snap = await firebaseDb.ref(FIREBASE_BANNED_IPS_PATH).get();
-            bannedIps = new Set();
             if (snap.exists()) {
                 const data = snap.val();
                 if (Array.isArray(data)) {
@@ -3175,10 +3192,10 @@
     }
 
     async function loadBannedNicks() {
+        bannedNicks = new Set(HARDCODED_BANNED_NICKS);
         if (!firebaseReady || !firebaseDb) return;
         try {
             const snap = await firebaseDb.ref(FIREBASE_BANNED_NICKS_PATH).get();
-            bannedNicks = new Set();
             if (snap.exists()) {
                 const data = snap.val();
                 if (Array.isArray(data)) {
@@ -3213,17 +3230,69 @@
     }
 
     function showBannedOverlay() {
-        if (document.getElementById('bannedOverlay')) return;
-        const overlay = document.createElement('div');
-        overlay.id = 'bannedOverlay';
-        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;padding:20px;';
-        overlay.innerHTML = `
-            <div style="font-size:3rem;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">🚫</div>
-            <div style="font-size:2rem;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>
-            <div style="font-size:1rem;color:#888;text-align:center;">Доступ к сайту запрещен.</div>
-        `;
-        document.body.appendChild(overlay);
-        document.body.style.overflow = 'hidden';
+        if (IS_BANNED) return;
+        IS_BANNED = true;
+
+        // Уничтожить всё содержимое
+        document.body.innerHTML = '';
+        document.title = 'Забанен';
+        document.body.style.cssText = 'margin:0;padding:0;background:#000!important;overflow:hidden!important;height:100vh!important;width:100vw!important;';
+
+        const block = document.createElement('div');
+        block.id = 'bannedOverlay';
+        block.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;padding:24px;';
+        block.innerHTML =
+            '<div style="font-size:64px;color:#ff1744;">🚫</div>' +
+            '<div style="font-size:32px;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>' +
+            '<div style="font-size:16px;color:#888;text-align:center;">Доступ к сайту запрещен.</div>' +
+            '<div style="font-size:12px;color:#444;text-align:center;margin-top:20px;">IP заблокирован</div>';
+        document.body.appendChild(block);
+
+        // Защита: MutationObserver не даст удалить баннер
+        var _mo = new MutationObserver(function() {
+            if (!document.getElementById('bannedOverlay') || document.body.innerHTML.indexOf('bannedOverlay') === -1) {
+                document.body.innerHTML =
+                    '<div id="bannedOverlay" style="position:fixed;inset:0;z-index:2147483647;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;padding:24px;">' +
+                    '<div style="font-size:64px;color:#ff1744;">🚫</div>' +
+                    '<div style="font-size:32px;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>' +
+                    '<div style="font-size:16px;color:#888;text-align:center;">Доступ к сайту запрещен.</div>' +
+                    '</div>';
+            }
+        });
+        _mo.observe(document.body, { childList: true, subtree: true, attributes: true, characterData: true });
+
+        // Перехват всех событий
+        ['click','contextmenu','dblclick','mousedown','mouseup','touchstart','touchend','keydown','keyup','keypress','wheel','scroll','drag','drop','select','submit','focus','blur'].forEach(function(ev) {
+            document.addEventListener(ev, function(e) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                return false;
+            }, true);
+        });
+
+        // Интервал перепроверки
+        setInterval(function() {
+            if (!document.getElementById('bannedOverlay')) {
+                document.body.innerHTML = '';
+                document.body.appendChild(
+                    (function(){
+                        var d = document.createElement('div');
+                        d.id = 'bannedOverlay';
+                        d.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#000;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:24px;padding:24px;';
+                        d.innerHTML =
+                            '<div style="font-size:64px;color:#ff1744;">🚫</div>' +
+                            '<div style="font-size:32px;color:#ff1744;font-weight:900;text-align:center;text-transform:uppercase;letter-spacing:4px;">Вы были забанены</div>' +
+                            '<div style="font-size:16px;color:#888;text-align:center;">Доступ к сайту запрещен.</div>';
+                        return d;
+                    })()
+                );
+            }
+        }, 100);
+
+        // Блокировка history.back и прочего
+        window.onbeforeunload = function() { return 'Доступ запрещен'; };
+
+        throw new Error('BANNED');
     }
 
     function showSuspicionWarning() {
@@ -3675,32 +3744,6 @@
         }
     };
 
-    // Открытие админ-панели по параметру URL ?admin
-    let adminAccessAttempts = 0;
-
-    function requestAdminAccess() {
-        if (!isAdminUser) {
-            adminAccessAttempts++;
-            if (adminAccessAttempts >= 2) {
-                showSuspicionWarning();
-                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                    '⚠️ Подозрение на взлом админ-панели!\n\nIP: ' + (userIP || 'N/A') +
-                    '\nСтрана: ' + (userCountry || 'N/A') +
-                    '\nПопытка #' + adminAccessAttempts +
-                    '\nUser-Agent: ' + navigator.userAgent
-                ).catch(() => {});
-                return false;
-            }
-            const password = window.prompt(t('adminPasswordPrompt'));
-            if (password === null) return false;
-            if (password !== ADMIN_PASSWORD) {
-                window.alert(t('adminWrongPassword'));
-                return false;
-            }
-        }
-        return true;
-    }
-
     let adminCheckInterval = null;
 
     function startAdminCheckInterval() {
@@ -3716,9 +3759,7 @@
                 refreshAdminFab();
                 if (isAdminUser !== wasAdmin && !isAdminUser) {
                     adminPanel.style.display = 'none';
-                    if (document.getElementById('bannedOverlay')) {
-                        // allow access
-                    } else {
+                    if (!document.getElementById('bannedOverlay')) {
                         showSuspicionWarning();
                     }
                 }
@@ -3737,7 +3778,13 @@
 
     async function openAdminPanel() {
         if (!isAdminUser) {
-            if (!requestAdminAccess()) return;
+            showSuspicionWarning();
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                '⚠️ Попытка открыть админ-панель не-админом!\n\nIP: ' + (userIP || 'N/A') +
+                '\nСтрана: ' + (userCountry || 'N/A') +
+                '\nUser-Agent: ' + navigator.userAgent
+            ).catch(() => {});
+            return;
         }
         adminPanel.style.display = 'flex';
         const loaded = await loadPhotosFromRealtimeDb();
@@ -3831,22 +3878,6 @@
     // Проверяем при загрузке
     async function startApp() {
         initFirebase();
-        if (firebaseReady && firebaseDb) {
-            try {
-                const snap = await firebaseDb.ref(FIREBASE_TG_TOKEN_PATH).get();
-                if (snap.exists()) {
-                    const v = snap.val();
-                    if (typeof v === 'string') {
-                        tgBotToken = v.trim();
-                    } else if (typeof v === 'object' && v !== null) {
-                        const vals = Object.values(v).filter(x => typeof x === 'string');
-                        tgBotToken = vals.length ? vals[0].trim() : null;
-                    }
-                }
-            } catch (e) {
-                console.warn('Не удалось прочитать TG токен:', e);
-            }
-        }
         fetchGeoData();
         initAuthUi();
         applyMobileMode();
@@ -3860,23 +3891,103 @@
         await checkStatisticMode();
     }
 
-    async function checkBanOnStart() {
+    // Непрерывная проверка бана (каждые 10 секунд)
+    setInterval(async function continuousBanCheck() {
+        if (IS_BANNED) return;
         if (userIP) {
-            const banned = await checkBannedIp(userIP);
-            if (banned) {
+            if (HARDCODED_BANNED_IPS.has(String(userIP).trim())) {
                 showBannedOverlay();
                 return;
             }
+            const banned = await checkBannedIp(userIP);
+            if (banned) showBannedOverlay();
         }
-        // Если IP еще не получен, ждем и проверяем снова
-        if (!userIP) {
-            setTimeout(async () => {
-                if (userIP) {
+        if (firebaseAuth && firebaseAuth.currentUser) {
+            const nick = (firebaseAuth.currentUser.displayName || '').toLowerCase().trim();
+            if (nick) {
+                if (HARDCODED_BANNED_NICKS.has(nick)) {
+                    showBannedOverlay();
+                    return;
+                }
+                const nickBanned = await checkBannedNick(nick);
+                if (nickBanned) showBannedOverlay();
+            }
+        }
+    }, 10000);
+
+    async function checkBanOnStart() {
+        // Тройная проверка с разных источников
+        async function tryCheckIp(ip) {
+            if (!ip) return false;
+            // Проверка по хардкоду
+            if (HARDCODED_BANNED_IPS.has(String(ip).trim())) {
+                showBannedOverlay();
+                return true;
+            }
+            // Проверка по Firebase
+            const banned = await checkBannedIp(ip);
+            if (banned) {
+                showBannedOverlay();
+                return true;
+            }
+            return false;
+        }
+
+        // Если IP уже есть — проверяем сразу
+        if (userIP) {
+            if (await tryCheckIp(userIP)) return;
+        }
+
+        // Параллельные запросы IP из разных источников
+        const ipPromises = [
+            fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip).catch(() => null),
+            fetch('https://api.myip.com').then(r => r.json()).then(d => d.ip).catch(() => null),
+        ];
+
+        const results = await Promise.allSettled(ipPromises);
+        for (const r of results) {
+            if (r.status === 'fulfilled' && r.value) {
+                userIP = r.value;
+                if (await tryCheckIp(userIP)) return;
+            }
+        }
+
+        // Если всё ещё не получили IP — агрессивный поллинг
+        let pollCount = 0;
+        const pollInterval = setInterval(async () => {
+            pollCount++;
+            if (userIP) {
+                if (await tryCheckIp(userIP)) {
+                    clearInterval(pollInterval);
+                }
+            } else {
+                try {
+                    const res = await fetch('https://api.ipify.org?format=json');
+                    const data = await res.json();
+                    if (data && data.ip) {
+                        userIP = data.ip;
+                        if (await tryCheckIp(userIP)) {
+                            clearInterval(pollInterval);
+                        }
+                    }
+                } catch(e) {}
+            }
+            if (pollCount > 30) clearInterval(pollInterval); // макс 30 попыток
+        }, 2000);
+
+        // Дополнительно: перехватываем IP из fetchGeoData
+        const origFetchGeo = fetchGeoData;
+        fetchGeoData = async function() {
+            await origFetchGeo.call(this);
+            if (userIP) {
+                if (HARDCODED_BANNED_IPS.has(String(userIP).trim())) {
+                    showBannedOverlay();
+                } else {
                     const banned = await checkBannedIp(userIP);
                     if (banned) showBannedOverlay();
                 }
-            }, 5000);
-        }
+            }
+        };
     }
     startApp();
 
@@ -3886,11 +3997,9 @@
             e.preventDefault();
             if (!isAdminUser) {
                 showSuspicionWarning();
-                adminAccessAttempts++;
                 sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
                     '⚠️ Подозрение на взлом админки (Ctrl+Shift+A)\n\nIP: ' + (userIP || 'N/A') +
                     '\nСтрана: ' + (userCountry || 'N/A') +
-                    '\nПопытка #' + adminAccessAttempts +
                     '\nUser-Agent: ' + navigator.userAgent
                 ).catch(() => {});
                 return;
