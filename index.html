@@ -706,6 +706,67 @@
         .auth-mode-switch { margin-top: 10px; text-align: center; font-size: 0.75rem; color: var(--text-accent); cursor: pointer; opacity: 0.8; }
         .auth-mode-switch:hover { opacity: 1; text-decoration: underline; }
 
+        .reg-overlay {
+            position: fixed; inset: 0; z-index: 950;
+            background: var(--bg-overlay); backdrop-filter: blur(16px);
+            display: none; align-items: center; justify-content: center;
+            padding: 16px;
+        }
+        .reg-overlay.open { display: flex; }
+        .reg-page {
+            background: var(--bg-surface-elevated);
+            border: 1px solid var(--border-card);
+            border-radius: 24px; padding: 28px 24px;
+            width: min(380px, calc(100vw - 32px));
+            text-align: center; position: relative;
+            animation: fadeIn 0.3s ease;
+        }
+        .reg-page h2 { margin: 0 0 16px; font-size: 1.3rem; background: var(--gradient-streak); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .reg-page input {
+            width: 100%; margin-top: 10px; padding: 12px; border-radius: 12px;
+            border: 1px solid var(--border-default); background: var(--bg-surface-input);
+            color: var(--text-primary); font-size: 16px; box-sizing: border-box;
+        }
+        .reg-page .row.reg-btn {
+            width: 100%; margin-top: 14px; padding: 13px; border-radius: 14px;
+            border: none; font-weight: 700; cursor: pointer;
+            background: linear-gradient(115deg, #5b4ad4, #8b3d7a); color: #fff; font-size: 1rem;
+        }
+        .reg-page .row.reg-btn-sec {
+            width: 100%; margin-top: 8px; padding: 11px; border-radius: 14px;
+            border: 1px solid var(--border-default); font-weight: 600; cursor: pointer;
+            background: transparent; color: var(--text-muted); font-size: 0.85rem;
+        }
+        .reg-error { font-size: 0.75rem; color: #ff6b8a; margin-top: 6px; min-height: 1em; }
+        .reg-close {
+            position: absolute; top: 10px; right: 14px; cursor: pointer;
+            font-size: 1.4rem; color: var(--text-close); line-height: 1;
+        }
+        .reg-close:hover { color: var(--text-primary); }
+        .reg-qr-wrap {
+            margin: 16px auto; width: 180px; height: 180px;
+            background: #fff; border-radius: 12px; padding: 8px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .reg-qr-wrap img { width: 100%; height: 100%; image-rendering: pixelated; }
+        .reg-tg-link {
+            display: inline-block; margin: 6px 0 4px; padding: 10px 20px;
+            border-radius: 12px; background: #2a9bdc; color: #fff;
+            font-weight: 700; text-decoration: none; font-size: 0.95rem;
+        }
+        .reg-tg-link:hover { background: #2488c4; }
+        .reg-poll-status { font-size: 0.9rem; color: var(--text-secondary); margin: 10px 0; }
+        .reg-desc { font-size: 0.8rem; color: var(--text-muted); margin: 0 0 4px; }
+        .reg-manual-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; }
+        .reg-manual-hint p { margin: 4px 0; }
+        .reg-manual-code {
+            font-size: 1.1rem; font-weight: 700; letter-spacing: 2px;
+            color: var(--text-accent); background: var(--bg-surface-input);
+            display: inline-block; padding: 4px 16px; border-radius: 8px; margin: 4px 0;
+            font-family: monospace;
+        }
+        .reg-page p { margin: 4px 0; }
+
         
         .stats-recap-overlay {
             position: fixed;
@@ -1241,16 +1302,47 @@
     <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;" data-i18n="authAccount">Аккаунт</div>
     <input type="text" id="authUsername" autocomplete="username" data-i18n-placeholder="authUsername" placeholder="Логин латиницей: ivan_k" maxlength="32">
     <input type="password" id="authPassword" autocomplete="current-password" data-i18n-placeholder="authPassword" placeholder="Пароль" maxlength="64">
-    <div class="tg-code-row" id="tgCodeRow" style="display:none;">
-        <input type="text" id="authTgCode" placeholder="✉️ Код из Telegram (от @FGGuessBot)" maxlength="10" autocomplete="off">
-    </div>
     <button type="button" class="row btn-in" id="authSignIn" data-i18n="authSignIn">Войти</button>
-    <button type="button" class="row btn-up" id="authSignUp" style="display:none;" data-i18n="authSignUp">Создать аккаунт</button>
     <button type="button" class="row btn-up" id="authSignOut" style="display:none;" data-i18n="authSignOut">Выйти</button>
     <div class="auth-mode-switch" id="authModeSwitch">
         <span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>
     </div>
     <p class="hint" data-i18n-html="authHint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
+</div>
+
+<div class="reg-overlay" id="regOverlay">
+    <div class="reg-page">
+        <div class="reg-close" id="regClose">✕</div>
+
+        <div id="regStep1">
+            <h2 data-i18n="regTitle">Регистрация</h2>
+            <input type="text" id="regNick" data-i18n-placeholder="regNickPlaceholder" placeholder="Ник" maxlength="32">
+            <input type="password" id="regPass" data-i18n-placeholder="regPassPlaceholder" placeholder="Пароль" maxlength="64">
+            <button class="row reg-btn" id="regContinue" data-i18n="regContinue">Продолжить</button>
+            <p class="reg-error" id="regError"></p>
+        </div>
+
+        <div id="regStep2" style="display:none">
+            <h2 data-i18n="regStep2Title">Подтверждение через Telegram</h2>
+            <p class="reg-desc" data-i18n="regStep2Desc">Отсканируйте QR-код или нажмите кнопку, чтобы подтвердить регистрацию в Telegram</p>
+            <div class="reg-qr-wrap">
+                <img id="regQrImg" alt="QR">
+            </div>
+            <a class="reg-tg-link" id="regBotLink" target="_blank" data-i18n="regOpenBot">👆 Открыть в Telegram</a>
+            <div class="reg-poll-status" id="regPollStatus">⏳ Ожидание подтверждения...</div>
+            <div class="reg-manual-hint" id="regManualHint">
+                <p data-i18n="regManualHint">Если не открывается — напишите боту @FGGuessBot и отправьте код:</p>
+                <div class="reg-manual-code" id="regManualCode"></div>
+            </div>
+            <button class="row reg-btn-sec" id="regCancelBtn" data-i18n="regCancel">Отмена</button>
+        </div>
+
+        <div id="regStep3" style="display:none">
+            <h2>✅ <span data-i18n="regSuccessTitle">Аккаунт создан!</span></h2>
+            <p data-i18n="regSuccessDesc">Добро пожаловать! Теперь войдите в аккаунт.</p>
+            <button class="row reg-btn" id="regSuccessBtn" data-i18n="regSuccessBtn">Войти</button>
+        </div>
+    </div>
 </div>
 
 <div class="game-container" id="gameContainer">
@@ -1619,6 +1711,26 @@
             'authHasAccount': 'Уже есть аккаунт? Войти',
             'authHint': 'Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.',
 
+            'regTitle': 'Регистрация',
+            'regNickPlaceholder': 'Ник',
+            'regPassPlaceholder': 'Пароль',
+            'regContinue': 'Продолжить',
+            'regStep2Title': 'Подтверждение через Telegram',
+            'regStep2Desc': 'Отсканируйте QR-код или нажмите кнопку, чтобы подтвердить регистрацию в Telegram',
+            'regOpenBot': '👆 Открыть в Telegram',
+            'regManualHint': 'Если не открывается — напишите боту @FGGuessBot и отправьте код:',
+            'regCancel': 'Отмена',
+            'regSuccessTitle': 'Аккаунт создан!',
+            'regSuccessDesc': 'Добро пожаловать! Теперь войдите в аккаунт.',
+            'regSuccessBtn': 'Войти',
+            'regPollWait': '⏳ Ожидание подтверждения...',
+            'regPollExpired': '⏳ Заявка устарела',
+            'regPollConfirmed': '✅ Подтверждено! Создаём аккаунт...',
+            'regErrorNickShort': 'Минимум 3 символа',
+            'regErrorPassShort': 'Минимум 4 символа',
+            'regDisabled': 'Регистрация временно отключена',
+            'regBannedWord': 'Имя содержит запрещённое слово',
+
             'streakFew': 'правильных ответа',
             'streakMany': 'правильных ответов',
             'streakOne': 'правильный ответ',
@@ -1809,6 +1921,27 @@
             'authNoAccount': 'No account? Register',
             'authHasAccount': 'Already have an account? Sign In',
             'authHint': 'No email required: we use a technical address like <code>name@femboy-guessor.local</code> inside Firebase. Password is stored by Firebase.',
+
+            'regTitle': 'Registration',
+            'regNickPlaceholder': 'Nickname',
+            'regPassPlaceholder': 'Password',
+            'regContinue': 'Continue',
+            'regStep2Title': 'Verify via Telegram',
+            'regStep2Desc': 'Scan the QR code or click the button to confirm registration in Telegram',
+            'regOpenBot': '👆 Open in Telegram',
+            'regManualHint': "If it doesn't open — message @FGGuessBot and send the code:",
+            'regCancel': 'Cancel',
+            'regSuccessTitle': 'Account created!',
+            'regSuccessDesc': 'Welcome! Now sign in to your account.',
+            'regSuccessBtn': 'Sign In',
+            'regPollWait': '⏳ Waiting for confirmation...',
+            'regPollExpired': '⏳ Request expired',
+            'regPollConfirmed': '✅ Confirmed! Creating account...',
+            'regErrorNickShort': 'Min 3 characters',
+            'regErrorPassShort': 'Min 4 characters',
+            'regDisabled': 'Registration is disabled',
+            'regBannedWord': 'Nickname contains a banned word',
+
             'streakFew': 'correct answers',
             'streakMany': 'correct answers',
             'streakOne': 'correct answer',
@@ -2910,6 +3043,200 @@
         mq.addEventListener('change', apply);
     }
 
+    function openRegPage() {
+        const overlay = document.getElementById('regOverlay');
+        if (overlay) overlay.classList.add('open');
+    }
+
+    function initRegPage() {
+        const overlay = document.getElementById('regOverlay');
+        const closeBtn = document.getElementById('regClose');
+        const step1 = document.getElementById('regStep1');
+        const step2 = document.getElementById('regStep2');
+        const step3 = document.getElementById('regStep3');
+        const regNick = document.getElementById('regNick');
+        const regPass = document.getElementById('regPass');
+        const regContinue = document.getElementById('regContinue');
+        const regError = document.getElementById('regError');
+        const regQrImg = document.getElementById('regQrImg');
+        const regBotLink = document.getElementById('regBotLink');
+        const regPollStatus = document.getElementById('regPollStatus');
+        const regManualCode = document.getElementById('regManualCode');
+        const regCancelBtn = document.getElementById('regCancelBtn');
+        const regSuccessBtn = document.getElementById('regSuccessBtn');
+        let pollTimer = null;
+        let currentToken = null;
+        let currentNick = null;
+        let currentPass = null;
+
+        function closeReg() {
+            overlay.classList.remove('open');
+            step1.style.display = 'block';
+            step2.style.display = 'none';
+            step3.style.display = 'none';
+            regError.textContent = '';
+            if (pollTimer) clearInterval(pollTimer);
+            pollTimer = null;
+        }
+
+        if (closeBtn) closeBtn.addEventListener('click', closeReg);
+        if (regCancelBtn) regCancelBtn.addEventListener('click', closeReg);
+        if (regSuccessBtn) regSuccessBtn.addEventListener('click', () => {
+            closeReg();
+            const authToggle = document.getElementById('authToggle');
+            if (authToggle) authToggle.click();
+        });
+
+        if (regContinue) {
+            regContinue.addEventListener('click', async () => {
+                const nick = String(regNick.value || '').trim().slice(0, 32);
+                const pass = regPass.value;
+
+                if (nick.length < 3) {
+                    regError.textContent = t('regErrorNickShort', 'Минимум 3 символа');
+                    return;
+                }
+                if (pass.length < 4) {
+                    regError.textContent = t('regErrorPassShort', 'Минимум 4 символа');
+                    return;
+                }
+
+                if (!firebaseReady || !firebaseDb) {
+                    regError.textContent = 'Firebase не подключён';
+                    return;
+                }
+
+                try {
+                    const settingsSnap = await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).get();
+                    const regEnabled = settingsSnap.exists() ? settingsSnap.val() !== false : true;
+                    if (!regEnabled) {
+                        regError.textContent = t('regDisabled', 'Регистрация временно отключена');
+                        return;
+                    }
+                } catch (e) {
+                    regError.textContent = e.message;
+                    return;
+                }
+
+                const nameLower = nick.toLowerCase();
+                await loadBannedNicks();
+                const bannedForCheck = new Set(bannedNicks);
+                for (const banned of HARDCODED_BANNED_NICKS) bannedForCheck.add(banned);
+                for (const banned of bannedForCheck) {
+                    if (banned && nameLower.includes(banned.toLowerCase())) {
+                        regError.textContent = t('regBannedWord', 'Имя содержит запрещённое слово');
+                        return;
+                    }
+                }
+
+                const token = Math.random().toString(36).slice(2, 10);
+                currentToken = token;
+                currentNick = nick;
+                currentPass = pass;
+
+                try {
+                    await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${token}`).set({
+                        nick: nick,
+                        createdAt: Date.now(),
+                        confirmed: false,
+                        chatId: null
+                    });
+                } catch (e) {
+                    regError.textContent = e.message;
+                    return;
+                }
+
+                const botUrl = `https://t.me/${TG_BOT_USERNAME}?start=${token}`;
+                const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(botUrl)}`;
+
+                regQrImg.src = qrUrl;
+                regQrImg.alt = 'QR';
+                regBotLink.href = botUrl;
+                regManualCode.textContent = token;
+
+                step1.style.display = 'none';
+                step2.style.display = 'block';
+                regPollStatus.textContent = t('regPollWait', '⏳ Ожидание подтверждения...');
+
+                pollTimer = setInterval(async () => {
+                    try {
+                        const snap = await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).get();
+                        if (!snap.exists()) {
+                            regPollStatus.textContent = t('regPollExpired', '⏳ Заявка устарела');
+                            if (pollTimer) clearInterval(pollTimer);
+                            pollTimer = null;
+                            return;
+                        }
+                        const data = snap.val();
+                        if (data.confirmed && data.chatId) {
+                            if (pollTimer) clearInterval(pollTimer);
+                            pollTimer = null;
+                            regPollStatus.textContent = t('regPollConfirmed', '✅ Подтверждено! Создаём аккаунт...');
+
+                            const usedTgId = `tg_${data.chatId}`;
+                            const usedSnap = await firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).get();
+                            if (usedSnap.exists()) {
+                                regError.textContent = 'Этот Telegram уже привязан к другому аккаунту';
+                                step2.style.display = 'none';
+                                step1.style.display = 'block';
+                                return;
+                            }
+
+                            const email = usernameToEmail(currentNick);
+                            const cred = await firebaseAuth.createUserWithEmailAndPassword(email, currentPass);
+                            await cred.user.updateProfile({ displayName: currentNick });
+
+                            if (firebaseDb) {
+                                await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${cred.user.uid}`).update({
+                                    username: currentNick,
+                                    createdAt: Date.now(),
+                                    runsPlayed
+                                });
+                            }
+                            await mergeRunsPlayedFromCloud();
+                            await syncRunsPlayedToCloud();
+
+                            firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).set({
+                                uid: cred.user.uid,
+                                username: currentNick,
+                                linkedAt: Date.now()
+                            }).catch(() => {});
+
+                            const regIp = userIP || 'N/A';
+                            const regCountry = userCountry || 'N/A';
+                            firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
+                                username: currentNick,
+                                uid: cred.user.uid,
+                                ip: regIp,
+                                country: regCountry,
+                                timestamp: Date.now()
+                            }).catch(() => {});
+
+                            firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).remove().catch(() => {});
+
+                            const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${currentNick}\n🆔 UID: ${cred.user.uid}\n🤖 TG ID: ${data.chatId}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}`;
+                            for (const chatId of ADMIN_TG_CHAT_IDS) {
+                                sendToTelegramFallback(chatId, regMsg).catch(() => {});
+                            }
+
+                            step2.style.display = 'none';
+                            step3.style.display = 'block';
+                            touchAuthStatusBar();
+                        }
+                    } catch (e) {
+                        console.warn('reg poll error', e);
+                    }
+                }, 2000);
+            });
+        }
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) {
+                closeReg();
+            }
+        });
+    }
+
     function initAuthUi() {
         const authBar = document.getElementById('authBar');
         const authToggle = document.getElementById('authToggle');
@@ -2918,34 +3245,12 @@
         const authUsername = document.getElementById('authUsername');
         const authPassword = document.getElementById('authPassword');
         const authSignIn = document.getElementById('authSignIn');
-        const authSignUp = document.getElementById('authSignUp');
         const authSignOut = document.getElementById('authSignOut');
-        const authTgCode = document.getElementById('authTgCode');
-        const tgCodeRow = document.getElementById('tgCodeRow');
         const authModeSwitch = document.getElementById('authModeSwitch');
-        let isRegisterMode = false;
         if (!firebaseAuth) return;
 
-        function setRegisterMode(enabled) {
-            isRegisterMode = enabled;
-            if (enabled) {
-                authSignIn.style.display = 'none';
-                authSignUp.style.display = 'block';
-                tgCodeRow.style.display = 'block';
-                authModeSwitch.innerHTML = '<span data-i18n="authHasAccount">Уже есть аккаунт? Войти</span>';
-            } else {
-                authSignIn.style.display = 'block';
-                authSignUp.style.display = 'none';
-                tgCodeRow.style.display = 'none';
-                authTgCode.value = '';
-                authModeSwitch.innerHTML = '<span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>';
-            }
-        }
-
         if (authModeSwitch) {
-            authModeSwitch.addEventListener('click', () => {
-                setRegisterMode(!isRegisterMode);
-            });
+            authModeSwitch.addEventListener('click', openRegPage);
         }
 
         const refreshAuthUi = (user) => {
@@ -2955,19 +3260,12 @@
                 authStatus.textContent = t('authLoggedInStatus', label, best);
                 authSignOut.style.display = 'block';
                 authSignIn.style.display = 'none';
-                authSignUp.style.display = 'none';
-                tgCodeRow.style.display = 'none';
                 authModeSwitch.style.display = 'none';
             } else {
                 authStatus.textContent = t('authGuestStatus', Number(bestStreakLocal || 0));
                 authSignOut.style.display = 'none';
-                isRegisterMode = false;
                 authSignIn.style.display = 'block';
-                authSignUp.style.display = 'none';
-                tgCodeRow.style.display = 'none';
-                authTgCode.value = '';
                 authModeSwitch.style.display = 'block';
-                authModeSwitch.innerHTML = '<span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>';
             }
         };
 
@@ -3028,112 +3326,7 @@
             }
         });
 
-        authSignUp.addEventListener('click', async () => {
-            try {
-                const name = String(authUsername.value || '').trim().slice(0, 32);
-
-                if (firebaseReady && firebaseDb) {
-                    const settingsSnap = await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).get();
-                    const regEnabled = settingsSnap.exists() ? settingsSnap.val() !== false : true;
-                    if (!regEnabled) {
-                        window.alert('Регистрация временно отключена администратором');
-                        return;
-                    }
-                }
-
-                const tgCode = String(authTgCode ? authTgCode.value : '').trim().toUpperCase();
-                if (!tgCode) {
-                    window.alert('Введите код из Telegram бота @FGGuessBot (/start)');
-                    return;
-                }
-
-                const codeSnap = await firebaseDb.ref(`${FIREBASE_TG_VERIFY_PATH}/${tgCode}`).get();
-                if (!codeSnap.exists()) {
-                    window.alert('Неверный или устаревший код. Запросите новый в @FGGuessBot');
-                    return;
-                }
-                const codeData = codeSnap.val();
-                if (!codeData.confirmed) {
-                    window.alert('Код ещё не подтверждён в Telegram. Нажмите "Подтвердить код" в боте.');
-                    return;
-                }
-                const tgChatId = codeData.chatId;
-                const usedTgId = `tg_${tgChatId}`;
-                const usedSnap = await firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).get();
-                if (usedSnap.exists()) {
-                    window.alert('Этот Telegram уже привязан к другому аккаунту');
-                    return;
-                }
-
-                await loadBannedNicks();
-                const nameLower = name.toLowerCase();
-                const bannedForCheck = new Set(bannedNicks);
-                for (const banned of HARDCODED_BANNED_NICKS) bannedForCheck.add(banned);
-                for (const banned of bannedForCheck) {
-                    if (banned && nameLower.includes(banned.toLowerCase())) {
-                        window.alert('Это имя содержит запрещённое слово и не может быть использовано');
-                        return;
-                    }
-                }
-
-                const email = usernameToEmail(authUsername.value);
-                const cred = await firebaseAuth.createUserWithEmailAndPassword(email, authPassword.value);
-                await cred.user.updateProfile({ displayName: name });
-                if (firebaseDb) {
-                    await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${cred.user.uid}`).update({
-                        username: name,
-                        createdAt: Date.now(),
-                        runsPlayed
-                    });
-                }
-                await mergeRunsPlayedFromCloud();
-                await syncRunsPlayedToCloud();
-                touchAuthStatusBar();
-                authPanel.classList.remove('open');
-
-                const regIp = userIP || 'N/A';
-                const regCountry = userCountry || 'N/A';
-                let sameIpInfo = '';
-                if (firebaseReady && firebaseDb && regIp !== 'N/A') {
-                    try {
-                        const logsSnap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).get();
-                        if (logsSnap.exists()) {
-                            const allLogs = [];
-                            logsSnap.forEach(child => allLogs.push(child.val()));
-                            const sameIpEntries = allLogs.filter(e => e && e.ip === regIp);
-                            const uniqueNames = [...new Set(sameIpEntries.map(e => e.username || '?'))];
-                            sameIpInfo = `\n\n📊 Аккаунтов с этим IP: ${sameIpEntries.length + 1}`;
-                            if (uniqueNames.length) {
-                                sameIpInfo += `\nНики: ${uniqueNames.join(', ')}`;
-                            }
-                        }
-                    } catch (e) {
-                        console.warn('sameIp query', e);
-                    }
-                }
-                if (firebaseReady && firebaseDb) {
-                    firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
-                        username: name,
-                        uid: cred.user.uid,
-                        ip: regIp,
-                        country: regCountry,
-                        timestamp: Date.now()
-                    }).catch(() => {});
-                    firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).set({
-                        uid: cred.user.uid,
-                        username: name,
-                        linkedAt: Date.now()
-                    }).catch(() => {});
-                    firebaseDb.ref(`${FIREBASE_TG_VERIFY_PATH}/${tgCode}`).remove().catch(() => {});
-                }
-                const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${name}\n🆔 UID: ${cred.user.uid}\n🤖 TG ID: ${tgChatId}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}${sameIpInfo}`;
-                for (const chatId of ADMIN_TG_CHAT_IDS) {
-                    sendToTelegramFallback(chatId, regMsg).catch(() => {});
-                }
-            } catch (err) {
-                window.alert(err.message || String(err));
-            }
-        });
+        authSignOut.addEventListener('click', async () => {
 
         authSignOut.addEventListener('click', async () => {
             try {
@@ -3351,6 +3544,8 @@
     const FIREBASE_BANNED_NICKS_PATH = 'femboy_guessor/banned/nicks';
     const FIREBASE_TG_VERIFY_PATH = 'femboy_guessor/tgVerifyCodes';
     const FIREBASE_USED_TG_PATH = 'femboy_guessor/usedTelegramIds';
+    const FIREBASE_PENDING_REG_PATH = 'femboy_guessor/pendingRegistrations';
+    const TG_BOT_USERNAME = 'FGGuessBot';
     let bannedIps = new Set();
     let bannedNicks = new Set();
 
@@ -4063,6 +4258,7 @@
         initFirebase();
         fetchGeoData();
         initAuthUi();
+        initRegPage();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
         await loadBannedNicks();

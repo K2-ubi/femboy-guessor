@@ -242,54 +242,138 @@ export default async function handler(req, res) {
     const text = update.message.text.trim();
     const chatId = update.message.chat.id;
 
-    if (text === '/start') {
-      const token = await getToken();
-      const siteUrl = process.env.SITE_URL || 'https://femboy-guessor.vercel.app';
-      await fetch(`${TG_API}/bot${token}/sendMessage`, {
+    const startMatch = text.match(/^\/start\s+(.+)/i);
+    if (startMatch) {
+      const token = startMatch[1].trim();
+      const database = db();
+      const pendingSnap = await database.ref(`femboy_guessor/pendingRegistrations/${token}`).get();
+      if (!pendingSnap.exists()) {
+        const botToken = await getToken();
+        await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: '❌ Код регистрации не найден или устарел. Начните регистрацию на сайте заново.'
+          })
+        });
+        return res.status(200).json({ ok: true });
+      }
+      const usedId = `tg_${chatId}`;
+      const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/' + usedId).get();
+      if (usedSnap.exists()) {
+        const botToken = await getToken();
+        await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: '❌ Этот Telegram уже привязан к другому аккаунту'
+          })
+        });
+        return res.status(200).json({ ok: true });
+      }
+      await database.ref(`femboy_guessor/pendingRegistrations/${token}/confirmed`).set(true);
+      await database.ref(`femboy_guessor/pendingRegistrations/${token}/chatId`).set(String(chatId));
+      const botToken = await getToken();
+      await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: chatId,
-          text: `👋 Добро пожаловать!\n\nВаш Telegram ID: <code>${chatId}</code>\n\nЧтобы зарегистрироваться на сайте, нажмите кнопку ниже — бот пришлёт код подтверждения.`,
-          parse_mode: 'HTML',
-          reply_markup: {
-            inline_keyboard: [[{ text: '🔐 Получить код для регистрации', callback_data: 'start_verify' }]]
-          }
+          text: '✅ Аккаунт подтверждён! Возвращайтесь на сайт для завершения регистрации.'
         })
       });
       return res.status(200).json({ ok: true });
     }
 
-    if (text === '/check') {
+    if (text === '/start') {
       const database = db();
-      const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/tg_' + chatId).get();
-      const token = await getToken();
+      const usedId = `tg_${chatId}`;
+      const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/' + usedId).get();
       if (usedSnap.exists()) {
-        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+        const botToken = await getToken();
+        await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: `ℹ️ Ваш Telegram (ID: ${chatId}) уже привязан к аккаунту на сайте.`
+            text: `ℹ️ Ваш Telegram (ID: ${chatId}) уже привязан к аккаунту.`
+          })
+        });
+        return res.status(200).json({ ok: true });
+      }
+      const botToken = await getToken();
+      await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: `👋 Добро пожаловать!\n\nВаш Telegram ID: <code>${chatId}</code>\n\nНа сайте сейчас открыта регистрация? Отправьте мне ник, который вы указали на сайте, и я подтвержу регистрацию.\n\nИли перейдите по ссылке с сайта — тогда всё произойдёт автоматически.`,
+          parse_mode: 'HTML'
+        })
+      });
+      const regToken = await database.ref('femboy_guessor/regBotState/' + chatId).set({
+        waitingForNick: true,
+        createdAt: Date.now()
+      });
+      return res.status(200).json({ ok: true });
+    }
+
+    const regStateSnap = await db().ref('femboy_guessor/regBotState/' + chatId).get();
+    const regState = regStateSnap.val();
+    if (regState && regState.waitingForNick) {
+      const database = db();
+      const nick = text.trim().toLowerCase();
+      const pendingSnap = await database.ref('femboy_guessor/pendingRegistrations').get();
+      let foundToken = null;
+      let foundData = null;
+      if (pendingSnap.exists()) {
+        pendingSnap.forEach(child => {
+          const val = child.val();
+          if (val && val.nick && val.nick.toLowerCase() === nick && !val.confirmed) {
+            foundToken = child.key;
+            foundData = val;
+          }
+        });
+      }
+      if (foundToken) {
+        const usedId = `tg_${chatId}`;
+        const usedSnap = await database.ref('femboy_guessor/usedTelegramIds/' + usedId).get();
+        if (usedSnap.exists()) {
+          const botToken = await getToken();
+          await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: '❌ Этот Telegram уже привязан к другому аккаунту'
+            })
+          });
+          await database.ref('femboy_guessor/regBotState/' + chatId).remove();
+          return res.status(200).json({ ok: true });
+        }
+        await database.ref(`femboy_guessor/pendingRegistrations/${foundToken}/confirmed`).set(true);
+        await database.ref(`femboy_guessor/pendingRegistrations/${foundToken}/chatId`).set(String(chatId));
+        await database.ref('femboy_guessor/regBotState/' + chatId).remove();
+        const botToken = await getToken();
+        await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: '✅ Аккаунт подтверждён! Возвращайтесь на сайт для завершения регистрации.'
           })
         });
       } else {
-        const verifyCode = Math.random().toString(36).slice(2, 8).toUpperCase();
-        await database.ref(`femboy_guessor/tgVerifyCodes/${verifyCode}`).set({
-          chatId: String(chatId),
-          createdAt: Date.now(),
-          confirmed: false
-        });
-        await fetch(`${TG_API}/bot${token}/sendMessage`, {
+        await database.ref('femboy_guessor/regBotState/' + chatId).remove();
+        const botToken = await getToken();
+        await fetch(`${TG_API}/bot${botToken}/sendMessage`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             chat_id: chatId,
-            text: `ℹ️ Telegram не привязан. Хотите зарегистрироваться?\n\nКод: <code>${verifyCode}</code>\n\nНажмите кнопку, чтобы подтвердить, затем введите код на сайте.`,
-            parse_mode: 'HTML',
-            reply_markup: {
-              inline_keyboard: [[{ text: '✅ Подтвердить код', callback_data: `verify:${verifyCode}` }]]
-            }
+            text: '❌ Регистрация с таким ником не найдена. Убедитесь, что вы начали регистрацию на сайте и указали тот же ник.'
           })
         });
       }
