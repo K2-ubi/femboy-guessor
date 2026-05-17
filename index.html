@@ -4323,6 +4323,10 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ adminUid: currentUserUid, targetUid: uid })
         });
+        if (!res.ok) {
+            const text = await res.text().catch(() => '');
+            throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
+        }
         const data = await res.json();
         if (!data.ok) throw new Error(data.error || 'Ошибка удаления');
         return data;
@@ -4374,6 +4378,10 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ adminUid: currentUserUid, nickPattern: pattern })
             });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
+            }
             const data = await res.json();
             if (!data.ok) throw new Error(data.error || 'Ошибка');
             if (bulkDeleteResult) {
@@ -4404,21 +4412,24 @@
         const el = document.getElementById('regLogsList');
         if (!el || !firebaseReady || !firebaseDb) return;
         try {
+            let entries = [];
             const snap = await firebaseDb.ref(FIREBASE_REG_LOGS_PATH).get();
-            if (!snap.exists()) {
+            if (snap.exists()) {
+                snap.forEach(child => entries.push({ id: child.key, ...child.val() }));
+                entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+                entries = entries.slice(0, 50);
+            }
+            if (!entries.length) {
                 el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Нет записей</div>';
                 return;
             }
-            const entries = [];
-            snap.forEach(child => entries.push({ id: child.key, ...child.val() }));
-            entries.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
-            const last50 = entries.slice(0, 50);
-            el.innerHTML = last50.map(e => {
+            el.innerHTML = entries.map(e => {
                 const time = e.timestamp ? new Date(e.timestamp).toLocaleString() : '?';
                 return `<div class="admin-mini-item"><span>${escapeHtml(e.username || '?')}</span><span style="font-size:0.7rem;opacity:.7;">${escapeHtml(e.ip || '')} ${time}</span></div>`;
             }).join('');
         } catch (e) {
             console.warn('loadRegLogs', e);
+            el.innerHTML = '<div style="opacity:.75;color:var(--text-secondary);font-size:.8rem;">Не удалось загрузить логи</div>';
         }
     }
 

@@ -12,9 +12,13 @@ function initAdmin() {
   });
 }
 
-async function isAdminUid(uid) {
+function getDb() {
   initAdmin();
-  const db = admin.database();
+  return admin.database();
+}
+
+async function isAdminUid(uid) {
+  const db = getDb();
   const snap = await db.ref('femboy_guessor/admins/' + uid).get();
   return snap.exists() && (snap.val() === true || snap.val() === 1 || snap.val() === '1');
 }
@@ -30,8 +34,7 @@ async function deleteUserFromAuth(uid) {
 }
 
 async function deleteUserDataFromDb(uid) {
-  initAdmin();
-  const db = admin.database();
+  const db = getDb();
   const promises = [];
   promises.push(db.ref('femboy_guessor/users/' + uid).remove());
   promises.push(db.ref('femboy_guessor/userStats/' + uid).remove());
@@ -51,19 +54,22 @@ async function deleteUserDataFromDb(uid) {
   await Promise.all(promises);
 }
 
-export default async function handler(req, res) {
+async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method === 'GET') {
+    return res.status(200).json({ ok: true, message: 'delete-user endpoint. Use POST.' });
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
-  const { adminUid, targetUid, nickPattern } = req.body || {};
-
-  if (!adminUid) return res.status(400).json({ error: 'adminUid required' });
-
   try {
+    const { adminUid, targetUid, nickPattern } = req.body || {};
+
+    if (!adminUid) return res.status(400).json({ error: 'adminUid required' });
+
     const adminValid = await isAdminUid(adminUid);
     if (!adminValid) return res.status(403).json({ error: 'Not admin' });
 
@@ -74,8 +80,7 @@ export default async function handler(req, res) {
     }
 
     if (nickPattern) {
-      initAdmin();
-      const db = admin.database();
+      const db = getDb();
       const usersSnap = await db.ref('femboy_guessor/users').get();
       if (!usersSnap.exists()) return res.status(200).json({ ok: true, deleted: 0, uids: [] });
 
@@ -113,3 +118,5 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: err.message });
   }
 }
+
+module.exports = handler;
