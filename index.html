@@ -1450,6 +1450,20 @@
         </div>
 
         <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <label class="admin-label">⏳ Удаление за последний час</label>
+            <div style="font-size:0.75rem;color:var(--text-close);margin-bottom:8px;line-height:1.4;">Удаляет всех пользователей, зарегистрированных за последний час (из Firebase Auth + базы данных)</div>
+            <button id="deleteRecentBtn" class="admin-button admin-button-secondary" style="background:#5a2c36;color:#ff7b9c;">⏳ УДАЛИТЬ ЗА ЧАС</button>
+            <div id="deleteRecentResult" style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px;max-height:150px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
+            <label class="admin-label">🧹 Очистка мёртвых аккаунтов</label>
+            <div style="font-size:0.75rem;color:var(--text-close);margin-bottom:8px;line-height:1.4;">Удаляет аккаунты из Firebase Auth, у которых нет данных в базе (никогда не заходили в игру, или были удалены вручную)</div>
+            <button id="cleanupOrphansBtn" class="admin-button admin-button-secondary" style="background:#5a2c36;color:#ff7b9c;">🧹 УДАЛИТЬ МЁРТВЫЕ АККАУНТЫ</button>
+            <div id="cleanupOrphansResult" style="font-size:0.75rem;color:var(--text-secondary);margin-top:8px;max-height:150px;overflow-y:auto;"></div>
+        </div>
+
+        <div class="admin-form-group" style="margin-top:18px; border-top:1px solid var(--border-default); padding-top:14px;">
             <label class="admin-label">📋 Логи регистраций</label>
             <div id="regLogsList" class="admin-mini-list" style="max-height:200px;"></div>
             <button id="refreshRegLogsBtn" class="admin-button admin-button-secondary" style="margin-top:8px;">🔄 ОБНОВИТЬ ЛОГИ</button>
@@ -2510,22 +2524,21 @@
 
     async function saveRun(score) {
         if (!firebaseReady || !firebaseDb) return;
-        const ref = firebaseDb.ref(FIREBASE_STATS_PATH).push();
         const uid = firebaseAuth && firebaseAuth.currentUser ? firebaseAuth.currentUser.uid : null;
+        if (!uid) return;
+        const ref = firebaseDb.ref(FIREBASE_STATS_PATH).push();
         const correct = Math.max(0, Number(score) || 0);
         const incorrect = 1;
         const win = correct >= 10;
         await ref.set({
             score,
             createdAt: Date.now(),
-            userId: uid || null,
+            userId: uid,
             correct,
             incorrect,
             win
         });
-        if (uid) {
-            await updateUserAggregates(uid, { score: correct, correct, incorrect, win });
-        }
+        await updateUserAggregates(uid, { score: correct, correct, incorrect, win });
     }
 
     async function updateUserAggregates(uid, { score, correct, incorrect, win }) {
@@ -2820,6 +2833,8 @@
                 const rawUsername = userInfo.username || (uid.length > 8 ? uid.slice(0, 8) + '…' : uid);
 
                 const username = getPlayerName(rawUsername, uid);
+                const usernameLower = username.toLowerCase();
+                if (usernameLower === 'гость' || usernameLower === 'guest' || !rawUsername || rawUsername.trim() === '') continue;
                 players.push({
                     username,
                     bestStreak: Number(stat.bestStreak || 0),
@@ -4434,6 +4449,97 @@
     }
 
     document.getElementById('refreshRegLogsBtn')?.addEventListener('click', loadRegLogs);
+
+    const deleteRecentBtn = document.getElementById('deleteRecentBtn');
+    const deleteRecentResult = document.getElementById('deleteRecentResult');
+
+    if (deleteRecentBtn) deleteRecentBtn.addEventListener('click', async () => {
+        if (!isAdminUser) return;
+        if (!confirm('Удалить всех пользователей, зарегистрированных за последний час? Это необратимо.')) return;
+        if (!confirm('Ещё раз подтвердите массовое удаление за последний час?')) return;
+        const currentUserUid = firebaseAuth?.currentUser?.uid;
+        try {
+            deleteRecentBtn.disabled = true;
+            deleteRecentBtn.textContent = '⏳ УДАЛЕНИЕ...';
+            if (deleteRecentResult) deleteRecentResult.innerHTML = '⏳ Удаление...';
+            const res = await fetch('/api/delete-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminUid: currentUserUid, action: 'deleteRecent' })
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
+            }
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'Ошибка');
+            if (deleteRecentResult) {
+                let html = `⏳ Найдено: ${data.total}, удалено: ${data.deleted}`;
+                if (data.results && data.results.length) {
+                    html += '<br>' + data.results.map(r =>
+                        r.error ? `❌ ${r.uid}: ${r.error}` : `✅ ${r.uid}: удалён`
+                    ).slice(0, 20).join('<br>');
+                    if (data.results.length > 20) html += '<br>... и ещё ' + (data.results.length - 20);
+                }
+                deleteRecentResult.innerHTML = html;
+            }
+            showAdminMessage(`⏳ Удалено ${data.deleted} пользователей за час`, 'success');
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                `⏳ Удаление зарегистрированных за час\nНайдено: ${data.total}\nУдалено: ${data.deleted}`
+            ).catch(() => {});
+        } catch (e) {
+            showAdminMessage('❌ ' + e.message, 'info');
+            if (deleteRecentResult) deleteRecentResult.innerHTML = '❌ ' + e.message;
+        } finally {
+            deleteRecentBtn.disabled = false;
+            deleteRecentBtn.textContent = '⏳ УДАЛИТЬ ЗА ЧАС';
+        }
+    });
+
+    const cleanupOrphansBtn = document.getElementById('cleanupOrphansBtn');
+    const cleanupOrphansResult = document.getElementById('cleanupOrphansResult');
+
+    if (cleanupOrphansBtn) cleanupOrphansBtn.addEventListener('click', async () => {
+        if (!isAdminUser) return;
+        if (!confirm('Удалить все аккаунты из Firebase Auth, у которых нет данных в базе? Это необратимо.')) return;
+        if (!confirm('Ещё раз подтвердите очистку мёртвых аккаунтов?')) return;
+        const currentUserUid = firebaseAuth?.currentUser?.uid;
+        try {
+            cleanupOrphansBtn.disabled = true;
+            cleanupOrphansBtn.textContent = '⏳ ОЧИСТКА...';
+            if (cleanupOrphansResult) cleanupOrphansResult.innerHTML = '⏳ Поиск мёртвых аккаунтов...';
+            const res = await fetch('/api/delete-user', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ adminUid: currentUserUid, action: 'cleanupOrphans' })
+            });
+            if (!res.ok) {
+                const text = await res.text().catch(() => '');
+                throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
+            }
+            const data = await res.json();
+            if (!data.ok) throw new Error(data.error || 'Ошибка');
+            if (cleanupOrphansResult) {
+                let html = `🧹 Найдено мёртвых: ${data.totalOrphans}, удалено: ${data.deleted}`;
+                if (data.results && data.results.length) {
+                    html += '<br>' + data.results.map(r =>
+                        r.error ? `❌ ${r.uid}: ${r.error}` : `✅ ${r.uid}: удалён`
+                    ).join('<br>');
+                }
+                cleanupOrphansResult.innerHTML = html;
+            }
+            showAdminMessage(`🧹 Удалено ${data.deleted} мёртвых аккаунтов`, 'success');
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                `🧹 Очистка мёртвых аккаунтов\nНайдено: ${data.totalOrphans}\nУдалено: ${data.deleted}`
+            ).catch(() => {});
+        } catch (e) {
+            showAdminMessage('❌ ' + e.message, 'info');
+            if (cleanupOrphansResult) cleanupOrphansResult.innerHTML = '❌ ' + e.message;
+        } finally {
+            cleanupOrphansBtn.disabled = false;
+            cleanupOrphansBtn.textContent = '🧹 УДАЛИТЬ МЁРТВЫЕ АККАУНТЫ';
+        }
+    });
 
     let photoCheckRunning = false;
     let photoCheckAbort = false;

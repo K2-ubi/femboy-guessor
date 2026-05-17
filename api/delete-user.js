@@ -54,7 +54,7 @@ async function deleteUserDataFromDb(uid) {
   await Promise.all(promises);
 }
 
-async function handler(req, res) {
+export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -66,12 +66,82 @@ async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Only POST allowed' });
 
   try {
-    const { adminUid, targetUid, nickPattern } = req.body || {};
+    const { adminUid, targetUid, nickPattern, action } = req.body || {};
 
     if (!adminUid) return res.status(400).json({ error: 'adminUid required' });
 
     const adminValid = await isAdminUid(adminUid);
     if (!adminValid) return res.status(403).json({ error: 'Not admin' });
+
+    if (action === 'deleteRecent') {
+      const db = getDb();
+      const cutoff = Date.now() - 3600000;
+      const logsSnap = await db.ref('femboy_guessor/registrationLogs').get();
+      const toDelete = [];
+      if (logsSnap.exists()) {
+        logsSnap.forEach(child => {
+          const val = child.val();
+          if (val && val.uid && val.timestamp && val.timestamp >= cutoff) {
+            toDelete.push(val.uid);
+          }
+        });
+      }
+      const usersSnap = await db.ref('femboy_guessor/users').get();
+      if (usersSnap.exists()) {
+        usersSnap.forEach(child => {
+          const val = child.val();
+          if (val && val.createdAt && val.createdAt >= cutoff) {
+            if (!toDelete.includes(child.key)) toDelete.push(child.key);
+          }
+        });
+      }
+      const results = [];
+      for (const uid of toDelete) {
+        try {
+          const authDeleted = await deleteUserFromAuth(uid);
+          await deleteUserDataFromDb(uid);
+          results.push({ uid, authDeleted });
+        } catch (e) {
+          results.push({ uid, error: e.message });
+        }
+      }
+      return res.status(200).json({
+        ok: true,
+        total: toDelete.length,
+        deleted: results.filter(r => !r.error).length,
+        results
+      });
+    }
+
+    if (action === 'cleanupOrphans') {
+      initAdmin();
+      const db = getDb();
+      const dbUsersSnap = await db.ref('femboy_guessor/users').get();
+      const dbUsers = dbUsersSnap.exists() ? dbUsersSnap.val() : {};
+      const authUsersResult = await admin.auth().listUsers(1000);
+      const orphans = [];
+      for (const authUser of authUsersResult.users) {
+        if (!dbUsers[authUser.uid]) {
+          orphans.push(authUser.uid);
+        }
+      }
+      const results = [];
+      for (const uid of orphans) {
+        try {
+          await admin.auth().deleteUser(uid);
+          await deleteUserDataFromDb(uid);
+          results.push({ uid, deleted: true });
+        } catch (e) {
+          results.push({ uid, error: e.message });
+        }
+      }
+      return res.status(200).json({
+        ok: true,
+        totalOrphans: orphans.length,
+        deleted: results.filter(r => r.deleted).length,
+        results
+      });
+    }
 
     if (targetUid) {
       const authDeleted = await deleteUserFromAuth(targetUid);
@@ -113,10 +183,8 @@ async function handler(req, res) {
       });
     }
 
-    return res.status(400).json({ error: 'targetUid or nickPattern required' });
+    return res.status(400).json({ error: 'targetUid, nickPattern, or action required' });
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
 }
-
-module.exports = handler;
