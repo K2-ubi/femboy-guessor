@@ -1820,7 +1820,7 @@
     </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -3705,11 +3705,7 @@
 
                             const botUrl = `https://t.me/${TG_BOT_USERNAME}?start=${token}`;
 
-                            if (typeof QRCode !== 'undefined') {
-                                QRCode.toDataURL(botUrl, { width: 200, margin: 1 }, function(err, url) {
-                                    if (!err && regQrImg) regQrImg.src = url;
-                                });
-                            }
+                            try { var q = qrcode(0, 'M'); q.addData(botUrl); q.make(); regQrImg.src = q.createDataURL(4, 1); } catch(e) {}
                             regQrImg.alt = 'QR';
                             regBotLink.href = botUrl;
                             regManualCode.textContent = token;
@@ -4599,17 +4595,26 @@
       verifyBtn.style.display = 'none';
       emailSection.style.display = 'none';
       errorDiv.style.display = 'none';
+      window._pending2fa = true;
 
       function cleanup() {
         overlay.classList.remove('open');
         codeInput.value = '';
         if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+        window._pending2fa = false;
+        if (window._pending2faResume) {
+          window._pending2faResume();
+          window._pending2faResume = null;
+        }
       }
 
       async function handleVerify() {
         cleanup();
         sessionStorage.setItem('twofaPassed_' + user.uid, '1');
       }
+
+      cancelBtn.onclick = function() { cleanup(); firebaseAuth.signOut(); };
+      closeBtn.onclick = function() { cleanup(); firebaseAuth.signOut(); };
 
       if (method === 'email') {
         desc.textContent = t('2faChallengeEmail', 'Нажмите на ссылку в письме, отправленном на вашу почту');
@@ -4693,13 +4698,11 @@
 
       cancelBtn.onclick = function() {
         cleanup();
-        if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
-        overlay.classList.remove('open');
+        firebaseAuth.signOut();
       };
       closeBtn.onclick = function() {
         cleanup();
-        if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
-        overlay.classList.remove('open');
+        firebaseAuth.signOut();
       };
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) {
@@ -4748,11 +4751,7 @@
         if (val === 'totp') {
           currentTotpSecret = generateTotpSecret();
           var otpauthUrl = 'otpauth://totp/FemboyGuessor:' + (firebaseAuth.currentUser ? firebaseAuth.currentUser.email : 'user') + '?secret=' + currentTotpSecret + '&issuer=FemboyGuessor';
-          if (typeof QRCode !== 'undefined') {
-            QRCode.toDataURL(otpauthUrl, { width: 200, margin: 1 }, function(err, url) {
-              if (!err) totpQr.innerHTML = '<img src="' + url + '" alt="QR" style="max-width:180px;border-radius:8px;">';
-            });
-          }
+          try { var q = qrcode(0, 'M'); q.addData(otpauthUrl); q.make(); totpQr.innerHTML = '<img src="' + q.createDataURL(4, 1) + '" alt="QR" style="max-width:180px;border-radius:8px;">'; } catch(e) {}
           totpSecretDisplay.textContent = t('2faSetupTotpSecret', currentTotpSecret);
           setupDetails.textContent = t('2faSetupTotpQr', 'Отсканируйте QR-код в приложении');
           totpArea.style.display = 'block';
@@ -5319,6 +5318,11 @@
 
         await checkBanOnStart();
         setLanguage(currentLang);
+
+        if (window._pending2fa) {
+          await new Promise(function(r) { window._pending2faResume = r; });
+        }
+
         initGameModule();
         touchAuthStatusBar();
         await checkAdminMode();
