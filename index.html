@@ -1516,18 +1516,6 @@
         } catch(e) {}
 
         checkIndexedDBBan();
-
-        tryDetectIncognito().then(function(incog) {
-            if (incog) {
-                if (!document.documentElement.innerHTML.includes('🚫')) {
-                    renderBanPage();
-                    writeBanStorages();
-                }
-            }
-        });
-        tryDetectVPN().then(function(vpn) {
-            window.__vpnDetected = vpn;
-        });
     })();
 </script>
 </head>
@@ -2242,49 +2230,20 @@
 
             var integrityIssues = checkFunctionIntegrity();
             if (integrityIssues.length > 0) {
-                if (!document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
-                    sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                        '⚠️ ЦЕЛОСТНОСТЬ НАРУШЕНА\nИзменены функции: ' + integrityIssues.join(', ') +
-                        '\nIP: ' + (userIP || 'N/A') +
-                        '\nFP: ' + getFingerprint()
-                    ).catch(function(){});
-                }
-                return;
-            }
-
-            var domIssue = checkDOMIntegrity();
-            if (domIssue) {
-                if (!document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
-                    sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                        '⚠️ DOM ИНТЕГРИТЕТ НАРУШЕН\n' + domIssue +
-                        '\nIP: ' + (userIP || 'N/A')
-                    ).catch(function(){});
-                }
-                return;
+                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                    '⚠️ Подозрение: изменены функции: ' + integrityIssues.join(', ') +
+                    '\nIP: ' + (userIP || 'N/A')
+                ).catch(function(){});
             }
 
             if (detectDevTools()) {
-                if (FG_DEVTOOLS.count > 5 && !document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
-                }
-                return;
-            }
-
-            if (!FG_REAL_USER && (FG_MOUSE_EVENTS + FG_TOUCH_EVENTS + FG_KEY_EVENTS) === 0 && currentStreak > 3) {
-                if (!document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
+                if (FG_DEVTOOLS.count > 10) {
+                    sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+                        '⚠️ Подозрение: DevTools (' + FG_DEVTOOLS.count + ') IP: ' + (userIP || 'N/A')
+                    ).catch(function(){});
                 }
             }
-
-            var timingIssue = analyzeTiming(Date.now());
-            if (timingIssue) {
-                if (!document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
-                }
-            }
-        }, 5000);
+        }, 15000);
     }
 
     function recordGuessTiming() {
@@ -2353,15 +2312,7 @@
     function addGuessTimestamp() { GUESS_TIMESTAMPS.push(Date.now()); }
 
     function detectBrowserTampering() {
-        var tampered = false;
-        try {
-            var fp = getFingerprint();
-            var storedLocal = localStorage.getItem(FG_FINGERPRINT_KEY);
-            var storedSession = sessionStorage.getItem(FG_FINGERPRINT_KEY);
-            if (storedLocal && storedLocal !== fp) tampered = true;
-            if (storedSession && storedSession !== fp) tampered = true;
-        } catch(e) {}
-        return tampered;
+        return false;
     }
 
     (function earlyBanCheck() {
@@ -2384,20 +2335,7 @@
             }
         } catch(e) {}
 
-        var headless = detectHeadless();
-        if (headless.length >= 3) { fullBanDetonate(); return; }
-
-        var botScore = detectBotBehavior();
-        if (botScore >= 5) { fullBanDetonate(); return; }
-
         try { getFingerprint(); } catch(e) {}
-
-        detectIncognito().then(function(incog) {
-            if (incog) {
-                var check = document.documentElement.innerHTML;
-                if (check.indexOf('🚫') === -1) { fullBanDetonate(); }
-            }
-        });
     })();
 
 
@@ -5156,18 +5094,13 @@
             }
         }
 
-        var headlessNow = detectHeadless();
-        if (headlessNow.length >= 4) { showBannedOverlay(); return; }
-
-        if (detectBrowserTampering()) { showBannedOverlay(); return; }
-
         if (checkRateLimit()) {
             showBannedOverlay();
             sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
                 '🚫 РАТЕ ЛИМИТ ПРЕВЫШЕН\nIP: ' + (userIP||'N/A') + '\nFP: ' + getFingerprint()
             ).catch(() => {});
         }
-    }, 8000);
+    }, 15000);
 
     async function checkBanOnStart() {
 
@@ -5231,16 +5164,6 @@
         try {
             if (checkMultiStorageBan()) { showBannedOverlay(); return; }
         } catch(e) {}
-
-        if (window.__vpnDetected) {
-            fullBanDetonate();
-        }
-
-        var headlessOnStart = detectHeadless();
-        if (headlessOnStart.length >= 3) { showBannedOverlay(); return; }
-
-        var botScore = detectBotBehavior();
-        if (botScore >= 5) { showBannedOverlay(); return; }
 
         const origFetchGeo = fetchGeoData;
         fetchGeoData = async function() {
