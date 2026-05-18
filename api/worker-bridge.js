@@ -9,7 +9,8 @@ const ALLOWED_PREFIXES = [
   'femboy_guessor/userStats',
   'femboy_guessor/registrationLogs',
   'femboy_guessor/photoCheck',
-  'femboy_guessor/photos'
+  'femboy_guessor/photos',
+  'femboy_guessor/banned'
 ];
 
 const WORKER_SECRET = process.env.WORKER_BRIDGE_SECRET;

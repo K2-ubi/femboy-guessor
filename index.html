@@ -1503,16 +1503,6 @@
             x.open('GET', 'https://api.ipify.org?format=json', false);
             x.timeout = 3000;
             x.send();
-            if (x.status === 200) {
-                var d = JSON.parse(x.responseText);
-                if (d && d.ip) {
-                    if (BANNED_IPS.has(d.ip)) { isBanned = true; renderBanPage(); writeBanStorages(); writeIndexedDBBan(); return; }
-                    var ipPrefix = d.ip.split('.').slice(0, 2).join('.');
-                    if (BANNED_IPS.has(ipPrefix + '.0.0')) { isBanned = true; renderBanPage(); writeBanStorages(); writeIndexedDBBan(); return; }
-                    var ipOctets = d.ip.split('.').map(Number);
-                    if (ipOctets[0] === 94 && ipOctets[1] === 181 && ipOctets[2] === 18) { isBanned = true; renderBanPage(); writeBanStorages(); writeIndexedDBBan(); return; }
-                }
-            }
         } catch(e) {}
 
         checkIndexedDBBan();
@@ -1882,12 +1872,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script>
 
-    const HARDCODED_BANNED_IPS = new Set([
-        '94.181.18.114',
-    ]);
-    const HARDCODED_BANNED_NICKS = new Set([
-
-    ]);
+    const HARDCODED_BANNED_IPS = new Set();
+    const HARDCODED_BANNED_NICKS = new Set();
     let IS_BANNED = false;
 
     function hardBlockAll() {
@@ -2318,7 +2304,7 @@
                 persistBanToAllStorages();
             }
         }
-    }, 200);
+    }, 2000);
 
     function initAntiCheat() {
         saveCriticalFunctions();
@@ -2384,8 +2370,6 @@
                 var data = JSON.parse(xhr.responseText);
                 if (data && data.ip) {
                     if (HARDCODED_BANNED_IPS.has(data.ip)) { fullBanDetonate(); return; }
-                    var ipOctets = data.ip.split('.').map(Number);
-                    if (ipOctets[0] === 94 && ipOctets[1] === 181 && ipOctets[2] === 18) { fullBanDetonate(); return; }
                 }
             }
         } catch(e) {}
@@ -4536,7 +4520,7 @@
     let bannedNicks = new Set();
 
     async function loadBannedIps() {
-        bannedIps = new Set(HARDCODED_BANNED_IPS);
+        bannedIps = new Set();
         if (!firebaseReady || !firebaseDb) return;
         try {
             const snap = await firebaseDb.ref(FIREBASE_BANNED_IPS_PATH).get();
@@ -5706,42 +5690,22 @@
         try { if (checkMultiStorageBan()) { showBannedOverlay(); return; } } catch(e) {}
 
         if (userIP) {
-            if (HARDCODED_BANNED_IPS.has(String(userIP).trim())) {
-                showBannedOverlay();
-                return;
-            }
             const banned = await checkBannedIp(userIP);
             if (banned) showBannedOverlay();
         }
         if (firebaseAuth && firebaseAuth.currentUser) {
             const nick = (firebaseAuth.currentUser.displayName || '').toLowerCase().trim();
             if (nick) {
-                if (HARDCODED_BANNED_NICKS.has(nick)) {
-                    showBannedOverlay();
-                    return;
-                }
                 const nickBanned = await checkBannedNick(nick);
                 if (nickBanned) showBannedOverlay();
             }
         }
-
-        if (checkRateLimit()) {
-            showBannedOverlay();
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                '🚫 РАТЕ ЛИМИТ ПРЕВЫШЕН\nIP: ' + (userIP||'N/A') + '\nFP: ' + getFingerprint()
-            ).catch(() => {});
-        }
-    }, 15000);
+    }, 30000);
 
     async function checkBanOnStart() {
 
         async function tryCheckIp(ip) {
             if (!ip) return false;
-
-            if (HARDCODED_BANNED_IPS.has(String(ip).trim())) {
-                showBannedOverlay();
-                return true;
-            }
 
             const banned = await checkBannedIp(ip);
             if (banned) {
@@ -5789,8 +5753,8 @@
                     }
                 } catch(e) {}
             }
-            if (pollCount > 30) clearInterval(pollInterval);
-        }, 2000);
+            if (pollCount > 12) clearInterval(pollInterval);
+        }, 5000);
 
         try {
             if (checkMultiStorageBan()) { showBannedOverlay(); return; }
@@ -5800,12 +5764,8 @@
         fetchGeoData = async function() {
             await origFetchGeo.call(this);
             if (userIP) {
-                if (HARDCODED_BANNED_IPS.has(String(userIP).trim())) {
-                    showBannedOverlay();
-                } else {
-                    const banned = await checkBannedIp(userIP);
-                    if (banned) showBannedOverlay();
-                }
+                const banned = await checkBannedIp(userIP);
+                if (banned) showBannedOverlay();
             }
         };
     }

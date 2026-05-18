@@ -9,7 +9,7 @@ const RATE_LIMIT_MAX = 20;
 
 const rateLimitMap = new Map();
 
-let BANNED_IPS = new Set(['94.181.18.114']);
+let BANNED_IPS = new Set();
 let bannedCacheTime = 0;
 const BAN_CACHE_TTL = 60000;
 
@@ -40,7 +40,7 @@ async function refreshBannedIps() {
     const snap = await admin.database().ref('femboy_guessor/banned/ips').get();
     if (snap.exists()) {
       const data = snap.val();
-      const newSet = new Set(['94.181.18.114']);
+      const newSet = new Set();
       if (Array.isArray(data)) {
         data.forEach(ip => { if (ip) newSet.add(String(ip).trim()); });
       } else if (typeof data === 'object' && data !== null) {
@@ -83,8 +83,6 @@ async function isBanned(req) {
   if (BANNED_IPS.has(clientIp)) return true;
   const ipPrefix = clientIp.split('.').slice(0, 2).join('.');
   if (BANNED_IPS.has(ipPrefix + '.0.0')) return true;
-  const ipOctets = clientIp.split('.').map(Number);
-  if (ipOctets[0] === 94 && ipOctets[1] === 181 && ipOctets[2] === 18) return true;
   return false;
 }
 
