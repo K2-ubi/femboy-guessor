@@ -1820,6 +1820,7 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -3703,9 +3704,12 @@
                             }
 
                             const botUrl = `https://t.me/${TG_BOT_USERNAME}?start=${token}`;
-                            const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(botUrl)}`;
 
-                            regQrImg.src = qrUrl;
+                            if (typeof QRCode !== 'undefined') {
+                                QRCode.toDataURL(botUrl, { width: 200, margin: 1 }, function(err, url) {
+                                    if (!err && regQrImg) regQrImg.src = url;
+                                });
+                            }
                             regQrImg.alt = 'QR';
                             regBotLink.href = botUrl;
                             regManualCode.textContent = token;
@@ -4744,8 +4748,11 @@
         if (val === 'totp') {
           currentTotpSecret = generateTotpSecret();
           var otpauthUrl = 'otpauth://totp/FemboyGuessor:' + (firebaseAuth.currentUser ? firebaseAuth.currentUser.email : 'user') + '?secret=' + currentTotpSecret + '&issuer=FemboyGuessor';
-          var qrUrl = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(otpauthUrl);
-          totpQr.innerHTML = '<img src="' + qrUrl + '" alt="QR" style="max-width:180px;border-radius:8px;">';
+          if (typeof QRCode !== 'undefined') {
+            QRCode.toDataURL(otpauthUrl, { width: 200, margin: 1 }, function(err, url) {
+              if (!err) totpQr.innerHTML = '<img src="' + url + '" alt="QR" style="max-width:180px;border-radius:8px;">';
+            });
+          }
           totpSecretDisplay.textContent = t('2faSetupTotpSecret', currentTotpSecret);
           setupDetails.textContent = t('2faSetupTotpQr', 'Отсканируйте QR-код в приложении');
           totpArea.style.display = 'block';
