@@ -2855,15 +2855,7 @@
     };
 
 
-    const FIREBASE_CONFIG = {
-        apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
-        authDomain: "project-3861147147890788156.firebaseapp.com",
-        databaseURL: "https://femboy-86a6e-default-rtdb.europe-west1.firebasedatabase.app",
-        projectId: "project-3861147147890788156",
-        storageBucket: "project-3861147147890788156.firebasestorage.app",
-        messagingSenderId: "321657389257",
-        appId: "1:321657389257:web:68e8310bc34343848b4d18"
-    };
+    let FIREBASE_CONFIG = null;
     const FIREBASE_PHOTOS_PATH = 'femboy_guessor/photos';
 
     const FIREBASE_STATS_PATH = 'femboy_guessor/stats';
@@ -2888,10 +2880,30 @@
     let bestStreakLocal = Number(localStorage.getItem('bestStreak') || '0') || 0;
     let bestStreakCloud = null;
 
-    function initFirebase() {
+    async function loadFirebaseConfig() {
+        try {
+            const res = await fetch('/api/firebase-config');
+            if (res.ok) {
+                FIREBASE_CONFIG = await res.json();
+                return true;
+            }
+        } catch (e) {
+            console.error('loadFirebaseConfig error:', e);
+        }
+        return false;
+    }
+
+    async function initFirebase() {
         try {
             if (!window.firebase) {
                 console.error('Firebase SDK не загружен');
+                return false;
+            }
+            if (!FIREBASE_CONFIG) {
+                await loadFirebaseConfig();
+            }
+            if (!FIREBASE_CONFIG || !FIREBASE_CONFIG.apiKey) {
+                console.error('Firebase config not loaded');
                 return false;
             }
             if (!firebase.apps.length) {
@@ -5286,7 +5298,7 @@
 
 
     async function startApp() {
-        initFirebase();
+        await initFirebase();
         fetchGeoData();
         initAuthUi();
         initRegPage();
