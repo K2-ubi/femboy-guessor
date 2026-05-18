@@ -1556,7 +1556,30 @@
     <div class="auth-mode-switch" id="authModeSwitch">
         <span data-i18n="authNoAccount">Нет аккаунта? Зарегистрироваться</span>
     </div>
-    <p class="hint" data-i18n-html="authHint">Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.</p>
+    <p class="hint" data-i18n-html="authHint">Можно использовать email или логин (для старых аккаунтов). Пароль хранится у Firebase.</p>
+
+    <div id="twofaSection" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--border-default);">
+        <div style="font-size:0.8rem;color:var(--text-label);font-weight:700;margin-bottom:8px;" data-i18n="2faSetupTitle">Двухфакторная аутентификация</div>
+        <div id="twofaStatus" style="font-size:0.75rem;margin-bottom:8px;color:var(--text-secondary);"></div>
+        <select id="twofaMethodSelect" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-surface-input);color:var(--text-primary);font-size:0.8rem;margin-bottom:8px;">
+            <option value="" data-i18n="2faSetupDesc">Выберите способ</option>
+            <option value="email" data-i18n="2faSetupMethodEmail">📧 Email</option>
+            <option value="telegram" data-i18n="2faSetupMethodTelegram">🤖 Telegram</option>
+            <option value="totp" data-i18n="2faSetupMethodTotp">🔐 Аутентификатор</option>
+            <option value="disable" data-i18n="2faSetupDisable">Отключить 2FA</option>
+        </select>
+        <div id="twofaSetupDetails" style="font-size:0.75rem;color:var(--text-secondary);margin-bottom:8px;"></div>
+        <div id="twofaSetupTotpArea" style="display:none;margin-bottom:8px;">
+            <div id="twofaTotpQr" style="text-align:center;margin-bottom:6px;"></div>
+            <div id="twofaTotpSecretDisplay" style="font-size:0.7rem;word-break:break-all;opacity:0.8;margin-bottom:6px;"></div>
+            <input type="text" id="twofaTotpVerifyInput" data-i18n-placeholder="2faSetupTotpVerify" placeholder="Введите код для подтверждения" maxlength="6" inputmode="numeric" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-surface-input);color:var(--text-primary);font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <div id="twofaTelegramArea" style="display:none;margin-bottom:8px;">
+            <input type="text" id="twofaTelegramCodeInput" placeholder="Код из Telegram" maxlength="10" style="width:100%;padding:8px;border-radius:8px;border:1px solid var(--border-default);background:var(--bg-surface-input);color:var(--text-primary);font-size:0.8rem;box-sizing:border-box;">
+        </div>
+        <button class="row reg-btn" id="twofaSaveBtn" style="font-size:0.75rem;padding:6px 12px;" data-i18n="2faChallengeVerify">Сохранить</button>
+        <div id="twofaSetupStatus" style="font-size:0.7rem;margin-top:6px;color:var(--text-accent);"></div>
+    </div>
 </div>
 
 <div class="reg-overlay" id="regOverlay">
@@ -1566,12 +1589,22 @@
         <div id="regStep1">
             <h2 data-i18n="regTitle">Регистрация</h2>
             <input type="text" id="regNick" data-i18n-placeholder="regNickPlaceholder" placeholder="Ник" maxlength="32">
+            <input type="email" id="regEmail" data-i18n-placeholder="regEmailPlaceholder" placeholder="Email" maxlength="128" autocomplete="email">
             <input type="password" id="regPass" data-i18n-placeholder="regPassPlaceholder" placeholder="Пароль" maxlength="64">
             <button class="row reg-btn" id="regContinue" data-i18n="regContinue">Продолжить</button>
             <p class="reg-error" id="regError"></p>
         </div>
 
         <div id="regStep2" style="display:none">
+            <h2 data-i18n="regCheckEmailTitle">Подтвердите email</h2>
+            <p class="reg-desc" id="regCheckEmailDesc">Мы отправили письмо. Перейдите по ссылке в письме.</p>
+            <div class="reg-poll-status" id="regEmailPollStatus">⏳ Ожидание подтверждения email...</div>
+            <button class="row reg-btn" id="regEmailCheckBtn" data-i18n="regCheckEmailBtn">Проверить подтверждение</button>
+            <button class="row reg-btn-sec" id="regEmailResendBtn" data-i18n="regCheckEmailResend">Отправить снова</button>
+            <button class="row reg-btn-sec" id="regEmailCancelBtn" data-i18n="regCancel">Отмена</button>
+        </div>
+
+        <div id="regStep3" style="display:none">
             <h2 data-i18n="regStep2Title">Подтверждение через Telegram</h2>
             <p class="reg-desc" data-i18n="regStep2Desc">Отсканируйте QR-код или нажмите кнопку, чтобы подтвердить регистрацию в Telegram</p>
             <div class="reg-qr-wrap">
@@ -1586,10 +1619,32 @@
             <button class="row reg-btn-sec" id="regCancelBtn" data-i18n="regCancel">Отмена</button>
         </div>
 
-        <div id="regStep3" style="display:none">
+        <div id="regStep4" style="display:none">
             <h2>✅ <span data-i18n="regSuccessTitle">Аккаунт создан!</span></h2>
             <p data-i18n="regSuccessDesc">Добро пожаловать! Теперь войдите в аккаунт.</p>
+            <p style="margin-top:12px;font-size:0.85rem;opacity:0.9;" data-i18n="reg2faSetup">Настроить 2FA можно позже в профиле.</p>
             <button class="row reg-btn" id="regSuccessBtn" data-i18n="regSuccessBtn">Войти</button>
+        </div>
+    </div>
+</div>
+
+<div class="reg-overlay" id="twofaChallengeOverlay">
+    <div class="reg-page">
+        <div class="reg-close" id="twofaChallengeClose">✕</div>
+        <div id="twofaChallengeContent">
+            <h2 data-i18n="2faChallengeTitle">Двухфакторная аутентификация</h2>
+            <p class="reg-desc" id="twofaChallengeDesc"></p>
+            <div id="twofaChallengeTotpInput" style="display:none;">
+                <input type="text" id="twofaChallengeCode" data-i18n-placeholder="2faChallengePlaceholder" placeholder="Код" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+            </div>
+            <div id="twofaChallengeEmailSection" style="display:none;">
+                <p data-i18n="2faChallengeEmail">Нажмите на ссылку в письме, отправленном на вашу почту</p>
+                <div class="reg-poll-status" id="twofaChallengeEmailPoll">⏳ Ожидание подтверждения email...</div>
+                <button class="row reg-btn" id="twofaChallengeEmailCheckBtn" data-i18n="2faChallengeVerify">Проверить</button>
+            </div>
+            <div id="twofaChallengeError" style="color:var(--text-accent);margin-top:10px;display:none;"></div>
+            <button class="row reg-btn" id="twofaChallengeVerifyBtn" style="display:none;" data-i18n="2faChallengeVerify">Подтвердить</button>
+            <button class="row reg-btn-sec" id="twofaChallengeCancelBtn" data-i18n="regCancel">Отмена</button>
         </div>
     </div>
 </div>
@@ -2429,7 +2484,7 @@
             'authSignOut': 'Выйти',
             'authNoAccount': 'Нет аккаунта? Зарегистрироваться',
             'authHasAccount': 'Уже есть аккаунт? Войти',
-            'authHint': 'Логин без почты: мы используем технический адрес вида <code>имя@femboy-guessor.local</code> внутри Firebase. Пароль хранится у Firebase.',
+            'authHint': 'Можно использовать email или логин (для старых аккаунтов). Пароль хранится у Firebase.',
 
             'regTitle': 'Регистрация',
             'regNickPlaceholder': 'Ник',
@@ -2450,6 +2505,44 @@
             'regErrorPassShort': 'Минимум 4 символа',
             'regDisabled': 'Регистрация временно отключена',
             'regBannedWord': 'Имя содержит запрещённое слово',
+            'regEmailPlaceholder': 'Email',
+            'regEmailInvalid': 'Неверный формат email',
+            'regCheckEmailTitle': 'Подтвердите email',
+            'regCheckEmailDesc': 'Мы отправили письмо на {0}. Перейдите по ссылке в письме, чтобы подтвердить email.',
+            'regCheckEmailBtn': 'Проверить подтверждение',
+            'regCheckEmailResend': 'Отправить снова',
+            'regCheckEmailSent': '✅ Письмо отправлено!',
+            'regCheckEmailVerified': '✅ Email подтверждён!',
+            'regCheckEmailWait': '⏳ Ожидание подтверждения email...',
+            'regCheckEmailError': '❌ Ошибка отправки письма',
+            'reg2faTitle': 'Настройка двухфакторной аутентификации',
+            'reg2faSkip': 'Пропустить',
+            'reg2faSetup': 'Настроить позже в профиле',
+
+            '2faChallengeTitle': 'Двухфакторная аутентификация',
+            '2faChallengeEmail': 'Нажмите на ссылку в письме, отправленном на вашу почту',
+            '2faChallengeTelegram': 'Введите код из Telegram бота',
+            '2faChallengeTotp': 'Введите 6-значный код из приложения-аутентификатора',
+            '2faChallengePlaceholder': 'Код',
+            '2faChallengeVerify': 'Подтвердить',
+            '2faChallengeEmailPoll': '⏳ Ожидание подтверждения email...',
+            '2faChallengeError': '❌ Неверный код',
+            '2faChallengeSuccess': '✅ Подтверждено!',
+            '2faDisabled': '2FA отключена',
+            '2faEnabled': '2FA: {0}',
+            '2faSetupTitle': 'Двухфакторная аутентификация',
+            '2faSetupDesc': 'Выберите способ',
+            '2faSetupDisable': 'Отключить 2FA',
+            '2faSetupMethodEmail': '📧 Email',
+            '2faSetupMethodTelegram': '🤖 Telegram',
+            '2faSetupMethodTotp': '🔐 Аутентификатор',
+            '2faSetupTotpSecret': 'Ваш секретный ключ: {0}',
+            '2faSetupTotpQr': 'Отсканируйте QR-код в приложении',
+            '2faSetupTotpVerify': 'Введите код из приложения для подтверждения',
+            '2faSetupTelegramSent': 'Код отправлен в Telegram бота. Введите его ниже.',
+            '2faSetupEmailSent': 'Письмо отправлено. Нажмите на ссылку.',
+            '2faSaved': '✅ Настройки 2FA сохранены',
+            '2faError': '❌ Ошибка настройки 2FA',
 
             'streakFew': 'правильных ответа',
             'streakMany': 'правильных ответов',
@@ -2640,7 +2733,7 @@
             'authSignOut': 'Sign Out',
             'authNoAccount': 'No account? Register',
             'authHasAccount': 'Already have an account? Sign In',
-            'authHint': 'No email required: we use a technical address like <code>name@femboy-guessor.local</code> inside Firebase. Password is stored by Firebase.',
+            'authHint': 'You can use email or username (for old accounts). Password stored by Firebase.',
 
             'regTitle': 'Registration',
             'regNickPlaceholder': 'Nickname',
@@ -2661,6 +2754,44 @@
             'regErrorPassShort': 'Min 4 characters',
             'regDisabled': 'Registration is disabled',
             'regBannedWord': 'Nickname contains a banned word',
+            'regEmailPlaceholder': 'Email',
+            'regEmailInvalid': 'Invalid email format',
+            'regCheckEmailTitle': 'Verify your email',
+            'regCheckEmailDesc': 'We sent an email to {0}. Click the link in the email to verify.',
+            'regCheckEmailBtn': 'Check verification',
+            'regCheckEmailResend': 'Resend',
+            'regCheckEmailSent': '✅ Email sent!',
+            'regCheckEmailVerified': '✅ Email verified!',
+            'regCheckEmailWait': '⏳ Waiting for email verification...',
+            'regCheckEmailError': '❌ Failed to send email',
+            'reg2faTitle': 'Two-factor authentication setup',
+            'reg2faSkip': 'Skip',
+            'reg2faSetup': 'Set up later in profile',
+
+            '2faChallengeTitle': 'Two-factor authentication',
+            '2faChallengeEmail': 'Click the link sent to your email',
+            '2faChallengeTelegram': 'Enter the code from Telegram bot',
+            '2faChallengeTotp': 'Enter 6-digit code from authenticator app',
+            '2faChallengePlaceholder': 'Code',
+            '2faChallengeVerify': 'Verify',
+            '2faChallengeEmailPoll': '⏳ Waiting for email verification...',
+            '2faChallengeError': '❌ Invalid code',
+            '2faChallengeSuccess': '✅ Verified!',
+            '2faDisabled': '2FA disabled',
+            '2faEnabled': '2FA: {0}',
+            '2faSetupTitle': 'Two-factor authentication',
+            '2faSetupDesc': 'Choose a method',
+            '2faSetupDisable': 'Disable 2FA',
+            '2faSetupMethodEmail': '📧 Email',
+            '2faSetupMethodTelegram': '🤖 Telegram',
+            '2faSetupMethodTotp': '🔐 Authenticator',
+            '2faSetupTotpSecret': 'Your secret key: {0}',
+            '2faSetupTotpQr': 'Scan the QR code in your authenticator app',
+            '2faSetupTotpVerify': 'Enter the code from the app to confirm',
+            '2faSetupTelegramSent': 'Code sent via Telegram bot. Enter it below.',
+            '2faSetupEmailSent': 'Email sent. Click the link in the email.',
+            '2faSaved': '✅ 2FA settings saved',
+            '2faError': '❌ 2FA setup error',
 
             'streakFew': 'correct answers',
             'streakMany': 'correct answers',
@@ -3310,7 +3441,12 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(body)
         });
-        const data = await res.json();
+        let data;
+        try {
+            data = await res.json();
+        } catch (e) {
+            throw new Error('API returned: ' + (await res.text()).slice(0, 100));
+        }
         if (!data.ok) throw new Error(data.error || 'proxy error');
         return true;
     }
@@ -3676,7 +3812,7 @@
     function getGuestId() {
         let guestId = localStorage.getItem('guestId');
         if (!guestId) {
-            guestId = Math.floor(100000 + Math.random() * 900000).toString();
+            guestId = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
             localStorage.setItem('guestId', guestId);
         }
         return guestId;
@@ -3787,7 +3923,9 @@
         const step1 = document.getElementById('regStep1');
         const step2 = document.getElementById('regStep2');
         const step3 = document.getElementById('regStep3');
+        const step4 = document.getElementById('regStep4');
         const regNick = document.getElementById('regNick');
+        const regEmail = document.getElementById('regEmail');
         const regPass = document.getElementById('regPass');
         const regContinue = document.getElementById('regContinue');
         const regError = document.getElementById('regError');
@@ -3797,23 +3935,45 @@
         const regManualCode = document.getElementById('regManualCode');
         const regCancelBtn = document.getElementById('regCancelBtn');
         const regSuccessBtn = document.getElementById('regSuccessBtn');
+        const regEmailPollStatus = document.getElementById('regEmailPollStatus');
+        const regEmailCheckBtn = document.getElementById('regEmailCheckBtn');
+        const regEmailResendBtn = document.getElementById('regEmailResendBtn');
+        const regEmailCancelBtn = document.getElementById('regEmailCancelBtn');
+        const regCheckEmailDesc = document.getElementById('regCheckEmailDesc');
         let pollTimer = null;
+        let emailPollTimer = null;
         let currentToken = null;
         let currentNick = null;
         let currentPass = null;
+        let currentEmail = null;
+        let currentCred = null;
+        let emailVerifiedSent = false;
 
         function closeReg() {
             overlay.classList.remove('open');
             step1.style.display = 'block';
             step2.style.display = 'none';
             step3.style.display = 'none';
+            step4.style.display = 'none';
             regError.textContent = '';
             if (pollTimer) clearInterval(pollTimer);
             pollTimer = null;
+            if (emailPollTimer) clearInterval(emailPollTimer);
+            emailPollTimer = null;
+            emailVerifiedSent = false;
+            currentCred = null;
+        }
+
+        function showStep(n) {
+            step1.style.display = n === 1 ? 'block' : 'none';
+            step2.style.display = n === 2 ? 'block' : 'none';
+            step3.style.display = n === 3 ? 'block' : 'none';
+            step4.style.display = n === 4 ? 'block' : 'none';
         }
 
         if (closeBtn) closeBtn.addEventListener('click', closeReg);
         if (regCancelBtn) regCancelBtn.addEventListener('click', closeReg);
+        if (regEmailCancelBtn) regEmailCancelBtn.addEventListener('click', closeReg);
         if (regSuccessBtn) regSuccessBtn.addEventListener('click', () => {
             closeReg();
             const authToggle = document.getElementById('authToggle');
@@ -3823,10 +3983,15 @@
         if (regContinue) {
             regContinue.addEventListener('click', async () => {
                 const nick = String(regNick.value || '').trim().slice(0, 32);
+                const email = String(regEmail.value || '').trim().toLowerCase();
                 const pass = regPass.value;
 
                 if (nick.length < 3) {
                     regError.textContent = t('regErrorNickShort', 'Минимум 3 символа');
+                    return;
+                }
+                if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                    regError.textContent = t('regEmailInvalid', 'Неверный формат email');
                     return;
                 }
                 if (pass.length < 4) {
@@ -3862,104 +4027,158 @@
                     }
                 }
 
-                const token = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 8);
-                currentToken = token;
                 currentNick = nick;
                 currentPass = pass;
+                currentEmail = email;
 
                 try {
-                    await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${token}`).set({
-                        nick: nick,
+                    currentCred = await firebaseAuth.createUserWithEmailAndPassword(email, pass);
+                    await currentCred.user.updateProfile({ displayName: nick });
+                    await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${currentCred.user.uid}`).update({
+                        username: nick,
+                        email: email,
                         createdAt: Date.now(),
-                        confirmed: false,
-                        chatId: null
+                        runsPlayed
                     });
+                    await setAuthStep(currentCred.user.uid, 'pending_email');
+                    await mergeRunsPlayedFromCloud();
+                    await syncRunsPlayedToCloud();
+                    await currentCred.user.sendEmailVerification();
+                    emailVerifiedSent = true;
                 } catch (e) {
                     regError.textContent = e.message;
                     return;
                 }
 
-                const botUrl = `https://t.me/${TG_BOT_USERNAME}?start=${token}`;
-                const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(botUrl)}`;
+                regCheckEmailDesc.textContent = t('regCheckEmailDesc', email);
+                regEmailPollStatus.textContent = t('regCheckEmailSent', '✅ Письмо отправлено!');
+                showStep(2);
 
-                regQrImg.src = qrUrl;
-                regQrImg.alt = 'QR';
-                regBotLink.href = botUrl;
-                regManualCode.textContent = token;
-
-                step1.style.display = 'none';
-                step2.style.display = 'block';
-                regPollStatus.textContent = t('regPollWait', '⏳ Ожидание подтверждения...');
-
-                pollTimer = setInterval(async () => {
+                emailPollTimer = setInterval(async () => {
                     try {
-                        const snap = await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).get();
-                        if (!snap.exists()) {
-                            regPollStatus.textContent = t('regPollExpired', '⏳ Заявка устарела');
-                            if (pollTimer) clearInterval(pollTimer);
-                            pollTimer = null;
-                            return;
-                        }
-                        const data = snap.val();
-                        if (data.confirmed && data.chatId) {
-                            if (pollTimer) clearInterval(pollTimer);
-                            pollTimer = null;
-                            regPollStatus.textContent = t('regPollConfirmed', '✅ Подтверждено! Создаём аккаунт...');
+                        await currentCred.user.reload();
+                        if (currentCred.user.emailVerified) {
+                            if (emailPollTimer) clearInterval(emailPollTimer);
+                            emailPollTimer = null;
+                            regEmailPollStatus.textContent = t('regCheckEmailVerified', '✅ Email подтверждён!');
 
-                            const usedTgId = `tg_${data.chatId}`;
-                            const usedSnap = await firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).get();
-                            if (usedSnap.exists()) {
-                                regError.textContent = 'Этот Telegram уже привязан к другому аккаунту';
-                                step2.style.display = 'none';
-                                step1.style.display = 'block';
+                            const uid = currentCred.user.uid;
+                            await setAuthStep(uid, 'email_verified');
+
+                            const token = Array.from(crypto.getRandomValues(new Uint8Array(6))).map(b => b.toString(16).padStart(2,'0')).join('').slice(0, 8);
+                            currentToken = token;
+
+                            try {
+                                await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${token}`).set({
+                                    nick: nick,
+                                    uid: uid,
+                                    createdAt: Date.now(),
+                                    confirmed: false,
+                                    chatId: null
+                                });
+                            } catch (e) {
+                                regError.textContent = e.message;
+                                showStep(1);
                                 return;
                             }
 
-                            const email = usernameToEmail(currentNick);
-                            const cred = await firebaseAuth.createUserWithEmailAndPassword(email, currentPass);
-                            await cred.user.updateProfile({ displayName: currentNick });
+                            const botUrl = `https://t.me/${TG_BOT_USERNAME}?start=${token}`;
+                            const qrUrl = `https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=${encodeURIComponent(botUrl)}`;
 
-                            if (firebaseDb) {
-                                await firebaseDb.ref(`${FIREBASE_USERS_PATH}/${cred.user.uid}`).update({
-                                    username: currentNick,
-                                    createdAt: Date.now(),
-                                    runsPlayed
-                                });
-                            }
-                            await mergeRunsPlayedFromCloud();
-                            await syncRunsPlayedToCloud();
+                            regQrImg.src = qrUrl;
+                            regQrImg.alt = 'QR';
+                            regBotLink.href = botUrl;
+                            regManualCode.textContent = token;
 
-                            firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).set({
-                                uid: cred.user.uid,
-                                username: currentNick,
-                                linkedAt: Date.now()
-                            }).catch(() => {});
+                            showStep(3);
+                            regPollStatus.textContent = t('regPollWait', '⏳ Ожидание подтверждения...');
 
-                            const regIp = userIP || 'N/A';
-                            const regCountry = userCountry || 'N/A';
-                            firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
-                                username: currentNick,
-                                uid: cred.user.uid,
-                                ip: regIp,
-                                country: regCountry,
-                                timestamp: Date.now()
-                            }).catch(() => {});
+                            pollTimer = setInterval(async () => {
+                                try {
+                                    const snap = await firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).get();
+                                    if (!snap.exists()) {
+                                        regPollStatus.textContent = t('regPollExpired', '⏳ Заявка устарела');
+                                        if (pollTimer) clearInterval(pollTimer);
+                                        pollTimer = null;
+                                        return;
+                                    }
+                                    const data = snap.val();
+                                    if (data.confirmed && data.chatId) {
+                                        if (pollTimer) clearInterval(pollTimer);
+                                        pollTimer = null;
+                                        regPollStatus.textContent = t('regPollConfirmed', '✅ Подтверждено! Сохраняем...');
 
-                            firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).remove().catch(() => {});
+                                        const usedTgId = `tg_${data.chatId}`;
+                                        const usedSnap = await firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).get();
+                                        if (usedSnap.exists()) {
+                                            regError.textContent = 'Этот Telegram уже привязан к другому аккаунту';
+                                            showStep(1);
+                                            return;
+                                        }
 
-                            const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${currentNick}\n🆔 UID: ${cred.user.uid}\n🤖 TG ID: ${data.chatId}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}`;
-                            for (const chatId of ADMIN_TG_CHAT_IDS) {
-                                sendToTelegramFallback(chatId, regMsg).catch(() => {});
-                            }
+                                        await setAuthStep(uid, 'complete');
 
-                            step2.style.display = 'none';
-                            step3.style.display = 'block';
-                            touchAuthStatusBar();
+                                        firebaseDb.ref(`${FIREBASE_USED_TG_PATH}/${usedTgId}`).set({
+                                            uid: uid,
+                                            username: nick,
+                                            linkedAt: Date.now()
+                                        }).catch(() => {});
+
+                                        const regIp = userIP || 'N/A';
+                                        const regCountry = userCountry || 'N/A';
+                                        firebaseDb.ref(FIREBASE_REG_LOGS_PATH).push({
+                                            username: nick,
+                                            uid: uid,
+                                            ip: regIp,
+                                            country: regCountry,
+                                            timestamp: Date.now()
+                                        }).catch(() => {});
+
+                                        firebaseDb.ref(`${FIREBASE_PENDING_REG_PATH}/${currentToken}`).remove().catch(() => {});
+
+                                        const regMsg = `🆕 НОВАЯ РЕГИСТРАЦИЯ\n\n👤 Ник: ${nick}\n🆔 UID: ${uid}\n🤖 TG ID: ${data.chatId}\n🌐 IP: ${regIp}\n🌍 Страна: ${regCountry}\n🕐 ${new Date().toISOString()}`;
+                                        for (const chatId of ADMIN_TG_CHAT_IDS) {
+                                            sendToTelegramFallback(chatId, regMsg).catch(() => {});
+                                        }
+
+                                        showStep(4);
+                                        touchAuthStatusBar();
+                                    }
+                                } catch (e) {
+                                    console.warn('reg poll error', e);
+                                }
+                            }, 2000);
                         }
                     } catch (e) {
-                        console.warn('reg poll error', e);
+                        console.warn('email poll error', e);
                     }
                 }, 2000);
+            });
+        }
+
+        if (regEmailCheckBtn) {
+            regEmailCheckBtn.addEventListener('click', async () => {
+                try {
+                    await currentCred.user.reload();
+                    if (currentCred.user.emailVerified) {
+                        regEmailPollStatus.textContent = t('regCheckEmailVerified', '✅ Email подтверждён!');
+                    } else {
+                        regEmailPollStatus.textContent = t('regCheckEmailWait', '⏳ Ожидание подтверждения email...');
+                    }
+                } catch (e) {
+                    regEmailPollStatus.textContent = '❌ ' + e.message;
+                }
+            });
+        }
+
+        if (regEmailResendBtn) {
+            regEmailResendBtn.addEventListener('click', async () => {
+                try {
+                    await currentCred.user.sendEmailVerification();
+                    regEmailPollStatus.textContent = t('regCheckEmailSent', '✅ Письмо отправлено!');
+                } catch (e) {
+                    regEmailPollStatus.textContent = '❌ ' + e.message;
+                }
             });
         }
 
@@ -4027,11 +4246,34 @@
                 }
                 refreshAuthUi(user);
                 checkBirthday(user.uid);
+
+                var authStep = await getAuthStep(user.uid);
+                var authMethod = await getAuthMethod(user.uid);
+                var twofaSection = document.getElementById('twofaSection');
+                if (twofaSection) {
+                    twofaSection.style.display = 'block';
+                }
+                updateTwofaStatus(user.uid);
+
+                if (authStep === 'pending_email') {
+                    if (!user.emailVerified) {
+                        try { await user.sendEmailVerification(); } catch(e) {}
+                    }
+                }
+
+                if (authMethod && authMethod !== 'disable' && authMethod !== '' && authStep === 'complete') {
+                    var twofaPassed = sessionStorage.getItem('twofaPassed_' + user.uid);
+                    if (!twofaPassed) {
+                        showTwofaChallenge(user, authMethod);
+                    }
+                }
             } else {
                 isAdminUser = false;
                 refreshAdminFab();
                 bestStreakCloud = null;
                 refreshAuthUi(null);
+                var twofaSection = document.getElementById('twofaSection');
+                if (twofaSection) twofaSection.style.display = 'none';
             }
         });
 
@@ -4049,7 +4291,8 @@
 
         authSignIn.addEventListener('click', async () => {
             try {
-                const email = usernameToEmail(authUsername.value);
+                const input = authUsername.value.trim();
+                const email = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input) ? input : usernameToEmail(input);
                 await firebaseAuth.signInWithEmailAndPassword(email, authPassword.value);
                 await mergeRunsPlayedFromCloud();
                 touchAuthStatusBar();
@@ -4287,7 +4530,8 @@
     const FIREBASE_TG_VERIFY_PATH = 'femboy_guessor/tgVerifyCodes';
     const FIREBASE_USED_TG_PATH = 'femboy_guessor/usedTelegramIds';
     const FIREBASE_PENDING_REG_PATH = 'femboy_guessor/pendingRegistrations';
-    const TG_BOT_USERNAME = 'FGGuessBot';
+    const FIREBASE_AUTH_SECRETS_PATH = 'femboy_guessor/authSecrets';
+    const TG_BOT_USERNAME = 'FemboyGuessorForAdmins_bot';
     let bannedIps = new Set();
     let bannedNicks = new Set();
 
@@ -4588,6 +4832,392 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    function base32Decode(s) {
+      var map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      s = s.replace(/=+$/, '').toUpperCase();
+      var bytes = [];
+      for (var i = 0, buf = 0, bits = 0; i < s.length; i++) {
+        buf = (buf << 5) | map.indexOf(s[i]);
+        bits += 5;
+        if (bits >= 8) {
+          bytes.push((buf >>> (bits - 8)) & 0xff);
+          bits -= 8;
+        }
+      }
+      return new Uint8Array(bytes);
+    }
+
+    function arrayBufferToBase32(buf) {
+      var map = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+      var bits = 0, value = 0, out = '';
+      for (var i = 0; i < buf.length; i++) {
+        value = (value << 8) | buf[i];
+        bits += 8;
+        while (bits >= 5) {
+          out += map[(value >>> (bits - 5)) & 0x1f];
+          bits -= 5;
+        }
+      }
+      if (bits > 0) out += map[(value << (5 - bits)) & 0x1f];
+      while (out.length % 8) out += '=';
+      return out;
+    }
+
+    function generateTotpSecret() {
+      var buf = new Uint8Array(20);
+      crypto.getRandomValues(buf);
+      return arrayBufferToBase32(buf);
+    }
+
+    async function getTotpCode(secret) {
+      var counter = Math.floor(Date.now() / 30000);
+      var counterBuf = new ArrayBuffer(8);
+      var view = new DataView(counterBuf);
+      view.setBigUint64(0, BigInt(counter));
+      var key = await crypto.subtle.importKey('raw', base32Decode(secret), { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+      var hmac = await crypto.subtle.sign('HMAC', key, counterBuf);
+      var hmacArr = new Uint8Array(hmac);
+      var offset = hmacArr[19] & 0xf;
+      var code = ((hmacArr[offset] & 0x7f) << 24) | (hmacArr[offset + 1] << 16) | (hmacArr[offset + 2] << 8) | hmacArr[offset + 3];
+      return String(code % 1000000).padStart(6, '0');
+    }
+
+    async function verifyTotp(secret, inputCode) {
+      for (var skew = -2; skew <= 2; skew++) {
+        try {
+          var savedTime = Date.now;
+          var skewMs = skew * 30000;
+          Date.now = function() { return savedTime() + skewMs; };
+          var code = await getTotpCode(secret);
+          Date.now = savedTime;
+          if (code === inputCode) return true;
+        } catch(e) {}
+      }
+      return false;
+    }
+
+    async function getAuthStep(uid) {
+      if (!firebaseReady || !firebaseDb) return null;
+      try {
+        var snap = await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authStep').get();
+        return snap.exists() ? snap.val() : null;
+      } catch(e) { return null; }
+    }
+
+    async function setAuthStep(uid, step) {
+      if (!firebaseReady || !firebaseDb) return;
+      try {
+        await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authStep').set(step);
+      } catch(e) {}
+    }
+
+    async function getAuthMethod(uid) {
+      if (!firebaseReady || !firebaseDb) return null;
+      try {
+        var snap = await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authMethod').get();
+        return snap.exists() ? snap.val() : null;
+      } catch(e) { return null; }
+    }
+
+    async function setAuthMethod(uid, method) {
+      if (!firebaseReady || !firebaseDb) return;
+      try {
+        await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authMethod').set(method);
+      } catch(e) {}
+    }
+
+    async function getUserTelegramChatId(uid) {
+      if (!firebaseReady || !firebaseDb) return null;
+      try {
+        var snap = await firebaseDb.ref('femboy_guessor/usedTelegramIds').get();
+        if (!snap.exists()) return null;
+        var all = snap.val();
+        for (var key in all) {
+          if (all[key] && all[key].uid === uid) {
+            var chatId = key.replace('tg_', '');
+            return chatId || null;
+          }
+        }
+        return null;
+      } catch(e) { return null; }
+    }
+
+    async function saveTotpSecret(uid, secret) {
+      if (!firebaseReady || !firebaseDb) return;
+      try {
+        await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/totpSecret').set(secret);
+      } catch(e) {}
+    }
+
+    async function getTotpSecret(uid) {
+      if (!firebaseReady || !firebaseDb) return null;
+      try {
+        var snap = await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/totpSecret').get();
+        return snap.exists() ? snap.val() : null;
+      } catch(e) { return null; }
+    }
+
+    function showTwofaChallenge(user, method) {
+      var overlay = document.getElementById('twofaChallengeOverlay');
+      var desc = document.getElementById('twofaChallengeDesc');
+      var codeInput = document.getElementById('twofaChallengeCode');
+      var verifyBtn = document.getElementById('twofaChallengeVerifyBtn');
+      var emailSection = document.getElementById('twofaChallengeEmailSection');
+      var emailPoll = document.getElementById('twofaChallengeEmailPoll');
+      var emailCheckBtn = document.getElementById('twofaChallengeEmailCheckBtn');
+      var errorDiv = document.getElementById('twofaChallengeError');
+      var cancelBtn = document.getElementById('twofaChallengeCancelBtn');
+      var closeBtn = document.getElementById('twofaChallengeClose');
+
+      codeInput.style.display = 'none';
+      verifyBtn.style.display = 'none';
+      emailSection.style.display = 'none';
+      errorDiv.style.display = 'none';
+
+      function cleanup() {
+        overlay.classList.remove('open');
+        codeInput.value = '';
+        if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+      }
+
+      async function handleVerify() {
+        cleanup();
+        sessionStorage.setItem('twofaPassed_' + user.uid, '1');
+      }
+
+      if (method === 'email') {
+        desc.textContent = t('2faChallengeEmail', 'Нажмите на ссылку в письме, отправленном на вашу почту');
+        emailSection.style.display = 'block';
+        emailPoll.textContent = t('2faChallengeEmailPoll', '⏳ Ожидание подтверждения email...');
+        window._twofaEmailTimer = setInterval(async () => {
+          try {
+            await user.reload();
+            if (user.emailVerified) {
+              if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+              emailPoll.textContent = t('2faChallengeSuccess', '✅ Подтверждено!');
+              handleVerify();
+            }
+          } catch(e) {}
+        }, 2000);
+        if (emailCheckBtn) {
+          emailCheckBtn.onclick = async function() {
+            try {
+              await user.reload();
+              if (user.emailVerified) {
+                if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+                emailPoll.textContent = t('2faChallengeSuccess', '✅ Подтверждено!');
+                handleVerify();
+              } else {
+                emailPoll.textContent = t('2faChallengeEmailPoll', '⏳ Ожидание подтверждения email...');
+              }
+            } catch(e) {
+              errorDiv.textContent = e.message;
+              errorDiv.style.display = 'block';
+            }
+          };
+        }
+      } else if (method === 'telegram') {
+        desc.textContent = t('2faChallengeTelegram', 'Введите код из Telegram бота');
+        codeInput.style.display = 'block';
+        verifyBtn.style.display = 'block';
+        var code = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
+        codeInput.dataset.expectedCode = code;
+        getUserTelegramChatId(user.uid).then(function(tgChatId) {
+          if (tgChatId) {
+            sendToTelegramFallback(tgChatId, '🔐 Ваш код для входа: <b>' + code + '</b>\n\nНикому не сообщайте этот код.').catch(function(){});
+          } else {
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+              '🔐 Код 2FA для ' + escapeHtml(user.displayName || user.email) + ' (UID: ' + user.uid + '): ' + code +
+              '\n\n⚠️ Telegram пользователя не найден в usedTelegramIds'
+            ).catch(function(){});
+          }
+        }).catch(function(){});
+        verifyBtn.onclick = async function() {
+          if (codeInput.value.trim() === codeInput.dataset.expectedCode) {
+            handleVerify();
+          } else {
+            errorDiv.textContent = t('2faChallengeError', '❌ Неверный код');
+            errorDiv.style.display = 'block';
+          }
+        };
+      } else if (method === 'totp') {
+        desc.textContent = t('2faChallengeTotp', 'Введите 6-значный код из приложения-аутентификатора');
+        codeInput.style.display = 'block';
+        verifyBtn.style.display = 'block';
+        verifyBtn.onclick = async function() {
+          var secret = await getTotpSecret(user.uid);
+          if (!secret) {
+            errorDiv.textContent = 'TOTP не настроен';
+            errorDiv.style.display = 'block';
+            return;
+          }
+          var ok = await verifyTotp(secret, codeInput.value.trim());
+          if (ok) {
+            handleVerify();
+          } else {
+            errorDiv.textContent = t('2faChallengeError', '❌ Неверный код');
+            errorDiv.style.display = 'block';
+          }
+        };
+      }
+
+      codeInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') verifyBtn.click();
+      });
+
+      cancelBtn.onclick = function() {
+        cleanup();
+        if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+        overlay.classList.remove('open');
+      };
+      closeBtn.onclick = function() {
+        cleanup();
+        if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+        overlay.classList.remove('open');
+      };
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          cleanup();
+          if (window._twofaEmailTimer) clearInterval(window._twofaEmailTimer);
+          overlay.classList.remove('open');
+        }
+      });
+      overlay.classList.add('open');
+    }
+
+    async function updateTwofaStatus(uid) {
+      var statusEl = document.getElementById('twofaStatus');
+      var method = await getAuthMethod(uid);
+      if (!method || method === '' || method === 'disable') {
+        statusEl.textContent = t('2faDisabled', '2FA отключена');
+      } else {
+        var labels = { email: '📧 Email', telegram: '🤖 Telegram', totp: '🔐 Аутентификатор' };
+        statusEl.textContent = t('2faEnabled', labels[method] || method);
+      }
+    }
+
+    function initTwofaSetup() {
+      var methodSelect = document.getElementById('twofaMethodSelect');
+      var saveBtn = document.getElementById('twofaSaveBtn');
+      var setupDetails = document.getElementById('twofaSetupDetails');
+      var totpArea = document.getElementById('twofaSetupTotpArea');
+      var totpQr = document.getElementById('twofaTotpQr');
+      var totpSecretDisplay = document.getElementById('twofaTotpSecretDisplay');
+      var totpVerifyInput = document.getElementById('twofaTotpVerifyInput');
+      var telegramArea = document.getElementById('twofaTelegramArea');
+      var telegramCodeInput = document.getElementById('twofaTelegramCodeInput');
+      var setupStatus = document.getElementById('twofaSetupStatus');
+      var currentTotpSecret = null;
+      var telegramCodeSent = null;
+
+      methodSelect.addEventListener('change', function() {
+        setupDetails.textContent = '';
+        totpArea.style.display = 'none';
+        telegramArea.style.display = 'none';
+        setupStatus.textContent = '';
+        currentTotpSecret = null;
+        telegramCodeSent = null;
+
+        var val = methodSelect.value;
+        if (val === 'totp') {
+          currentTotpSecret = generateTotpSecret();
+          var otpauthUrl = 'otpauth://totp/FemboyGuessor:' + (firebaseAuth.currentUser ? firebaseAuth.currentUser.email : 'user') + '?secret=' + currentTotpSecret + '&issuer=FemboyGuessor';
+          var qrUrl = 'https://chart.googleapis.com/chart?chs=200x200&cht=qr&chl=' + encodeURIComponent(otpauthUrl);
+          totpQr.innerHTML = '<img src="' + qrUrl + '" alt="QR" style="max-width:180px;border-radius:8px;">';
+          totpSecretDisplay.textContent = t('2faSetupTotpSecret', currentTotpSecret);
+          setupDetails.textContent = t('2faSetupTotpQr', 'Отсканируйте QR-код в приложении');
+          totpArea.style.display = 'block';
+        } else if (val === 'telegram') {
+          if (firebaseAuth && firebaseAuth.currentUser) {
+            telegramCodeSent = String(100000 + (crypto.getRandomValues(new Uint32Array(1))[0] % 900000));
+        getUserTelegramChatId(firebaseAuth.currentUser.uid).then(function(tgChatId) {
+          if (tgChatId) {
+            sendToTelegramFallback(tgChatId, '🔐 Ваш код для входа: <b>' + telegramCodeSent + '</b>\n\nНикому не сообщайте этот код.').catch(function(){});
+          } else {
+            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
+              '🔐 Код 2FA для ' + escapeHtml(firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email) + ': ' + telegramCodeSent +
+              '\n\n⚠️ Telegram пользователя не найден'
+            ).catch(function(){});
+          }
+        }).catch(function(){});
+        setupDetails.textContent = t('2faSetupTelegramSent', 'Код отправлен в Telegram бота. Введите его ниже.');
+            telegramCodeInput.value = '';
+            telegramArea.style.display = 'block';
+          }
+        } else if (val === 'email') {
+          if (firebaseAuth && firebaseAuth.currentUser) {
+            firebaseAuth.currentUser.sendEmailVerification().then(function() {
+              setupDetails.textContent = t('2faSetupEmailSent', 'Письмо отправлено. Нажмите на ссылку.');
+            }).catch(function(err) {
+              setupDetails.textContent = '❌ ' + err.message;
+            });
+          }
+        } else if (val === 'disable') {
+          setupDetails.textContent = '';
+        }
+      });
+
+      saveBtn.addEventListener('click', async function() {
+        if (!firebaseAuth || !firebaseAuth.currentUser) return;
+        var uid = firebaseAuth.currentUser.uid;
+        var val = methodSelect.value;
+        setupStatus.textContent = '';
+
+        try {
+          if (val === 'disable' || val === '') {
+            await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authMethod').set('disable');
+            await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/totpSecret').remove();
+            setupStatus.textContent = t('2faSaved', '✅ Настройки 2FA сохранены');
+            setupStatus.style.color = 'var(--text-status)';
+            updateTwofaStatus(uid);
+            return;
+          }
+
+          if (val === 'totp') {
+            if (!currentTotpSecret) {
+              setupStatus.textContent = 'Сначала сгенерируйте секрет';
+              return;
+            }
+            var code = totpVerifyInput.value.trim();
+            if (!code) {
+              setupStatus.textContent = 'Введите код из приложения для подтверждения';
+              return;
+            }
+            var ok = await verifyTotp(currentTotpSecret, code);
+            if (!ok) {
+              setupStatus.textContent = '❌ Неверный код. Попробуйте ещё раз.';
+              return;
+            }
+            await saveTotpSecret(uid, currentTotpSecret);
+          }
+
+          if (val === 'telegram') {
+            var tgCode = telegramCodeInput.value.trim();
+            if (!tgCode || tgCode !== telegramCodeSent) {
+              setupStatus.textContent = '❌ Неверный код';
+              return;
+            }
+          }
+
+          if (val === 'email') {
+            var uid2 = firebaseAuth.currentUser.uid;
+            await firebaseAuth.currentUser.reload();
+            if (!firebaseAuth.currentUser.emailVerified) {
+              setupStatus.textContent = '❌ Email не подтверждён. Нажмите на ссылку в письме.';
+              return;
+            }
+          }
+
+          await firebaseDb.ref(FIREBASE_AUTH_SECRETS_PATH + '/' + uid + '/authMethod').set(val);
+          setupStatus.textContent = t('2faSaved', '✅ Настройки 2FA сохранены');
+          setupStatus.style.color = 'var(--text-status)';
+          updateTwofaStatus(uid);
+        } catch(e) {
+          setupStatus.textContent = '❌ ' + e.message;
+        }
+      });
     }
 
     function renderAiCandidates() {
@@ -5052,6 +5682,7 @@
         fetchGeoData();
         initAuthUi();
         initRegPage();
+        initTwofaSetup();
         applyMobileMode();
         await loadPhotosFromRealtimeDb();
         await loadBannedNicks();

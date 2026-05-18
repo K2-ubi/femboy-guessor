@@ -38,7 +38,12 @@ async function sendToTelegram(method, params) {
   }
 
   const res = await fetchWithTimeout(url, options);
-  const data = await res.json();
+  let data;
+  try {
+    data = await res.json();
+  } catch (e) {
+    throw new Error('Telegram API: ' + (await res.text()).slice(0, 200));
+  }
   if (!res.ok || !data.ok) {
     throw new Error(data.description || `HTTP ${res.status}`);
   }
