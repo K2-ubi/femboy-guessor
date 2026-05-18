@@ -29,7 +29,7 @@ function initAdmin() {
   const serviceAccount = JSON.parse(json);
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
-    databaseURL: serviceAccount.databaseURL || 'https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app'
+    databaseURL: serviceAccount.databaseURL || 'https://femboy-86a6e-default-rtdb.europe-west1.firebasedatabase.app'
   });
 }
 

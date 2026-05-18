@@ -1448,46 +1448,6 @@
             } catch(e) {}
         }
 
-        function tryDetectIncognito() {
-            return new Promise(function(resolve) {
-                var fs = window.RequestFileSystem || window.webkitRequestFileSystem;
-                if (!fs) { resolve(false); return; }
-                fs(window.TEMPORARY, 100, function() { resolve(false); }, function() { resolve(true); });
-            });
-        }
-
-        function tryDetectVPN() {
-            var rtc = window.RTCPeerConnection || window.webkitRTCPeerConnection || window.mozRTCPeerConnection;
-            if (!rtc) return false;
-            var suspicious = false;
-            try {
-                var pc = new rtc({ iceServers: [] });
-                pc.createDataChannel('');
-                pc.createOffer().then(function(offer) { return pc.setLocalDescription(offer); }).catch(function(){});
-                var candidateHandler = function(e) {
-                    if (e.candidate && e.candidate.candidate) {
-                        var ipRegex = /([0-9]{1,3}\.){3}[0-9]{1,3}/;
-                        var match = e.candidate.candidate.match(ipRegex);
-                        if (match) {
-                            var ipParts = match[0].split('.').map(Number);
-                            if (ipParts[0] === 10 || ipParts[0] === 127 || (ipParts[0] === 192 && ipParts[1] === 168) || (ipParts[0] === 172 && ipParts[1] >= 16 && ipParts[1] <= 31)) {}
-                            else if (ipParts[0] >= 224) {}
-                            else {
-                                var firstOctet = ipParts[0];
-                                if (firstOctet >= 0 && firstOctet <= 9) suspicious = true;
-                                if (firstOctet >= 11 && firstOctet <= 126) {}
-                            }
-                        }
-                    }
-                };
-                pc.onicecandidate = candidateHandler;
-                setTimeout(function() {
-                    try { pc.close(); } catch(e) {}
-                    resolve(suspicious);
-                }, 1000);
-            } catch(e) { resolve(false); }
-        }
-
         function getFingerprintSync() {
             var canvas = generateCanvasFP();
             var sys = getSystemFP();
@@ -1497,13 +1457,6 @@
 
         fingerprint = getFingerprintSync();
         if (checkStoredBans()) { isBanned = true; renderBanPage(); writeBanStorages(); return; }
-
-        try {
-            var x = new XMLHttpRequest();
-            x.open('GET', 'https://api.ipify.org?format=json', false);
-            x.timeout = 3000;
-            x.send();
-        } catch(e) {}
 
         checkIndexedDBBan();
     })();
@@ -2035,262 +1988,7 @@
         });
     }
 
-    function detectHeadless() {
-        var checks = [];
-        if (!navigator.webdriver === undefined) checks.push(navigator.webdriver);
-        if (window.chrome && chrome.app && chrome.app.runtime) checks.push('chrome_app');
-        if (navigator.plugins && navigator.plugins.length === 0) checks.push('no_plugins');
-        if (navigator.languages && navigator.languages.length === 0) checks.push('no_langs');
-        if (Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetParent') &&
-            Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetParent').get &&
-            Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetParent').get.toString().includes('[native code]')) {}
-        else checks.push('broken_offset');
-        try {
-            var ua = navigator.userAgent.toLowerCase();
-            if (ua.indexOf('headless') !== -1) checks.push('headless_ua');
-            if (ua.indexOf('phantom') !== -1) checks.push('phantom');
-            if (ua.indexOf('puppet') !== -1) checks.push('puppeteer');
-            if (ua.indexOf('selenium') !== -1) checks.push('selenium');
-        } catch(e) {}
-        return checks;
-    }
 
-    function detectBotBehavior() {
-        var score = 0;
-        try {
-            if (!navigator.hardwareConcurrency || navigator.hardwareConcurrency === 0) score += 2;
-            if (navigator.deviceMemory === 0) score += 2;
-            if (screen.width === 0 || screen.height === 0) score += 3;
-            if (!navigator.language) score += 2;
-            if (navigator.plugins && navigator.plugins.length === 0) score += 1;
-            if (navigator.mimeTypes && navigator.mimeTypes.length === 0) score += 1;
-        } catch(e) {}
-        return score;
-    }
-
-    function checkHoneypot(e) {
-        var hp = document.getElementById('__hp_field');
-        if (hp && hp.value && hp.value.length > 0) return true;
-        var hp2 = document.getElementById('__hp_check');
-        if (hp2 && hp2.checked === true) return true;
-        return false;
-    }
-
-    function injectHoneypot() {
-        var hp = document.createElement('input');
-        hp.type = 'text';
-        hp.id = '__hp_field';
-        hp.name = '__hp_field';
-        hp.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0.01;pointer-events:none;';
-        hp.tabIndex = -1;
-        hp.autocomplete = 'off';
-        document.body.appendChild(hp);
-
-        var hp2 = document.createElement('input');
-        hp2.type = 'checkbox';
-        hp2.id = '__hp_check';
-        hp2.name = '__hp_check';
-        hp2.style.cssText = 'position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0.01;';
-        hp2.checked = false;
-        hp2.tabIndex = -1;
-        document.body.appendChild(hp2);
-    }
-
-    var FG_INTEGRITY = {
-        _makeGuess: null,
-        _hardBlockAll: null,
-        _showBannedOverlay: null,
-        _startApp: null,
-        _initFirebase: null,
-        _checkAdminFlag: null,
-        _getFingerprint: null,
-        _isBanned: null,
-        _saved: false
-    };
-
-    function saveCriticalFunctions() {
-        if (FG_INTEGRITY._saved) return;
-        FG_INTEGRITY._makeGuess = window.makeGuess ? makeGuess.toString() : null;
-        FG_INTEGRITY._hardBlockAll = hardBlockAll.toString();
-        FG_INTEGRITY._showBannedOverlay = showBannedOverlay.toString();
-        FG_INTEGRITY._startApp = startApp ? startApp.toString() : null;
-        FG_INTEGRITY._initFirebase = initFirebase ? initFirebase.toString() : null;
-        FG_INTEGRITY._checkAdminFlag = checkAdminFlag ? checkAdminFlag.toString() : null;
-        FG_INTEGRITY._getFingerprint = getFingerprint ? getFingerprint.toString() : null;
-        FG_INTEGRITY._isBanned = document.getElementById('bannedOverlay') !== null;
-        try {
-            FG_INTEGRITY._firebaseConfig = JSON.stringify(FIREBASE_CONFIG);
-        } catch(e) {}
-        FG_INTEGRITY._saved = true;
-    }
-
-    function checkFunctionIntegrity() {
-        var violations = [];
-        try {
-            if (FG_INTEGRITY._makeGuess && makeGuess && makeGuess.toString() !== FG_INTEGRITY._makeGuess) violations.push('makeGuess');
-            if (hardBlockAll.toString() !== FG_INTEGRITY._hardBlockAll) violations.push('hardBlockAll');
-            if (showBannedOverlay.toString() !== FG_INTEGRITY._showBannedOverlay) violations.push('showBannedOverlay');
-            if (FG_INTEGRITY._startApp && startApp && startApp.toString() !== FG_INTEGRITY._startApp) violations.push('startApp');
-            if (FG_INTEGRITY._getFingerprint && getFingerprint && getFingerprint.toString() !== FG_INTEGRITY._getFingerprint) violations.push('getFingerprint');
-            try {
-                var configStr = JSON.stringify(FIREBASE_CONFIG);
-                if (FG_INTEGRITY._firebaseConfig && configStr !== FG_INTEGRITY._firebaseConfig) violations.push('firebase_config');
-            } catch(e) {}
-        } catch(e) {
-            violations.push('integrity_check_failed');
-        }
-        return violations;
-    }
-
-    var FG_DEVTOOLS = { open: false, lastTime: 0, count: 0 };
-
-    function detectDevTools() {
-        var now = Date.now();
-        var threshold = 160;
-
-        var e = new Error();
-        if (e.stack) {
-            var stackLines = e.stack.split('\n');
-            if (stackLines.length > 15) {
-                FG_DEVTOOLS.count++;
-                if (FG_DEVTOOLS.count > 2) return true;
-            }
-        }
-
-        if (console && console.log && console.log.toString().includes('[native code]') === false) {
-            return true;
-        }
-
-        var diff = now - FG_DEVTOOLS.lastTime;
-        if (FG_DEVTOOLS.lastTime > 0 && diff > threshold) {
-            FG_DEVTOOLS.open = !FG_DEVTOOLS.open;
-        }
-        FG_DEVTOOLS.lastTime = now;
-
-        try {
-            if (window.Firebug && window.Firebug.chrome && window.Firebug.chrome.isInitialized) return true;
-        } catch(e) {}
-
-        if (window.outerWidth - window.innerWidth > 200 || window.outerHeight - window.innerHeight > 200) {
-            return true;
-        }
-
-        return false;
-    }
-
-    var FG_ELEMENT_HASHES = {};
-    function hashElement(el) {
-        var s = el.tagName + (el.id || '') + (el.className || '') + (el.type || '');
-        var h = 0;
-        for (var i = 0; i < s.length; i++) {
-            h = ((h << 5) - h) + s.charCodeAt(i);
-            h = h & h;
-        }
-        return 'el_' + (h >>> 0).toString(36);
-    }
-
-    function checkDOMIntegrity() {
-        try {
-            var hp = document.getElementById('__hp_field');
-            var hpCheck = document.getElementById('__hp_check');
-            var banOverlay = document.getElementById('bannedOverlay');
-
-            if (!hp || !hpCheck) return 'honeypot_removed';
-
-            var scripts = document.querySelectorAll('script');
-            for (var i = 0; i < scripts.length; i++) {
-                var s = scripts[i];
-                if (!s.src && s.textContent && s.textContent.length > 5) {
-                    if (s.textContent.includes('debugger') && !s.textContent.includes('FG_INTEGRITY')) {
-                        return 'injected_debugger';
-                    }
-                    if (s.textContent.includes('//# sourceURL=') && s.textContent.includes('hack')) {
-                        return 'injected_hack_url';
-                    }
-                }
-            }
-
-            return null;
-        } catch(e) { return null; }
-    }
-
-    var FG_GUESS_HISTORY = [];
-    function analyzeTiming(guessMs) {
-        FG_GUESS_HISTORY.push(guessMs);
-        if (FG_GUESS_HISTORY.length > 50) FG_GUESS_HISTORY.shift();
-        if (FG_GUESS_HISTORY.length < 10) return false;
-
-        var sum = 0;
-        for (var i = 0; i < FG_GUESS_HISTORY.length; i++) sum += FG_GUESS_HISTORY[i];
-        var avg = sum / FG_GUESS_HISTORY.length;
-
-        var allSimilar = true;
-        for (var i = 1; i < FG_GUESS_HISTORY.length; i++) {
-            if (Math.abs(FG_GUESS_HISTORY[i] - FG_GUESS_HISTORY[0]) > 80) { allSimilar = false; break; }
-        }
-
-        if (allSimilar && avg < 300 && FG_GUESS_HISTORY.length >= 10) return true;
-
-        if (avg < 50 && FG_GUESS_HISTORY.length >= 5) return true;
-
-        return false;
-    }
-
-    var FG_MOUSE_EVENTS = 0;
-    var FG_TOUCH_EVENTS = 0;
-    var FG_KEY_EVENTS = 0;
-    var FG_REAL_USER = false;
-
-    function detectHumanInteraction() {
-        function onInteraction(e) {
-            if (e.type === 'mousemove' || e.type === 'pointermove') {
-                if (FG_MOUSE_EVENTS < 10) FG_MOUSE_EVENTS++;
-            } else if (e.type === 'touchstart' || e.type === 'touchmove') {
-                FG_TOUCH_EVENTS++;
-            } else if (e.type === 'keydown' || e.type === 'keyup') {
-                FG_KEY_EVENTS++;
-            }
-            if (FG_MOUSE_EVENTS >= 5 || FG_TOUCH_EVENTS >= 2 || FG_KEY_EVENTS >= 3) {
-                FG_REAL_USER = true;
-            }
-        }
-        document.addEventListener('mousemove', onInteraction, { passive: true });
-        document.addEventListener('pointermove', onInteraction, { passive: true });
-        document.addEventListener('touchstart', onInteraction, { passive: true });
-        document.addEventListener('touchmove', onInteraction, { passive: true });
-        document.addEventListener('keydown', onInteraction, { passive: true });
-        document.addEventListener('keyup', onInteraction, { passive: true });
-        document.addEventListener('click', onInteraction, { passive: true });
-    }
-
-    var FG_SELF_HEAL_INTERVAL = null;
-    function startSelfHeal() {
-        if (FG_SELF_HEAL_INTERVAL) return;
-        FG_SELF_HEAL_INTERVAL = setInterval(function() {
-            if (IS_BANNED) return;
-
-            var integrityIssues = checkFunctionIntegrity();
-            if (integrityIssues.length > 0) {
-                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                    '⚠️ Подозрение: изменены функции: ' + integrityIssues.join(', ') +
-                    '\nIP: ' + (userIP || 'N/A')
-                ).catch(function(){});
-            }
-
-            if (detectDevTools()) {
-                if (FG_DEVTOOLS.count > 10) {
-                    sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                        '⚠️ Подозрение: DevTools (' + FG_DEVTOOLS.count + ') IP: ' + (userIP || 'N/A')
-                    ).catch(function(){});
-                }
-            }
-        }, 15000);
-    }
-
-    function recordGuessTiming() {
-        var now = Date.now();
-        analyzeTiming(now);
-    }
 
     var FG_BAN_WATCH = setInterval(function() {
         if (IS_BANNED) {
@@ -2307,73 +2005,13 @@
     }, 2000);
 
     function initAntiCheat() {
-        saveCriticalFunctions();
-        detectHumanInteraction();
-        startSelfHeal();
         window.__appStarted = Date.now();
-
-        try {
-            var origConsole = console.log;
-            console.log = function() {
-                if (FG_DEVTOOLS.count < 100) FG_DEVTOOLS.count++;
-                return origConsole.apply(console, arguments);
-            };
-        } catch(e) {}
-
-        try {
-            Object.defineProperty(window, 'FG_INTEGRITY', {
-                get: function() { return FG_INTEGRITY; },
-                set: function(v) {
-                    if (v && v._hardBlockAll && v._hardBlockAll !== FG_INTEGRITY._hardBlockAll) {
-                        showBannedOverlay();
-                    }
-                    FG_INTEGRITY = v;
-                },
-                configurable: false,
-                enumerable: false
-            });
-        } catch(e) {}
-
-        try {
-            var checkInterval = setInterval(function() {
-                if (IS_BANNED && !document.getElementById('bannedOverlay')) {
-                    showBannedOverlay();
-                }
-            }, 100);
-        } catch(e) {}
-    }
-
-    var GUESS_TIMESTAMPS = [];
-    function checkRateLimit() {
-        var now = Date.now();
-        GUESS_TIMESTAMPS = GUESS_TIMESTAMPS.filter(function(t) { return now - t < 10000; });
-        if (GUESS_TIMESTAMPS.length >= 20) return true;
-        return false;
-    }
-    function addGuessTimestamp() { GUESS_TIMESTAMPS.push(Date.now()); }
-
-    function detectBrowserTampering() {
-        return false;
     }
 
     (function earlyBanCheck() {
         try {
             if (checkMultiStorageBan()) { fullBanDetonate(); return; }
         } catch(e) {}
-
-        try {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', 'https://api.ipify.org?format=json', false);
-            xhr.timeout = 3000;
-            xhr.send();
-            if (xhr.status === 200) {
-                var data = JSON.parse(xhr.responseText);
-                if (data && data.ip) {
-                    if (HARDCODED_BANNED_IPS.has(data.ip)) { fullBanDetonate(); return; }
-                }
-            }
-        } catch(e) {}
-
         try { getFingerprint(); } catch(e) {}
     })();
 
@@ -3136,20 +2774,6 @@
 
     function makeGuess(guess) {
         if (IS_BANNED) { showBannedOverlay(); return; }
-        if (checkHoneypot()) { showBannedOverlay(); return; }
-
-        var integrity = checkFunctionIntegrity ? checkFunctionIntegrity() : [];
-        if (integrity.length > 0) { showBannedOverlay(); return; }
-
-        if (checkRateLimit()) {
-            showBannedOverlay();
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                '🚫 РАТЕ ЛИМИТ: флуд угадываний\nIP: ' + (userIP||'N/A') + '\nFP: ' + getFingerprint()
-            ).catch(() => {});
-            return;
-        }
-        addGuessTimestamp();
-        recordGuessTiming();
 
         if (!gameActive) {
             statusDiv.innerHTML = t('statusGameOver');
@@ -3234,7 +2858,7 @@
     const FIREBASE_CONFIG = {
         apiKey: "AIzaSyDQK_koB8rL_-UEHDUHzmUM_cQg5t5YHvk",
         authDomain: "project-3861147147890788156.firebaseapp.com",
-        databaseURL: "https://project-3861147147890788156-default-rtdb.europe-west1.firebasedatabase.app",
+        databaseURL: "https://femboy-86a6e-default-rtdb.europe-west1.firebasedatabase.app",
         projectId: "project-3861147147890788156",
         storageBucket: "project-3861147147890788156.firebasestorage.app",
         messagingSenderId: "321657389257",
@@ -5672,7 +5296,6 @@
         await loadBannedNicks();
         await loadBannedIps();
 
-        injectHoneypot();
         initAntiCheat();
 
         await checkBanOnStart();
@@ -5684,90 +5307,21 @@
     }
 
 
-    setInterval(async function continuousBanCheck() {
-        if (IS_BANNED) return;
-
-        try { if (checkMultiStorageBan()) { showBannedOverlay(); return; } } catch(e) {}
-
+    async function checkBanOnStart() {
         if (userIP) {
             const banned = await checkBannedIp(userIP);
-            if (banned) showBannedOverlay();
+            if (banned) { showBannedOverlay(); return; }
         }
-        if (firebaseAuth && firebaseAuth.currentUser) {
-            const nick = (firebaseAuth.currentUser.displayName || '').toLowerCase().trim();
-            if (nick) {
-                const nickBanned = await checkBannedNick(nick);
-                if (nickBanned) showBannedOverlay();
-            }
-        }
-    }, 30000);
-
-    async function checkBanOnStart() {
-
-        async function tryCheckIp(ip) {
-            if (!ip) return false;
-
-            const banned = await checkBannedIp(ip);
-            if (banned) {
-                showBannedOverlay();
-                return true;
-            }
-            return false;
-        }
-
-
-        if (userIP) {
-            if (await tryCheckIp(userIP)) return;
-        }
-
-
-        const ipPromises = [
-            fetch('https://api.ipify.org?format=json').then(r => r.json()).then(d => d.ip).catch(() => null),
-            fetch('https://api.myip.com').then(r => r.json()).then(d => d.ip).catch(() => null),
-        ];
-
-        const results = await Promise.allSettled(ipPromises);
-        for (const r of results) {
-            if (r.status === 'fulfilled' && r.value) {
-                userIP = r.value;
-                if (await tryCheckIp(userIP)) return;
-            }
-        }
-
-        let pollCount = 0;
-        const pollInterval = setInterval(async () => {
-            pollCount++;
-            if (userIP) {
-                if (await tryCheckIp(userIP)) {
-                    clearInterval(pollInterval);
-                }
-            } else {
-                try {
-                    const res = await fetch('https://api.ipify.org?format=json');
-                    const data = await res.json();
-                    if (data && data.ip) {
-                        userIP = data.ip;
-                        if (await tryCheckIp(userIP)) {
-                            clearInterval(pollInterval);
-                        }
-                    }
-                } catch(e) {}
-            }
-            if (pollCount > 12) clearInterval(pollInterval);
-        }, 5000);
-
         try {
-            if (checkMultiStorageBan()) { showBannedOverlay(); return; }
-        } catch(e) {}
-
-        const origFetchGeo = fetchGeoData;
-        fetchGeoData = async function() {
-            await origFetchGeo.call(this);
-            if (userIP) {
+            const res = await fetch('https://api.ipify.org?format=json');
+            const data = await res.json();
+            if (data && data.ip) {
+                userIP = data.ip;
                 const banned = await checkBannedIp(userIP);
-                if (banned) showBannedOverlay();
+                if (banned) { showBannedOverlay(); return; }
             }
-        };
+        } catch(e) {}
+        if (checkMultiStorageBan()) { showBannedOverlay(); return; }
     }
     startApp();
 
