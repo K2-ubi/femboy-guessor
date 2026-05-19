@@ -1556,7 +1556,7 @@
             <a class="reg-tg-link" id="regBotLink" target="_blank" data-i18n="regOpenBot">👆 Открыть в Telegram</a>
             <div class="reg-poll-status" id="regPollStatus">⏳ Ожидание подтверждения...</div>
             <div class="reg-manual-hint" id="regManualHint">
-                <p data-i18n="regManualHint">Если не открывается — напишите боту @FGGuessBot и отправьте код:</p>
+                <p data-i18n="regManualHint">Если не открывается — напишите боту @FemboyGuessorForAdmins_bot и отправьте код:</p>
                 <div class="reg-manual-code" id="regManualCode"></div>
             </div>
             <button class="row reg-btn-sec" id="regCancelBtn" data-i18n="regCancel">Отмена</button>
@@ -1947,14 +1947,16 @@
     function writeBanBeacon() {
         try {
             var b64 = btoa(JSON.stringify({ fp: getFingerprint(), ts: Date.now(), id: nanoId() }));
-            var url = '/api/telegram';
-            var body = JSON.stringify({
-                action: 'sendMessage',
-                chat_id: '1212294771',
-                text: '🚫 БАН АКТИВИРОВАН\nFP: ' + getFingerprint() + '\nTS: ' + new Date().toISOString() + '\nUA: ' + navigator.userAgent.slice(0,100)
-            });
+            var text = '🚫 БАН АКТИВИРОВАН\nFP: ' + getFingerprint() + '\nTS: ' + new Date().toISOString() + '\nUA: ' + navigator.userAgent.slice(0,100);
             if (navigator.sendBeacon) {
-                navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));
+                for (var idx = 0; idx < ADMIN_TG_CHAT_IDS.length; idx++) {
+                    var body = JSON.stringify({
+                        action: 'sendMessage',
+                        chat_id: ADMIN_TG_CHAT_IDS[idx],
+                        text: text
+                    });
+                    navigator.sendBeacon('/api/telegram', new Blob([body], { type: 'application/json' }));
+                }
             }
         } catch(e) {}
     }
@@ -2117,7 +2119,7 @@
             'regStep2Title': 'Подтверждение через Telegram',
             'regStep2Desc': 'Отсканируйте QR-код или нажмите кнопку, чтобы подтвердить регистрацию в Telegram',
             'regOpenBot': '👆 Открыть в Telegram',
-            'regManualHint': 'Если не открывается — напишите боту @FGGuessBot и отправьте код:',
+            'regManualHint': 'Если не открывается — напишите боту @FemboyGuessorForAdmins_bot и отправьте код:',
             'regCancel': 'Отмена',
             'regSuccessTitle': 'Аккаунт создан!',
             'regSuccessDesc': 'Добро пожаловать! Теперь войдите в аккаунт.',
@@ -2366,7 +2368,7 @@
             'regStep2Title': 'Verify via Telegram',
             'regStep2Desc': 'Scan the QR code or click the button to confirm registration in Telegram',
             'regOpenBot': '👆 Open in Telegram',
-            'regManualHint': "If it doesn't open — message @FGGuessBot and send the code:",
+            'regManualHint': "If it doesn't open — message @FemboyGuessorForAdmins_bot and send the code:",
             'regCancel': 'Cancel',
             'regSuccessTitle': 'Account created!',
             'regSuccessDesc': 'Welcome! Now sign in to your account.',
@@ -3096,6 +3098,16 @@
         }
         if (!data.ok) throw new Error(data.error || 'proxy error');
         return true;
+    }
+
+    async function sendToAdminChats(text, photoFile, replyMarkup) {
+        for (var idx = 0; idx < ADMIN_TG_CHAT_IDS.length; idx++) {
+            try {
+                await sendToTelegramFallback(ADMIN_TG_CHAT_IDS[idx], text, photoFile, replyMarkup);
+            } catch (err) {
+                console.error('sendToAdminChats error for', ADMIN_TG_CHAT_IDS[idx], err);
+            }
+        }
     }
 
 
@@ -4339,9 +4351,7 @@
         updateBannedIpsList();
         showAdminMessage('✅ IP ' + escapeHtml(ip) + ' забанен', 'success');
         const currentAdmin = firebaseAuth?.currentUser?.displayName || 'N/A';
-        sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-            `🚫 Админ забанил IP\nIP: ${ip}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`
-        ).catch(() => {});
+        sendToAdminChats(`🚫 Админ забанил IP\nIP: ${ip}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`);
     };
 
     window.unbanIp = async function(ip) {
@@ -4355,9 +4365,7 @@
         updateBannedIpsList();
         showAdminMessage('✅ IP ' + escapeHtml(ip) + ' разбанен', 'success');
         const currentAdmin = firebaseAuth?.currentUser?.displayName || 'N/A';
-        sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-            `✅ Админ разбанил IP\nIP: ${ip}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`
-        ).catch(() => {});
+        sendToAdminChats(`✅ Админ разбанил IP\nIP: ${ip}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`);
     };
 
     window.banNick = async function(nick) {
@@ -4377,9 +4385,7 @@
         updateBannedNicksList();
         showAdminMessage('✅ Ник ' + escapeHtml(nick) + ' забанен', 'success');
         const currentAdmin = firebaseAuth?.currentUser?.displayName || 'N/A';
-        sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-            `🚫 Админ забанил ник\nНик: ${nick}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`
-        ).catch(() => {});
+        sendToAdminChats(`🚫 Админ забанил ник\nНик: ${nick}\nАдмин: ${currentAdmin}\nВремя: ${new Date().toISOString()}`);
     };
 
     window.unbanNick = async function(nick) {
@@ -4683,10 +4689,8 @@
           if (tgChatId) {
             sendToTelegramFallback(tgChatId, '🔐 Ваш код для входа: <b>' + code + '</b>\n\nНикому не сообщайте этот код.').catch(function(){});
           } else {
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-              '🔐 Код 2FA для ' + escapeHtml(user.displayName || user.email) + ' (UID: ' + user.uid + '): ' + code +
-              '\n\n⚠️ Telegram пользователя не найден в usedTelegramIds'
-            ).catch(function(){});
+            sendToAdminChats('🔐 Код 2FA для ' + escapeHtml(user.displayName || user.email) + ' (UID: ' + user.uid + '): ' + code +
+              '\n\n⚠️ Telegram пользователя не найден в usedTelegramIds');
           }
         }).catch(function(){});
         verifyBtn.onclick = async function() {
@@ -4788,10 +4792,8 @@
           if (tgChatId) {
             sendToTelegramFallback(tgChatId, '🔐 Ваш код для входа: <b>' + telegramCodeSent + '</b>\n\nНикому не сообщайте этот код.').catch(function(){});
           } else {
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-              '🔐 Код 2FA для ' + escapeHtml(firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email) + ': ' + telegramCodeSent +
-              '\n\n⚠️ Telegram пользователя не найден'
-            ).catch(function(){});
+            sendToAdminChats('🔐 Код 2FA для ' + escapeHtml(firebaseAuth.currentUser.displayName || firebaseAuth.currentUser.email) + ': ' + telegramCodeSent +
+              '\n\n⚠️ Telegram пользователя не найден');
           }
         }).catch(function(){});
         setupDetails.textContent = t('2faSetupTelegramSent', 'Код отправлен в Telegram бота. Введите его ниже.');
@@ -5230,11 +5232,9 @@
     async function openAdminPanel() {
         if (!isAdminUser) {
             showSuspicionWarning();
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                '⚠️ Попытка открыть админ-панель не-админом!\n\nIP: ' + (userIP || 'N/A') +
+            sendToAdminChats('⚠️ Попытка открыть админ-панель не-админом!\n\nIP: ' + (userIP || 'N/A') +
                 '\nСтрана: ' + (userCountry || 'N/A') +
-                '\nUser-Agent: ' + navigator.userAgent
-            ).catch(() => {});
+                '\nUser-Agent: ' + navigator.userAgent);
             return;
         }
         adminPanel.style.display = 'flex';
@@ -5259,11 +5259,9 @@
         if (params.has('admin')) {
             if (!isAdminUser) {
                 showSuspicionWarning();
-                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                    '⚠️ Попытка зайти в админку через ?admin\n\nIP: ' + (userIP || 'N/A') +
+                sendToAdminChats('⚠️ Попытка зайти в админку через ?admin\n\nIP: ' + (userIP || 'N/A') +
                     '\nСтрана: ' + (userCountry || 'N/A') +
-                    '\nUser-Agent: ' + navigator.userAgent
-                ).catch(() => {});
+                    '\nUser-Agent: ' + navigator.userAgent);
                 return;
             }
             await openAdminPanel();
@@ -5380,11 +5378,9 @@
             e.preventDefault();
             if (!isAdminUser) {
                 showSuspicionWarning();
-                sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                    '⚠️ Подозрение на взлом админки (Ctrl+Shift+A)\n\nIP: ' + (userIP || 'N/A') +
+                sendToAdminChats('⚠️ Подозрение на взлом админки (Ctrl+Shift+A)\n\nIP: ' + (userIP || 'N/A') +
                     '\nСтрана: ' + (userCountry || 'N/A') +
-                    '\nUser-Agent: ' + navigator.userAgent
-                ).catch(() => {});
+                    '\nUser-Agent: ' + navigator.userAgent);
                 return;
             }
             const isClosed = adminPanel.style.display === 'none' || adminPanel.style.display === '';
@@ -5595,10 +5591,8 @@
             await firebaseDb.ref(`${FIREBASE_SETTINGS_PATH}/registrationEnabled`).set(!current);
             await loadRegistrationSettings();
             showAdminMessage(current ? '❌ Регистрация отключена' : '✅ Регистрация включена', 'success');
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                (current ? '❌ Регистрация отключена' : '✅ Регистрация включена') +
-                ' администратором ' + (firebaseAuth?.currentUser?.displayName || 'N/A')
-            ).catch(() => {});
+            sendToAdminChats((current ? '❌ Регистрация отключена' : '✅ Регистрация включена') +
+                ' администратором ' + (firebaseAuth?.currentUser?.displayName || 'N/A'));
         } catch (e) {
             showAdminMessage('❌ Ошибка: ' + e.message, 'info');
         }
@@ -5638,9 +5632,7 @@
                 deleteUserResult.innerHTML = `✅ Пользователь ${uid} удалён (Auth: ${result.authDeleted})`;
             }
             showAdminMessage(`✅ Пользователь ${uid} удалён`, 'success');
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                `🗑️ Админ удалил пользователя\nUID: ${uid}\nAuth deleted: ${result.authDeleted}`
-            ).catch(() => {});
+            sendToAdminChats(`🗑️ Админ удалил пользователя\nUID: ${uid}\nAuth deleted: ${result.authDeleted}`);
         } catch (e) {
             showAdminMessage('❌ ' + e.message, 'info');
             if (deleteUserResult) deleteUserResult.innerHTML = '❌ ' + e.message;
@@ -5686,9 +5678,7 @@
                 bulkDeleteResult.innerHTML = html;
             }
             showAdminMessage(`✅ Удалено ${data.deleted} из ${data.total} пользователей`, 'success');
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                `🗑️ Массовое удаление по нику\nСлово: "${pattern}"\nНайдено: ${data.total}\nУдалено: ${data.deleted}`
-            ).catch(() => {});
+            sendToAdminChats(`🗑️ Массовое удаление по нику\nСлово: "${pattern}"\nНайдено: ${data.total}\nУдалено: ${data.deleted}`);
         } catch (e) {
             showAdminMessage('❌ ' + e.message, 'info');
             if (bulkDeleteResult) bulkDeleteResult.innerHTML = '❌ ' + e.message;
@@ -5759,9 +5749,7 @@
                 deleteRecentResult.innerHTML = html;
             }
             showAdminMessage(`⏳ Удалено ${data.deleted} пользователей за час`, 'success');
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                `⏳ Удаление зарегистрированных за час\nНайдено: ${data.total}\nУдалено: ${data.deleted}`
-            ).catch(() => {});
+            sendToAdminChats(`⏳ Удаление зарегистрированных за час\nНайдено: ${data.total}\nУдалено: ${data.deleted}`);
         } catch (e) {
             showAdminMessage('❌ ' + e.message, 'info');
             if (deleteRecentResult) deleteRecentResult.innerHTML = '❌ ' + e.message;
@@ -5804,9 +5792,7 @@
                 cleanupOrphansResult.innerHTML = html;
             }
             showAdminMessage(`🧹 Удалено ${data.deleted} мёртвых аккаунтов`, 'success');
-            sendToTelegramFallback(ADMIN_TG_CHAT_IDS[0],
-                `🧹 Очистка мёртвых аккаунтов\nНайдено: ${data.totalOrphans}\nУдалено: ${data.deleted}`
-            ).catch(() => {});
+            sendToAdminChats(`🧹 Очистка мёртвых аккаунтов\nНайдено: ${data.totalOrphans}\nУдалено: ${data.deleted}`);
         } catch (e) {
             showAdminMessage('❌ ' + e.message, 'info');
             if (cleanupOrphansResult) cleanupOrphansResult.innerHTML = '❌ ' + e.message;

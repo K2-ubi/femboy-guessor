@@ -1,4 +1,6 @@
-const { TG_API, isBanned, setSecurityHeaders, getToken, db, checkContentLength, checkRateLimit, verifyAppCheck, fetchWithTimeout, isValidUrl } = require('./_shared');
+const { isBanned, setSecurityHeaders, db, checkRateLimit, verifyAppCheck, fetchWithTimeout, isValidUrl } = require('./_shared');
+
+const WORKER_URL = process.env.WORKER_URL || 'https://quiet-hat-2de7.konstasil777.workers.dev';
 
 const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
 const CHECK_DELAY_MS = 10000;
@@ -8,17 +10,16 @@ async function sleep(ms) {
   return new Promise(r => setTimeout(r, ms));
 }
 
-async function tgSendMessage(chatId, text, replyMarkup) {
-  const token = await getToken();
-  const payload = { chat_id: chatId, text };
+async function tgSendViaWorker(chatId, text, replyMarkup) {
+  const payload = { action: 'sendMessage', chat_id: String(chatId), text };
   if (replyMarkup) payload.reply_markup = replyMarkup;
-  const res = await fetchWithTimeout(`${TG_API}/bot${token}/sendMessage`, {
+  const res = await fetchWithTimeout(`${WORKER_URL}/api`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
   });
   const data = await res.json();
-  if (!data.ok) throw new Error(data.description || `TG HTTP ${res.status}`);
+  if (!data.ok) throw new Error(data.error || `Worker returned ${res.status}`);
   return data;
 }
 
@@ -66,19 +67,9 @@ module.exports = async function handler(req, res) {
     await runFullCheck();
   } catch (err) {
     console.error('Full check error:', err);
-    try {
-      const token = await getToken();
-      for (const chatId of ADMIN_TG_CHAT_IDS) {
-        await fetchWithTimeout(`${TG_API}/bot${token}/sendMessage`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            chat_id: chatId,
-            text: `❌ Ошибка проверки фото: ${err.message}`
-          })
-        }).catch(() => {});
-      }
-    } catch (_) {}
+    for (const chatId of ADMIN_TG_CHAT_IDS) {
+      tgSendViaWorker(chatId, `❌ Ошибка проверки фото: ${err.message}`).catch(() => {});
+    }
   }
 }
 
@@ -119,7 +110,7 @@ async function runFullCheck() {
     const fullMsg = msg + '\n\n🌐 IP сервера: ' + serverIp;
 
     for (const chatId of ADMIN_TG_CHAT_IDS) {
-      await tgSendMessage(chatId, fullMsg).catch(() => {});
+      await tgSendViaWorker(chatId, fullMsg).catch(() => {});
     }
 
     await database.ref('femboy_guessor/photoCheck/cursor').remove();
@@ -168,9 +159,8 @@ async function runFullCheck() {
         ]]
       };
 
-      const token = await getToken();
       for (const chatId of ADMIN_TG_CHAT_IDS) {
-        await tgSendMessage(chatId, text, inlineKeyboard).catch(() => {});
+        await tgSendViaWorker(chatId, text, inlineKeyboard).catch(() => {});
       }
     }
 
