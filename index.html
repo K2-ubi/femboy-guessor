@@ -5949,7 +5949,7 @@
             await sendTelegramMessage(summary + '\n\n🖥 Информация об устройстве:\n' + deviceInfo +
                 '\n\n🌐 IP сервера: ' + lastServerIp);
             statusEl.innerHTML = '✅ Проверка завершена. Проверено: ' + total + ', проблемных: ' + problematic.length;
-            showAdminMessage('✅ Проверка завершена. Проблемных: ' + problematic.length, problematic.length > 0 ? 'info' : 'success');
+            showAdminMessage('✅ Проверка завершена.Проблемных: ' + problematic.length, problematic.length > 0 ? 'info' : 'success');
         } catch (err) {
             console.error('Photo check error:', err);
             statusEl.innerHTML = '❌ Ошибка: ' + err.message;
