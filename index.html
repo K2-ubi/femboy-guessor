@@ -2895,6 +2895,26 @@
         return false;
     }
 
+    async function initAppCheck(siteKey) {
+        if (!siteKey || !firebase.appCheck) return;
+        if (!window.grecaptcha) {
+            try {
+                await new Promise((resolve, reject) => {
+                    const s = document.createElement('script');
+                    s.src = 'https://www.recaptcha.net/recaptcha/api.js?render=' + encodeURIComponent(siteKey);
+                    s.async = true;
+                    s.defer = true;
+                    s.onload = resolve;
+                    s.onerror = reject;
+                    document.head.appendChild(s);
+                });
+            } catch (e) {
+                console.warn('recaptcha.net fallback failed, trying Firebase built-in');
+            }
+        }
+        firebase.appCheck().activate(siteKey, true);
+    }
+
     async function initFirebase() {
         try {
             if (!window.firebase) {
@@ -2912,11 +2932,9 @@
                 firebase.initializeApp(FIREBASE_CONFIG);
             }
             try {
-                if (firebase.appCheck && FIREBASE_CONFIG.appCheckSiteKey) {
-                    firebase.appCheck().activate(FIREBASE_CONFIG.appCheckSiteKey, true);
-                }
+                await initAppCheck(FIREBASE_CONFIG.appCheckSiteKey);
             } catch (acErr) {
-                console.warn('AppCheck activation failed (non-fatal):', acErr);
+                console.warn('AppCheck activation failed:', acErr);
             }
             firebaseDb = firebase.database();
             firebaseAuth = firebase.auth();
