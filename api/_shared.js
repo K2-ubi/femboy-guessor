@@ -1,4 +1,5 @@
 const admin = require('firebase-admin');
+const { getAppCheck } = require('firebase-admin/app-check');
 const crypto = require('crypto');
 
 const TG_API = 'https://api.telegram.org';
@@ -84,6 +85,22 @@ async function isBanned(req) {
   const ipPrefix = clientIp.split('.').slice(0, 2).join('.');
   if (BANNED_IPS.has(ipPrefix + '.0.0')) return true;
   return false;
+}
+
+async function verifyAppCheck(req, res) {
+  const token = req.headers['x-firebase-appcheck'];
+  if (!token) {
+    res.status(401).json({ error: 'App Check token required' });
+    return false;
+  }
+  try {
+    initAdmin();
+    await getAppCheck().verifyToken(token);
+    return true;
+  } catch (e) {
+    res.status(401).json({ error: 'Invalid or expired App Check token' });
+    return false;
+  }
 }
 
 function setSecurityHeaders(res, methods) {
@@ -203,6 +220,7 @@ module.exports = {
   db,
   getClientIp,
   isBanned,
+  verifyAppCheck,
   setSecurityHeaders,
   escapeHtml,
   checkContentLength,

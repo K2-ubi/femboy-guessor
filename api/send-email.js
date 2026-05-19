@@ -1,4 +1,4 @@
-const { isBanned, setSecurityHeaders, checkContentLength, checkRateLimit } = require('./_shared');
+const { isBanned, setSecurityHeaders, checkContentLength, checkRateLimit, verifyAppCheck } = require('./_shared');
 
 const MAX_EMAIL_LEN = 320;
 
@@ -10,6 +10,7 @@ module.exports = async function handler(req, res) {
 
   if (!checkContentLength(req, res)) return;
   if (!checkRateLimit(req, res)) return;
+  if (!(await verifyAppCheck(req, res))) return;
 
   const banResult = await isBanned(req);
   if (banResult) return res.status(403).json({ error: 'Banned' });

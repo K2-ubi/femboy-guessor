@@ -1824,6 +1824,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-check-compat.js"></script>
 <script>
 
     const HARDCODED_BANNED_IPS = new Set();
@@ -2909,6 +2910,13 @@
             }
             if (!firebase.apps.length) {
                 firebase.initializeApp(FIREBASE_CONFIG);
+            }
+            try {
+                if (firebase.appCheck && FIREBASE_CONFIG.appCheckSiteKey) {
+                    firebase.appCheck().activate(FIREBASE_CONFIG.appCheckSiteKey, true);
+                }
+            } catch (acErr) {
+                console.warn('AppCheck activation failed (non-fatal):', acErr);
             }
             firebaseDb = firebase.database();
             firebaseAuth = firebase.auth();

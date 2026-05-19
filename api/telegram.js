@@ -1,4 +1,4 @@
-const { setSecurityHeaders, checkContentLength, checkRateLimit, fetchWithTimeout } = require('./_shared');
+const { setSecurityHeaders, checkContentLength, checkRateLimit, verifyAppCheck, fetchWithTimeout } = require('./_shared');
 
 const WORKER_URL = process.env.WORKER_URL || 'https://quiet-hat-2de7.konstasil777.workers.dev';
 const ALLOWED_CHAT_IDS = new Set(['1212294771', '8240197891']);
@@ -12,6 +12,7 @@ module.exports = async function handler(req, res) {
 
   if (!checkContentLength(req, res)) return;
   if (!checkRateLimit(req, res)) return;
+  if (!(await verifyAppCheck(req, res))) return;
 
   const { action, chat_id, text, photo, caption, reply_markup } = req.body || {};
 

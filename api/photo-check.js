@@ -1,4 +1,4 @@
-const { TG_API, isBanned, setSecurityHeaders, getToken, db, checkContentLength, checkRateLimit, fetchWithTimeout, isValidUrl } = require('./_shared');
+const { TG_API, isBanned, setSecurityHeaders, getToken, db, checkContentLength, checkRateLimit, verifyAppCheck, fetchWithTimeout, isValidUrl } = require('./_shared');
 
 const ADMIN_TG_CHAT_IDS = ['1212294771', '8240197891'];
 const CHECK_DELAY_MS = 10000;
@@ -47,6 +47,7 @@ module.exports = async function handler(req, res) {
 
   if (req.method === 'GET') {
     if (!checkRateLimit(req, res)) return;
+    if (!(await verifyAppCheck(req, res))) return;
   }
 
   const banResult = await isBanned(req);
