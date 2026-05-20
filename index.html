@@ -1948,16 +1948,18 @@
         try {
             var b64 = btoa(JSON.stringify({ fp: getFingerprint(), ts: Date.now(), id: nanoId() }));
             var text = '🚫 БАН АКТИВИРОВАН\nFP: ' + getFingerprint() + '\nTS: ' + new Date().toISOString() + '\nUA: ' + navigator.userAgent.slice(0,100);
-            if (navigator.sendBeacon) {
+            getAppCheckToken().then(function(acToken) {
+                var headers = { 'Content-Type': 'application/json' };
+                if (acToken) headers['x-firebase-appcheck'] = acToken;
                 for (var idx = 0; idx < ADMIN_TG_CHAT_IDS.length; idx++) {
-                    var body = JSON.stringify({
-                        action: 'sendMessage',
-                        chat_id: ADMIN_TG_CHAT_IDS[idx],
-                        text: text
-                    });
-                    navigator.sendBeacon('/api/telegram', new Blob([body], { type: 'application/json' }));
+                    fetch('/api/telegram', {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify({ action: 'sendMessage', chat_id: ADMIN_TG_CHAT_IDS[idx], text: text }),
+                        keepalive: true
+                    }).catch(function(){});
                 }
-            }
+            }).catch(function(){});
         } catch(e) {}
     }
 
@@ -3073,6 +3075,27 @@
     });
 
 
+    async function getAppCheckToken() {
+        if (!firebase.appCheck || !firebase.appCheck().getToken) return '';
+        try {
+            var result = await firebase.appCheck().getToken(false);
+            return result && result.token ? result.token : '';
+        } catch (e) {
+            return '';
+        }
+    }
+
+    async function postJson(url, data) {
+        var acToken = await getAppCheckToken();
+        var headers = { 'Content-Type': 'application/json' };
+        if (acToken) headers['x-firebase-appcheck'] = acToken;
+        return fetch(url, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify(data)
+        });
+    }
+
     async function sendToTelegramFallback(chatId, text, photoFile, replyMarkup) {
         const body = { action: 'sendMessage', chat_id: chatId, text };
         if (replyMarkup) body.reply_markup = replyMarkup;
@@ -3085,9 +3108,12 @@
             body.caption = text;
             delete body.text;
         }
+        const acToken = await getAppCheckToken();
+        const headers = { 'Content-Type': 'application/json' };
+        if (acToken) headers['x-firebase-appcheck'] = acToken;
         const res = await fetch('/api/telegram', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: headers,
             body: JSON.stringify(body)
         });
         let data;
@@ -5602,11 +5628,7 @@
         if (!isAdminUser) throw new Error('Не админ');
         if (!uid) throw new Error('Введите UID');
         const currentUserUid = firebaseAuth?.currentUser?.uid;
-        const res = await fetch('/api/delete-user', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ adminUid: currentUserUid, targetUid: uid })
-        });
+        const res = await postJson('/api/delete-user', { adminUid: currentUserUid, targetUid: uid });
         if (!res.ok) {
             const text = await res.text().catch(() => '');
             throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
@@ -5655,11 +5677,7 @@
             deleteByNickBtn.disabled = true;
             deleteByNickBtn.textContent = '⏳ УДАЛЕНИЕ...';
             if (bulkDeleteResult) bulkDeleteResult.innerHTML = '⏳ Удаление...';
-            const res = await fetch('/api/delete-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminUid: currentUserUid, nickPattern: pattern })
-            });
+        const res = await postJson('/api/delete-user', { adminUid: currentUserUid, nickPattern: pattern });
             if (!res.ok) {
                 const text = await res.text().catch(() => '');
                 throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
@@ -5727,11 +5745,7 @@
             deleteRecentBtn.disabled = true;
             deleteRecentBtn.textContent = '⏳ УДАЛЕНИЕ...';
             if (deleteRecentResult) deleteRecentResult.innerHTML = '⏳ Удаление...';
-            const res = await fetch('/api/delete-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminUid: currentUserUid, action: 'deleteRecent' })
-            });
+            const res = await postJson('/api/delete-user', { adminUid: currentUserUid, action: 'deleteRecent' });
             if (!res.ok) {
                 const text = await res.text().catch(() => '');
                 throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
@@ -5771,11 +5785,7 @@
             cleanupOrphansBtn.disabled = true;
             cleanupOrphansBtn.textContent = '⏳ ОЧИСТКА...';
             if (cleanupOrphansResult) cleanupOrphansResult.innerHTML = '⏳ Поиск мёртвых аккаунтов...';
-            const res = await fetch('/api/delete-user', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ adminUid: currentUserUid, action: 'cleanupOrphans' })
-            });
+            const res = await postJson('/api/delete-user', { adminUid: currentUserUid, action: 'cleanupOrphans' });
             if (!res.ok) {
                 const text = await res.text().catch(() => '');
                 throw new Error(`Сервер вернул ${res.status}: ${text.slice(0, 200)}`);
@@ -5824,7 +5834,10 @@
 
     async function checkPhotoOnServer(url) {
         try {
-            const res = await fetch('/api/photo-check?url=' + encodeURIComponent(url));
+            var acToken = await getAppCheckToken();
+            var headers = {};
+            if (acToken) headers['x-firebase-appcheck'] = acToken;
+            const res = await fetch('/api/photo-check?url=' + encodeURIComponent(url), { headers: headers });
             return await res.json();
         } catch (e) {
             return { ok: false, ip: 'N/A' };
